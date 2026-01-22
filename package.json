@@ -1,0 +1,48 @@
+{
+  "name": "bomb-boilerplate",
+  "version": "1.0.0",
+  "description": "Yarn Berry workspace based monorepo boilerplate with TypeScript, Biome, and Turbo",
+  "keywords": [
+    "monorepo",
+    "yarn-workspace",
+    "yarn-berry",
+    "typescript",
+    "biome",
+    "turbo",
+    "nextjs",
+    "boilerplate"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sh-oon/next-ts-boilerplate.git"
+  },
+  "license": "MIT",
+  "author": "sh-oon",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "turbo run dev",
+    "dev:server": "turbo run dev --filter=@like-cake/backend --filter=@like-cake/runner",
+    "build": "turbo run build",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write --unsafe .",
+    "format": "biome format --write .",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "test:e2e": "tsx scripts/e2e-flow-test.ts",
+    "test:e2e:runner": "tsx scripts/e2e-runner-test.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@like-cake/tsconfig": "*",
+    "glob": "^11.0.0",
+    "puppeteer": "^24.34.0",
+    "tsx": "^4.19.4",
+    "turbo": "^2.5.8",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "yarn@4.12.0"
+}

@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+.yarn/cache
+.yarn/install-state.gz
+
+# Build outputs
+.next
+dist
+build
+.turbo
+
+# Development
+.vscode
+*.log
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment
+.env*
+
+# TypeScript
+*.tsbuildinfo
+

@@ -1,0 +1,46 @@
+{
+  "name": "@like-cake/runner",
+  "version": "1.0.0",
+  "description": "Puppeteer-based test runner for E2E test automation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "like-cake-runner": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./cli": {
+      "import": "./dist/cli.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsx watch src/cli.ts",
+    "build": "tsup",
+    "start": "node dist/cli.js",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write --unsafe src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@like-cake/ast-types": "*",
+    "commander": "^13.1.0",
+    "jsonpath-plus": "^10.3.0",
+    "puppeteer": "^24.9.0",
+    "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@like-cake/tsconfig": "*",
+    "@types/node": "^24",
+    "tsup": "~8.5.0",
+    "tsx": "^4.19.4",
+    "typescript": "~5.9.2",
+    "vitest": "^2.0.0"
+  }
+}

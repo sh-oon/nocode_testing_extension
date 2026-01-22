@@ -1,0 +1,39 @@
+{
+  "name": "@like-cake/backend",
+  "version": "1.0.0",
+  "description": "Backend API server for E2E test automation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write --unsafe src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.4",
+    "@hono/zod-validator": "^0.5.0",
+    "@like-cake/ast-types": "*",
+    "@like-cake/event-collector": "*",
+    "better-sqlite3": "^11.10.0",
+    "hono": "^4.7.10",
+    "nanoid": "^5.0.9",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@like-cake/tsconfig": "*",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^24",
+    "tsup": "~8.5.0",
+    "tsx": "^4.19.4",
+    "typescript": "~5.9.2",
+    "vitest": "^2.0.0"
+  }
+}

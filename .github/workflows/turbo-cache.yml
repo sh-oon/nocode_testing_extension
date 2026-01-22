@@ -1,0 +1,20 @@
+name: Turbo Cache
+
+on:
+  workflow_call:
+
+jobs:
+  cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-cache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-cache-${{ runner.os }}-
+

@@ -1,0 +1,59 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'github-actions'
+
+  # Yarn workspace root
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+    groups:
+      dev-dependencies:
+        patterns:
+          - '@biomejs/*'
+          - 'typescript'
+          - 'turbo'
+
+  # Apps
+  - package-ecosystem: 'npm'
+    directory: '/apps/web'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'apps'
+
+  # Packages
+  - package-ecosystem: 'npm'
+    directory: '/packages/ui'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'packages'
+
+  - package-ecosystem: 'npm'
+    directory: '/packages/utils'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'packages'
+
+  - package-ecosystem: 'npm'
+    directory: '/packages/create-bomb-boilerplate'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'packages'
+
