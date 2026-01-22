@@ -60,7 +60,7 @@ jobs:
         run: yarn workspace create-bomb-boilerplate build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           name: create-bomb-boilerplate-dist
