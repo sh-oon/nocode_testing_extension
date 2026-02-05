@@ -16,17 +16,29 @@ function normalizeSelector(selector: SelectorInput): string {
 
 /**
  * Convert Selector object to a Puppeteer-compatible selector string
+ *
+ * For role selectors, we use Puppeteer's ARIA selector syntax with `aria/` prefix
+ * which queries the accessibility tree, supporting both explicit and implicit roles.
+ *
+ * Note: Puppeteer's ARIA selector format:
+ * - `aria/name` - find by accessible name
+ * - `aria/[role="button"]` - find by role
+ * - `aria/name[role="button"]` - find by name and role
  */
 function toSelectorStringFromObject(selector: Selector): string {
   switch (selector.strategy) {
     case 'testId':
       return `[data-testid="${selector.value}"]`;
     case 'role':
-      // RoleSelector uses 'role' field for the role value, 'name' for aria-label
+      // Use Puppeteer's ARIA selector for role-based queries
+      // If we have a name, use it as the primary selector (more specific)
+      // If no name, use just the role
       if (selector.name) {
-        return `[role="${selector.role}"][aria-label="${selector.name}"]`;
+        // Use accessible name as primary selector
+        // Role is used as additional constraint
+        return `aria/${selector.name}[role="${selector.role}"]`;
       }
-      return `[role="${selector.role}"]`;
+      return `aria/[role="${selector.role}"]`;
     case 'css':
       return selector.value;
     case 'xpath':

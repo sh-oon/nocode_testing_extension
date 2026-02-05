@@ -29,6 +29,8 @@
   },
   "dependencies": {
     "@like-cake/ast-types": "*",
+    "@like-cake/diff-engine": "*",
+    "@like-cake/step-player": "*",
     "commander": "^13.1.0",
     "jsonpath-plus": "^10.3.0",
     "puppeteer": "^24.9.0",
