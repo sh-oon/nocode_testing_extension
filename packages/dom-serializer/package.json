@@ -1,0 +1,35 @@
+{
+  "name": "@like-cake/dom-serializer",
+  "version": "1.0.0",
+  "description": "DOM serialization and screenshot capture for E2E test automation",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write --unsafe src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "html2canvas": "^1.4.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@like-cake/tsconfig": "*",
+    "jsdom": "^26.1.0",
+    "tsup": "~8.5.0",
+    "typescript": "~5.9.2",
+    "vitest": "^2.0.0"
+  }
+}

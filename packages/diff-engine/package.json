@@ -1,0 +1,42 @@
+{
+  "name": "@like-cake/diff-engine",
+  "version": "1.0.0",
+  "description": "Comparison engine for API responses, DOM structures, and screenshots",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write --unsafe src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@like-cake/api-interceptor": "*",
+    "@like-cake/dom-serializer": "*",
+    "deep-diff": "^1.0.2",
+    "jsondiffpatch": "^0.6.0",
+    "pixelmatch": "^6.0.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@like-cake/tsconfig": "*",
+    "@types/deep-diff": "^1.0.5",
+    "@types/pngjs": "^6.0.5",
+    "jsdom": "^26.1.0",
+    "tsup": "~8.5.0",
+    "typescript": "~5.9.2",
+    "vitest": "^2.0.0"
+  }
+}
