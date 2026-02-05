@@ -1622,7 +1622,7 @@ __metadata:
     "@like-cake/selector-engine": "npm:*"
     "@like-cake/step-player": "npm:*"
     "@like-cake/tsconfig": "npm:*"
-    "@types/chrome": "npm:^0.0.287"
+    "@types/chrome": "npm:^0.1.36"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
     "@vitejs/plugin-react": "npm:^4.3.4"
@@ -2454,13 +2454,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chrome@npm:^0.0.287":
-  version: 0.0.287
-  resolution: "@types/chrome@npm:0.0.287"
+"@types/chrome@npm:^0.1.36":
+  version: 0.1.36
+  resolution: "@types/chrome@npm:0.1.36"
   dependencies:
     "@types/filesystem": "npm:*"
     "@types/har-format": "npm:*"
-  checksum: 10c0/3c3c3b9a1e79f0f92f2fc254971985517aba95d8bc1355cbae2309e9cb001cd961a2edde764b6b88a9189d3a496602db3329da6aad0a90aff600fca832bc88e4
+  checksum: 10c0/afeb5fe87d743b7db2bf0fa2df7e1bec5b700614512b1de5c0b25c0b71eba54cce41d36606801fa2d1c55c984c3b4ec13736ea132a8c269e16d445bda176bb29
   languageName: node
   linkType: hard
 
