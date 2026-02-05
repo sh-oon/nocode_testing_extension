@@ -51,7 +51,26 @@ export class RoleGenerator implements SelectorGenerator {
 
   canGenerate(element: ElementInfo): boolean {
     const role = this.getRole(element);
-    return !!role;
+    if (!role) return false;
+
+    // Skip generic/landmark roles without a name
+    const genericRoles = [
+      'generic',
+      'group',
+      'region',
+      'main',
+      'complementary',
+      'contentinfo',
+      'banner',
+      'article',
+      'section',
+    ];
+    if (genericRoles.includes(role)) {
+      const name = this.getAccessibleName(element);
+      return !!name;
+    }
+
+    return true;
   }
 
   generate(element: ElementInfo, options?: GeneratorOptions): SelectorResult | null {
@@ -63,6 +82,23 @@ export class RoleGenerator implements SelectorGenerator {
     }
 
     const name = this.getAccessibleName(element);
+
+    // Skip generic/landmark roles without a name - they're too ambiguous for reliable testing
+    // These roles are used for page structure, not interactive elements
+    const genericRoles = [
+      'generic',
+      'group',
+      'region',
+      'main',
+      'complementary',
+      'contentinfo',
+      'banner',
+      'article',
+      'section',
+    ];
+    if (genericRoles.includes(role) && !name) {
+      return null;
+    }
 
     const selector: RoleSelector = {
       strategy: 'role',
@@ -89,7 +125,7 @@ export class RoleGenerator implements SelectorGenerator {
     return IMPLICIT_ROLES[element.tagName];
   }
 
-  private getAccessibleName(element: ElementInfo): string | undefined {
+  getAccessibleName(element: ElementInfo): string | undefined {
     // aria-label is the most explicit
     if (element.ariaLabel) {
       return element.ariaLabel;
