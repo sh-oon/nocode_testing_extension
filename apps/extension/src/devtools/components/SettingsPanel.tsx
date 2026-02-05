@@ -23,13 +23,6 @@ export function SettingsPanel({ isOpen, onClose, onConnectionChange }: SettingsP
     });
   }, []);
 
-  // Check connection when panel opens
-  useEffect(() => {
-    if (isOpen) {
-      checkConnection();
-    }
-  }, [isOpen]);
-
   const checkConnection = useCallback(async () => {
     setIsChecking(true);
     try {
@@ -43,6 +36,13 @@ export function SettingsPanel({ isOpen, onClose, onConnectionChange }: SettingsP
       setIsChecking(false);
     }
   }, [onConnectionChange]);
+
+  // Check connection when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      checkConnection();
+    }
+  }, [isOpen, checkConnection]);
 
   const handleSave = useCallback(async () => {
     if (!settings) return;
@@ -96,7 +96,10 @@ export function SettingsPanel({ isOpen, onClose, onConnectionChange }: SettingsP
             <h3 className="text-sm font-medium text-gray-300 mb-3">Backend Connection</h3>
             <div className="space-y-3">
               <div>
-                <label htmlFor="backend-url" className="block text-xs text-gray-400 mb-1">
+                <label
+                  htmlFor="backend-url"
+                  className="block text-xs text-gray-400 mb-1"
+                >
                   Backend URL
                 </label>
                 <div className="flex gap-2">

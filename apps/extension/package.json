@@ -12,9 +12,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@like-cake/api-interceptor": "*",
     "@like-cake/ast-types": "*",
+    "@like-cake/diff-engine": "*",
+    "@like-cake/dom-serializer": "*",
     "@like-cake/event-collector": "*",
     "@like-cake/selector-engine": "*",
+    "@like-cake/step-player": "*",
+    "@xyflow/react": "^12.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

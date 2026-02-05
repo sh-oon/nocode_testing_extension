@@ -21,7 +21,14 @@
     {
       "matches": ["<all_urls>"],
       "js": ["src/content/index.ts"],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inject-navigation.js", "inject-api.js"],
+      "matches": ["<all_urls>"]
     }
   ],
   "action": {
