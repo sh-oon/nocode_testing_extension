@@ -21,9 +21,11 @@
     "@hono/zod-validator": "^0.5.0",
     "@like-cake/ast-types": "*",
     "@like-cake/event-collector": "*",
+    "@like-cake/runner": "*",
     "better-sqlite3": "^11.10.0",
     "hono": "^4.7.10",
     "nanoid": "^5.0.9",
+    "ws": "^8.18.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -31,6 +33,7 @@
     "@like-cake/tsconfig": "*",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^24",
+    "@types/ws": "^8.5.13",
     "tsup": "~8.5.0",
     "tsx": "^4.19.4",
     "typescript": "~5.9.2",

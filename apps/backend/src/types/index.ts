@@ -1,4 +1,4 @@
-import type { ScenarioResult, Step } from '@like-cake/ast-types';
+import type { FlowEdge, FlowNode, FlowNodeResult, ScenarioResult, Step } from '@like-cake/ast-types';
 import type { RawEvent } from '@like-cake/event-collector';
 
 /**
@@ -137,12 +137,73 @@ export interface StoredExecutionResult {
   duration: number;
   stepResults: ScenarioResult['stepResults'];
   environment?: {
-    os: string;
-    nodeVersion: string;
-    puppeteerVersion: string;
-    chromeVersion: string;
+    os?: string;
+    nodeVersion?: string;
+    puppeteerVersion?: string;
+    chromeVersion?: string;
+    headless?: boolean;
+    userAgent?: string;
+    [key: string]: unknown;
   };
   executedAt: number;
+  createdAt: number;
+}
+
+/**
+ * User flow stored in database
+ */
+export interface StoredUserFlow {
+  id: string;
+  name: string;
+  description?: string;
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+  variables?: Record<string, string | number | boolean>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * User flow creation input
+ */
+export interface CreateUserFlowInput {
+  name: string;
+  description?: string;
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+  variables?: Record<string, string | number | boolean>;
+}
+
+/**
+ * User flow update input
+ */
+export interface UpdateUserFlowInput {
+  name?: string;
+  description?: string;
+  nodes?: FlowNode[];
+  edges?: FlowEdge[];
+  variables?: Record<string, string | number | boolean>;
+}
+
+/**
+ * Flow execution result stored in database
+ */
+export interface StoredFlowExecutionResult {
+  id: string;
+  flowId: string;
+  status: 'passed' | 'failed' | 'skipped';
+  totalNodes: number;
+  passedNodes: number;
+  failedNodes: number;
+  skippedNodes: number;
+  totalSteps: number;
+  passedSteps: number;
+  failedSteps: number;
+  skippedSteps: number;
+  duration: number;
+  nodeResults: FlowNodeResult[];
+  startedAt: number;
+  endedAt: number;
   createdAt: number;
 }
 

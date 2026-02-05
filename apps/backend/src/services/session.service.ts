@@ -185,6 +185,7 @@ export class SessionService {
 
   /**
    * Add event to session
+   * Uses INSERT OR IGNORE to handle duplicate event IDs gracefully
    */
   addEvent(sessionId: string, event: RawEvent): StoredRawEvent {
     const db = getDb();
@@ -192,7 +193,7 @@ export class SessionService {
     const now = Date.now();
 
     const stmt = db.prepare(`
-      INSERT INTO raw_events (id, session_id, type, timestamp, data, created_at)
+      INSERT OR IGNORE INTO raw_events (id, session_id, type, timestamp, data, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
@@ -210,22 +211,25 @@ export class SessionService {
 
   /**
    * Add multiple events to session (batch)
+   * Uses INSERT OR IGNORE to handle duplicate event IDs gracefully
    */
   addEvents(sessionId: string, events: RawEvent[]): number {
     const db = getDb();
     const now = Date.now();
 
     const stmt = db.prepare(`
-      INSERT INTO raw_events (id, session_id, type, timestamp, data, created_at)
+      INSERT OR IGNORE INTO raw_events (id, session_id, type, timestamp, data, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     const insertMany = db.transaction((events: RawEvent[]) => {
+      let inserted = 0;
       for (const event of events) {
         const id = event.id || `event-${nanoid(12)}`;
-        stmt.run(id, sessionId, event.type, event.timestamp, JSON.stringify(event), now);
+        const result = stmt.run(id, sessionId, event.type, event.timestamp, JSON.stringify(event), now);
+        if (result.changes > 0) inserted++;
       }
-      return events.length;
+      return inserted;
     });
 
     return insertMany(events);

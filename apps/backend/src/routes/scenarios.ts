@@ -2,6 +2,7 @@ import { zValidator } from '@hono/zod-validator';
 import type { Step } from '@like-cake/ast-types';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { executionService } from '../services/execution.service';
 import { scenarioService } from '../services/scenario.service';
 import type { ApiResponse } from '../types';
 
@@ -186,6 +187,62 @@ scenarios.delete('/:id', (c) => {
     success: true,
     data: { deleted: true },
   });
+});
+
+// Execution options schema
+const executeOptionsSchema = z.object({
+  headless: z.boolean().optional(),
+  timeout: z.number().int().positive().optional(),
+  baseUrl: z.string().url().optional(),
+  viewport: z
+    .object({
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+    })
+    .optional(),
+});
+
+/**
+ * Execute a scenario via Puppeteer
+ * POST /api/scenarios/:id/execute
+ */
+scenarios.post('/:id/execute', zValidator('json', executeOptionsSchema.optional()), async (c) => {
+  const id = c.req.param('id');
+  const options = c.req.valid('json') || {};
+
+  const scenario = scenarioService.getById(id);
+  if (!scenario) {
+    return c.json<ApiResponse<null>>(
+      {
+        success: false,
+        error: 'Scenario not found',
+      },
+      404
+    );
+  }
+
+  try {
+    const result = await executionService.execute(id, {
+      headless: options.headless ?? true,
+      defaultTimeout: options.timeout ?? 30000,
+      baseUrl: options.baseUrl,
+      viewport: options.viewport,
+    });
+
+    return c.json<ApiResponse<typeof result>>({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return c.json<ApiResponse<null>>(
+      {
+        success: false,
+        error: `Execution failed: ${errorMessage}`,
+      },
+      500
+    );
+  }
 });
 
 /**
