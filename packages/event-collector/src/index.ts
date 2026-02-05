@@ -28,6 +28,13 @@ export {
   transformEventsToSteps,
   transformEventToStep,
 } from './transformer';
+// Export API transformer
+export {
+  mergeStepsWithApiAssertions,
+  transformApiCallsToSteps,
+  transformApiCallToStep,
+  type ApiTransformConfig,
+} from './api-transformer';
 // Export types
 export type {
   BaseRawEvent,

@@ -22,6 +22,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@like-cake/api-interceptor": "*",
     "@like-cake/ast-types": "*",
     "@like-cake/selector-engine": "*"
   },
