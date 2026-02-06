@@ -23,15 +23,6 @@ updates:
           - 'typescript'
           - 'turbo'
 
-  # Apps
-  - package-ecosystem: 'npm'
-    directory: '/apps/web'
-    schedule:
-      interval: 'weekly'
-    labels:
-      - 'dependencies'
-      - 'apps'
-
   # Packages
   - package-ecosystem: 'npm'
     directory: '/packages/ui'
