@@ -72,26 +72,53 @@ export class UserFlowService {
   }
 
   /**
-   * List all user flows with pagination
+   * List all user flows with pagination, search, and sort
    */
-  list(params: PaginationParams = {}): ListResponse<StoredUserFlow> {
+  list(
+    params: PaginationParams & {
+      search?: string;
+      sort?: 'name' | 'updatedAt' | 'createdAt';
+      order?: 'asc' | 'desc';
+    } = {}
+  ): ListResponse<StoredUserFlow> {
     const db = getDb();
     const page = params.page || 1;
     const limit = params.limit || 20;
     const offset = (page - 1) * limit;
+    const search = params.search?.trim();
+    const sort = params.sort || 'updatedAt';
+    const order = params.order || 'desc';
+
+    // Map sort field to column name
+    const sortColumnMap: Record<string, string> = {
+      name: 'name',
+      updatedAt: 'updated_at',
+      createdAt: 'created_at',
+    };
+    const sortColumn = sortColumnMap[sort] || 'updated_at';
+    const sortDirection = order === 'asc' ? 'ASC' : 'DESC';
 
     const transaction = db.transaction(() => {
-      const countStmt = db.prepare('SELECT COUNT(*) as count FROM user_flows');
-      const { count: total } = countStmt.get() as { count: number };
+      const whereClause = search ? 'WHERE name LIKE ?' : '';
+      const searchParam = search ? `%${search}%` : undefined;
 
-      const stmt = db.prepare(`
+      const countSql = `SELECT COUNT(*) as count FROM user_flows ${whereClause}`;
+      const countStmt = db.prepare(countSql);
+      const { count: total } = (searchParam ? countStmt.get(searchParam) : countStmt.get()) as {
+        count: number;
+      };
+
+      const querySql = `
         SELECT id, name, description, nodes, edges, variables, created_at, updated_at
         FROM user_flows
-        ORDER BY created_at DESC
+        ${whereClause}
+        ORDER BY ${sortColumn} ${sortDirection}
         LIMIT ? OFFSET ?
-      `);
-
-      const rows = stmt.all(limit, offset) as UserFlowRow[];
+      `;
+      const queryStmt = db.prepare(querySql);
+      const rows = (
+        searchParam ? queryStmt.all(searchParam, limit, offset) : queryStmt.all(limit, offset)
+      ) as UserFlowRow[];
 
       return {
         items: rows.map(this.mapRowToUserFlow),
@@ -150,6 +177,39 @@ export class UserFlowService {
     });
 
     return transaction();
+  }
+
+  /**
+   * Get flows that reference a specific scenario ID in their nodes JSON
+   */
+  getFlowsReferencingScenario(scenarioId: string): { id: string; name: string }[] {
+    const db = getDb();
+    const stmt = db.prepare(`
+      SELECT DISTINCT uf.id, uf.name
+      FROM user_flows uf, json_each(uf.nodes) AS jn
+      WHERE json_extract(jn.value, '$.data.scenarioId') = ?
+    `);
+
+    const rows = stmt.all(scenarioId) as { id: string; name: string }[];
+    return rows;
+  }
+
+  /**
+   * Duplicate an existing user flow
+   */
+  duplicate(id: string, newName?: string): StoredUserFlow | null {
+    const original = this.getById(id);
+    if (!original) return null;
+
+    const name = newName || `${original.name} (복사)`;
+
+    return this.create({
+      name,
+      description: original.description,
+      nodes: original.nodes,
+      edges: original.edges,
+      variables: original.variables,
+    });
   }
 
   /**

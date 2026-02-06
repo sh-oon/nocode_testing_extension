@@ -49,6 +49,13 @@ const updateUserFlowSchema = z.object({
 const paginationSchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
+  search: z.string().optional(),
+  sort: z.enum(['name', 'updatedAt', 'createdAt']).optional(),
+  order: z.enum(['asc', 'desc']).optional(),
+});
+
+const duplicateUserFlowSchema = z.object({
+  name: z.string().optional(),
 });
 
 const executeOptionsSchema = z.object({
@@ -64,11 +71,11 @@ const executeOptionsSchema = z.object({
 });
 
 /**
- * List all user flows
+ * List all user flows with optional search, sort, and order
  */
 userflows.get('/', zValidator('query', paginationSchema), (c) => {
-  const { page, limit } = c.req.valid('query');
-  const result = userFlowService.list({ page, limit });
+  const { page, limit, search, sort, order } = c.req.valid('query');
+  const result = userFlowService.list({ page, limit, search, sort, order });
 
   return c.json<ApiResponse<typeof result>>({
     success: true,
@@ -151,6 +158,36 @@ userflows.patch('/:id', zValidator('json', updateUserFlowSchema), (c) => {
     success: true,
     data: flow,
   });
+});
+
+/**
+ * Duplicate a user flow
+ * POST /api/userflows/:id/duplicate
+ */
+userflows.post('/:id/duplicate', zValidator('json', duplicateUserFlowSchema.optional()), (c) => {
+  const id = c.req.param('id');
+  const body = c.req.valid('json');
+  const name = body?.name;
+
+  const duplicated = userFlowService.duplicate(id, name);
+
+  if (!duplicated) {
+    return c.json<ApiResponse<null>>(
+      {
+        success: false,
+        error: 'User flow not found',
+      },
+      404
+    );
+  }
+
+  return c.json<ApiResponse<typeof duplicated>>(
+    {
+      success: true,
+      data: duplicated,
+    },
+    201
+  );
 });
 
 /**

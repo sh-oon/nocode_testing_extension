@@ -6,12 +6,16 @@ import type {
   SetVariableNodeData,
 } from '@like-cake/ast-types';
 import { getApiClient } from '../../../shared/api';
+import { ConfirmModal } from '../ConfirmModal';
+import { FlowListPanel } from '../FlowListPanel';
 import { ScenarioDetailPanel } from '../ScenarioDetailPanel';
 import { FlowCanvas, useFlowState } from './FlowCanvas';
+import { FlowEmptyState } from './FlowEmptyState';
 import { FlowToolbar } from './FlowToolbar';
 import { FlowToolbox, type ToolboxNodeType } from './FlowToolbox';
 import { ScenarioSidebar, type SidebarScenario } from './ScenarioSidebar';
 import { ConditionEditor, VariableEditor, ExtractionEditor } from './editors';
+import { useFlowManager } from './useFlowManager';
 
 interface FlowBuilderProps {
   isConnected: boolean;
@@ -34,19 +38,24 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
   const [scenarios, setScenarios] = useState<SidebarScenario[]>([]);
   const [isLoadingScenarios, setIsLoadingScenarios] = useState(false);
 
-  // Flow state
-  const [flowId, setFlowId] = useState<string | null>(null);
-  const [flowName, setFlowName] = useState('');
-  const [isModified, setIsModified] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  // Execution state
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionSummary, setExecutionSummary] = useState<ExecutionSummary | null>(null);
 
-  // Scenario detail panel state
+  // UI panel state
+  const [isFlowListOpen, setIsFlowListOpen] = useState(false);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
   const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
 
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    action: 'createNew' | 'loadFlow' | null;
+    pendingFlowId?: string;
+  }>({ isOpen: false, action: null });
+
   // React Flow state
+  const flowState = useFlowState();
   const {
     nodes,
     edges,
@@ -64,7 +73,17 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     updateNodeData,
     resetNodeStatuses,
     getFlowData,
-  } = useFlowState();
+    setNodes,
+    setEdges,
+  } = flowState;
+
+  // Flow manager (replaces manual flowId/flowName/isSaving state)
+  const flowManager = useFlowManager({
+    getFlowData,
+    setNodes,
+    setEdges,
+    clearFlow,
+  });
 
   // Node editing state
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
@@ -100,20 +119,23 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     loadScenarios();
   }, [loadScenarios]);
 
-  // Add default Start/End nodes when canvas is empty
+  // Add default Start/End nodes when canvas is empty and no flow is loaded
   useEffect(() => {
-    if (nodes.length === 0) {
+    if (nodes.length === 0 && !flowManager.flowId && !flowManager.isLoading) {
       addStartNode({ x: 250, y: 50 });
       addEndNode({ x: 250, y: 400 });
     }
-  }, [nodes.length, addStartNode, addEndNode]);
+  }, [nodes.length, flowManager.flowId, flowManager.isLoading, addStartNode, addEndNode]);
 
-  // Mark as modified when nodes/edges change
+  // Mark flow as modified when nodes/edges change (skip during load)
   useEffect(() => {
-    setIsModified(true);
-  }, [nodes, edges]);
+    if (!flowManager.isLoading) {
+      flowManager.markModified();
+    }
+  }, [nodes, edges]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle scenario drop
+  // ---- Handlers ----
+
   const handleDrop = useCallback(
     (scenario: SidebarScenario, position: { x: number; y: number }) => {
       addScenarioNode(scenario, position);
@@ -121,7 +143,6 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     [addScenarioNode]
   );
 
-  // Handle toolbox node drop
   const handleToolboxDrop = useCallback(
     (type: ToolboxNodeType, position: { x: number; y: number }) => {
       switch (type) {
@@ -139,13 +160,11 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     [addConditionNode, addSetVariableNode, addExtractVariableNode]
   );
 
-  // Handle node double click for editing
   const handleNodeDoubleClick = useCallback((nodeId: string, nodeType: string) => {
     if (['condition', 'setVariable', 'extractVariable'].includes(nodeType)) {
       setEditingNodeId(nodeId);
       setEditingNodeType(nodeType);
     } else if (nodeType === 'scenario') {
-      // Open ScenarioDetailPanel for scenario nodes
       const node = nodes.find((n) => n.id === nodeId);
       const scenarioId = (node?.data as Record<string, unknown>)?.scenarioId as string;
       if (scenarioId) {
@@ -155,32 +174,26 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     }
   }, [nodes]);
 
-  // Close node editor
   const handleCloseEditor = useCallback(() => {
     setEditingNodeId(null);
     setEditingNodeType(null);
   }, []);
 
-  // Get editing node data
   const getEditingNodeData = useCallback(() => {
     if (!editingNodeId) return null;
     const node = nodes.find((n) => n.id === editingNodeId);
     return node?.data || null;
   }, [editingNodeId, nodes]);
 
-  // Handle scenario edit
   const handleScenarioEdit = useCallback((scenarioId: string) => {
     setSelectedScenarioId(scenarioId);
     setIsDetailPanelOpen(true);
   }, []);
 
-  // Handle scenario update (after editing)
   const handleScenarioUpdate = useCallback(() => {
-    // Reload scenarios to reflect changes
     loadScenarios();
   }, [loadScenarios]);
 
-  // Handle scenario delete
   const handleScenarioDelete = useCallback(
     (deletedId: string) => {
       setScenarios((prev) => prev.filter((s) => s.id !== deletedId));
@@ -188,74 +201,98 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     []
   );
 
-  // Handle save - returns the saved flow ID (or null on failure)
-  const handleSave = useCallback(async (): Promise<string | null> => {
-    if (!isConnected || !flowName.trim()) {
-      alert('Please enter a flow name');
-      return null;
-    }
+  // Flow list panel handlers
+  const handleOpenList = useCallback(() => {
+    setIsFlowListOpen(true);
+  }, []);
 
-    setIsSaving(true);
-    try {
-      const client = await getApiClient();
-      const flowData = getFlowData();
-
-      if (flowId) {
-        // Update existing flow
-        const response = await client.updateUserFlow(flowId, {
-          name: flowName,
-          nodes: flowData.nodes,
-          edges: flowData.edges,
-        });
-        if (response.success) {
-          setIsModified(false);
-          return flowId;
-        }
-      } else {
-        // Create new flow
-        const response = await client.createUserFlow({
-          name: flowName,
-          nodes: flowData.nodes,
-          edges: flowData.edges,
-        });
-        if (response.success && response.data) {
-          setFlowId(response.data.id);
-          setIsModified(false);
-          return response.data.id;
-        }
+  const handleSelectFlow = useCallback(
+    async (selectedFlowId: string) => {
+      if (flowManager.isModified) {
+        setConfirmModal({ isOpen: true, action: 'loadFlow', pendingFlowId: selectedFlowId });
+        return;
       }
-      return null;
-    } catch (error) {
-      console.error('Failed to save flow:', error);
-      return null;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [isConnected, flowName, flowId, getFlowData]);
+      await flowManager.loadFlow(selectedFlowId);
+    },
+    [flowManager]
+  );
 
-  // Handle execute
+  const handleCreateNew = useCallback(() => {
+    const result = flowManager.createNewFlow();
+    if (result.needsConfirmation) {
+      setConfirmModal({ isOpen: true, action: 'createNew' });
+      return;
+    }
+    setExecutionSummary(null);
+    setTimeout(() => {
+      addStartNode({ x: 250, y: 50 });
+      addEndNode({ x: 250, y: 400 });
+    }, 0);
+  }, [flowManager, addStartNode, addEndNode]);
+
+  // Confirm modal handlers
+  const handleConfirmSave = useCallback(async () => {
+    await flowManager.saveFlow();
+    const { action, pendingFlowId } = confirmModal;
+    setConfirmModal({ isOpen: false, action: null });
+
+    if (action === 'createNew') {
+      flowManager.forceCreateNewFlow();
+      setExecutionSummary(null);
+      setTimeout(() => {
+        addStartNode({ x: 250, y: 50 });
+        addEndNode({ x: 250, y: 400 });
+      }, 0);
+    } else if (action === 'loadFlow' && pendingFlowId) {
+      await flowManager.loadFlow(pendingFlowId);
+    }
+  }, [flowManager, confirmModal, addStartNode, addEndNode]);
+
+  const handleConfirmDiscard = useCallback(async () => {
+    const { action, pendingFlowId } = confirmModal;
+    setConfirmModal({ isOpen: false, action: null });
+
+    if (action === 'createNew') {
+      flowManager.forceCreateNewFlow();
+      setExecutionSummary(null);
+      setTimeout(() => {
+        addStartNode({ x: 250, y: 50 });
+        addEndNode({ x: 250, y: 400 });
+      }, 0);
+    } else if (action === 'loadFlow' && pendingFlowId) {
+      await flowManager.loadFlow(pendingFlowId);
+    }
+  }, [flowManager, confirmModal, addStartNode, addEndNode]);
+
+  const handleConfirmCancel = useCallback(() => {
+    setConfirmModal({ isOpen: false, action: null });
+  }, []);
+
+  // Save handler
+  const handleSave = useCallback(async (): Promise<string | null> => {
+    if (!isConnected || !flowManager.flowName.trim()) {
+      return null;
+    }
+    return flowManager.saveFlow();
+  }, [isConnected, flowManager]);
+
+  // Execute handler
   const handleExecute = useCallback(async () => {
     if (!isConnected) return;
 
-    // Ensure flow name is provided before attempting save
-    if (!flowName.trim()) {
-      alert('Please enter a flow name before executing.');
+    if (!flowManager.flowName.trim()) {
       return;
     }
 
-    // Save first if not saved or modified, and use the returned ID
-    let currentFlowId = flowId;
-    if (!currentFlowId || isModified) {
-      const savedId = await handleSave();
+    let currentFlowId = flowManager.flowId;
+    if (!currentFlowId || flowManager.isModified) {
+      const savedId = await flowManager.saveFlow();
       if (savedId) {
         currentFlowId = savedId;
       }
     }
 
-    if (!currentFlowId) {
-      alert('Failed to save the flow. Check the backend connection and try again.');
-      return;
-    }
+    if (!currentFlowId) return;
 
     setIsExecuting(true);
     setExecutionSummary(null);
@@ -269,8 +306,6 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
 
       if (response.success && response.data) {
         const result = response.data;
-
-        // Update node statuses based on results
         const errors: string[] = [];
         for (const nodeResult of result.nodeResults || []) {
           updateNodeStatus(nodeResult.nodeId, nodeResult.status);
@@ -308,37 +343,24 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     } finally {
       setIsExecuting(false);
     }
-  }, [isConnected, flowName, flowId, isModified, handleSave, resetNodeStatuses, updateNodeStatus]);
+  }, [isConnected, flowManager, resetNodeStatuses, updateNodeStatus]);
 
-  // Handle clear
-  const handleClear = useCallback(() => {
-    if (!confirm('Clear all nodes? This cannot be undone.')) return;
-    clearFlow();
-    setFlowId(null);
-    setFlowName('');
-    setIsModified(false);
-    setExecutionSummary(null);
-    // Re-add default nodes after clearing
-    setTimeout(() => {
-      addStartNode({ x: 250, y: 50 });
-      addEndNode({ x: 250, y: 400 });
-    }, 0);
-  }, [clearFlow, addStartNode, addEndNode]);
-
-  const hasScenarioNodes = nodes.some((n) => n.type === 'scenario');
+  // Show empty state when no flow is loaded and canvas only has start/end
+  const showEmptyState = !flowManager.flowId && !flowManager.flowName && nodes.length <= 2;
 
   return (
     <div className="flex flex-col h-full">
       <FlowToolbar
-        flowName={flowName}
-        onNameChange={setFlowName}
+        flowName={flowManager.flowName}
+        isModified={flowManager.isModified}
+        isSaving={flowManager.isSaving}
+        isLoading={isExecuting}
+        flowId={flowManager.flowId}
+        onOpenList={handleOpenList}
+        onCreateNew={handleCreateNew}
         onSave={handleSave}
-        onExecute={handleExecute}
-        onClear={handleClear}
-        isSaving={isSaving}
-        isExecuting={isExecuting}
-        hasNodes={hasScenarioNodes}
-        isModified={isModified}
+        onRun={handleExecute}
+        onFlowNameChange={flowManager.setFlowName}
       />
 
       {/* Execution Summary */}
@@ -381,7 +403,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         <ScenarioSidebar
           scenarios={scenarios}
           isLoading={isLoadingScenarios}
@@ -391,16 +413,25 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
 
         <FlowToolbox />
 
-        <FlowCanvas
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onDrop={handleDrop}
-          onToolboxDrop={handleToolboxDrop}
-          onNodeDoubleClick={handleNodeDoubleClick}
-        />
+        {showEmptyState ? (
+          <div className="flex-1 flex items-center justify-center bg-gray-900">
+            <FlowEmptyState
+              onOpenList={handleOpenList}
+              onCreateNew={handleCreateNew}
+            />
+          </div>
+        ) : (
+          <FlowCanvas
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={handleDrop}
+            onToolboxDrop={handleToolboxDrop}
+            onNodeDoubleClick={handleNodeDoubleClick}
+          />
+        )}
       </div>
 
       {!isConnected && (
@@ -413,6 +444,31 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
           </div>
         </div>
       )}
+
+      {/* Flow List Panel */}
+      <FlowListPanel
+        isOpen={isFlowListOpen}
+        onClose={() => setIsFlowListOpen(false)}
+        onSelectFlow={handleSelectFlow}
+        onCreateNew={handleCreateNew}
+        currentFlowId={flowManager.flowId}
+      />
+
+      {/* Unsaved Changes Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="저장하지 않은 변경사항"
+        message="현재 플로우에 저장하지 않은 변경사항이 있습니다. 저장하시겠습니까?"
+        confirmLabel="저장"
+        cancelLabel="취소"
+        variant="warning"
+        onConfirm={handleConfirmSave}
+        onCancel={handleConfirmCancel}
+        extraAction={{
+          label: '저장 안 함',
+          onClick: handleConfirmDiscard,
+        }}
+      />
 
       {/* Scenario Detail Panel */}
       {selectedScenarioId && (
@@ -437,7 +493,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
             label={nodeData?.label}
             onChange={(data) => {
               updateNodeData(editingNodeId, data);
-              setIsModified(true);
+              flowManager.markModified();
             }}
             onClose={handleCloseEditor}
           />
@@ -452,7 +508,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
             label={nodeData?.label}
             onChange={(data) => {
               updateNodeData(editingNodeId, data);
-              setIsModified(true);
+              flowManager.markModified();
             }}
             onClose={handleCloseEditor}
           />
@@ -467,7 +523,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
             label={nodeData?.label}
             onChange={(data) => {
               updateNodeData(editingNodeId, data);
-              setIsModified(true);
+              flowManager.markModified();
             }}
             onClose={handleCloseEditor}
           />

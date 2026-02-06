@@ -368,11 +368,20 @@ export class BackendApiClient {
   // ============ User Flow API ============
 
   /**
-   * List user flows
+   * List user flows with optional search, sort, and order
    */
-  async listUserFlows(): Promise<ApiResponse<{ items: BackendUserFlow[] }>> {
+  async listUserFlows(params?: {
+    search?: string;
+    sort?: string;
+    order?: string;
+  }): Promise<ApiResponse<{ items: BackendUserFlow[] }>> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/userflows`, {
+      const url = new URL(`${this.baseUrl}/api/userflows`);
+      if (params?.search) url.searchParams.set('search', params.search);
+      if (params?.sort) url.searchParams.set('sort', params.sort);
+      if (params?.order) url.searchParams.set('order', params.order);
+
+      const response = await fetch(url.toString(), {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -470,6 +479,46 @@ export class BackendApiClient {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to delete user flow',
+      };
+    }
+  }
+
+  /**
+   * Duplicate a user flow
+   */
+  async duplicateUserFlow(flowId: string, name?: string): Promise<ApiResponse<BackendUserFlow>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/userflows/${flowId}/duplicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(name ? { name } : {}),
+      });
+      return await response.json();
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to duplicate user flow',
+      };
+    }
+  }
+
+  /**
+   * Check which scenario IDs exist in the database
+   */
+  async checkScenarioRefs(
+    ids: string[]
+  ): Promise<ApiResponse<{ results: Record<string, boolean> }>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/scenarios/check-refs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      return await response.json();
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to check scenario refs',
       };
     }
   }

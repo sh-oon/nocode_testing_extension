@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { executionService } from '../services/execution.service';
 import { scenarioService } from '../services/scenario.service';
+import { userFlowService } from '../services/userflow.service';
 import type { ApiResponse } from '../types';
 
 const scenarios = new Hono();
@@ -88,6 +89,29 @@ scenarios.post('/', zValidator('json', createScenarioSchema), (c) => {
 });
 
 /**
+ * Check which scenario IDs exist in the database
+ * POST /api/scenarios/check-refs
+ */
+const checkRefsSchema = z.object({
+  ids: z.array(z.string()).min(1),
+});
+
+scenarios.post('/check-refs', zValidator('json', checkRefsSchema), (c) => {
+  const { ids } = c.req.valid('json');
+  const results: Record<string, boolean> = {};
+
+  for (const id of ids) {
+    const scenario = scenarioService.getById(id);
+    results[id] = scenario !== null;
+  }
+
+  return c.json<ApiResponse<{ results: Record<string, boolean> }>>({
+    success: true,
+    data: { results },
+  });
+});
+
+/**
  * Create scenario from a recording session
  */
 scenarios.post('/from-session', zValidator('json', createFromSessionSchema), (c) => {
@@ -168,9 +192,27 @@ scenarios.patch('/:id', zValidator('json', updateScenarioSchema), (c) => {
 
 /**
  * Delete scenario
+ * If the scenario is referenced by user flows and ?force=true is not set,
+ * returns 409 with the list of referencing flows.
  */
 scenarios.delete('/:id', (c) => {
   const id = c.req.param('id');
+  const force = c.req.query('force') === 'true';
+
+  // Check if any user flows reference this scenario
+  const referencingFlows = userFlowService.getFlowsReferencingScenario(id);
+
+  if (referencingFlows.length > 0 && !force) {
+    return c.json<ApiResponse<{ referencedBy: { id: string; name: string }[] }>>(
+      {
+        success: false,
+        error: 'Scenario is referenced by user flows',
+        data: { referencedBy: referencingFlows },
+      },
+      409
+    );
+  }
+
   const deleted = scenarioService.delete(id);
 
   if (!deleted) {
