@@ -329,6 +329,7 @@ export class BackendApiClient {
       name?: string;
       description?: string;
       tags?: string[];
+      steps?: Array<{ type: string; [key: string]: unknown }>;
     }
   ): Promise<ApiResponse<BackendScenarioDetail>> {
     try {

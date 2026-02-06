@@ -1,12 +1,18 @@
+import { useState } from 'react';
 import type { Step, StepResult } from '@like-cake/ast-types';
+import { StepEditor } from './StepEditor';
 
 interface StepListProps {
   steps: Step[];
   currentStepIndex?: number;
   stepResults?: StepResult[];
+  editable?: boolean;
+  onStepUpdate?: (index: number, step: Step) => void;
 }
 
-export function StepList({ steps, currentStepIndex, stepResults }: StepListProps) {
+export function StepList({ steps, currentStepIndex, stepResults, editable, onStepUpdate }: StepListProps) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
   if (steps.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500 p-8">
@@ -21,22 +27,38 @@ export function StepList({ steps, currentStepIndex, stepResults }: StepListProps
   }
 
   return (
-    <div className="divide-y divide-gray-800">
-      {steps.map((step, index) => {
-        const result = stepResults?.[index];
-        const isCurrent = currentStepIndex === index;
+    <>
+      <div className="divide-y divide-gray-800">
+        {steps.map((step, index) => {
+          const result = stepResults?.[index];
+          const isCurrent = currentStepIndex === index;
 
-        return (
-          <StepItem
-            key={step.id || index}
-            step={step}
-            index={index}
-            isCurrent={isCurrent}
-            result={result}
-          />
-        );
-      })}
-    </div>
+          return (
+            <StepItem
+              key={step.id || index}
+              step={step}
+              index={index}
+              isCurrent={isCurrent}
+              result={result}
+              editable={editable}
+              onEdit={() => setEditingIndex(index)}
+            />
+          );
+        })}
+      </div>
+
+      {editingIndex !== null && (
+        <StepEditor
+          step={steps[editingIndex]}
+          stepIndex={editingIndex}
+          onSave={(updatedStep) => {
+            onStepUpdate?.(editingIndex, updatedStep);
+            setEditingIndex(null);
+          }}
+          onClose={() => setEditingIndex(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -45,9 +67,11 @@ interface StepItemProps {
   index: number;
   isCurrent?: boolean;
   result?: StepResult;
+  editable?: boolean;
+  onEdit?: () => void;
 }
 
-function StepItem({ step, index, isCurrent, result }: StepItemProps) {
+function StepItem({ step, index, isCurrent, result, editable, onEdit }: StepItemProps) {
   const { icon, color, label } = getStepDisplay(step);
 
   // "Running" should only show if current AND no result yet
@@ -109,6 +133,18 @@ function StepItem({ step, index, isCurrent, result }: StepItemProps) {
           </div>
         )}
       </div>
+      {editable && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="flex-shrink-0 p-1.5 text-gray-500 hover:text-primary-400 transition-colors"
+          title="Edit step"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

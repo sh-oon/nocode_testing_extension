@@ -431,6 +431,34 @@ export function App() {
     setMode('playback');
   }, [steps]);
 
+  // Step editing handler
+  const handleStepUpdate = useCallback(
+    async (index: number, updatedStep: Step) => {
+      if (!loadedScenario) return;
+
+      const updatedSteps = [...loadedScenario.steps];
+      updatedSteps[index] = updatedStep;
+
+      setLoadedScenario((prev) => (prev ? { ...prev, steps: updatedSteps } : prev));
+
+      // Persist to backend if scenario is saved
+      if (backendScenarioId) {
+        try {
+          const client = await getApiClient();
+          await client.updateScenario(backendScenarioId, {
+            steps: updatedSteps as Array<{ type: string; [key: string]: unknown }>,
+          });
+        } catch (error) {
+          console.error('Failed to persist step update:', error);
+        }
+      }
+    },
+    [loadedScenario, backendScenarioId]
+  );
+
+  const isStepEditingEnabled =
+    mode === 'playback' && loadedScenario !== null && playbackState.playerState === 'idle';
+
   const totalSteps = loadedScenario?.steps.length ?? 0;
 
   return (
@@ -732,6 +760,8 @@ export function App() {
                 steps={mode === 'record' ? steps : loadedScenario?.steps || []}
                 currentStepIndex={mode === 'playback' ? playbackState.currentStepIndex : undefined}
                 stepResults={mode === 'playback' ? playbackState.stepResults : undefined}
+                editable={isStepEditingEnabled}
+                onStepUpdate={handleStepUpdate}
               />
             )}
             {activeTab === 'events' && <EventList events={events} />}

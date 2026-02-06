@@ -17,15 +17,34 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCallback, type DragEvent } from 'react';
-import type { ControlNodeData, FlowEdge, FlowNode, ScenarioNodeData } from '@like-cake/ast-types';
+import type {
+  ConditionNodeData,
+  ControlNodeData,
+  ExtractVariableNodeData,
+  FlowEdge,
+  FlowNode,
+  ScenarioNodeData,
+  SetVariableNodeData,
+} from '@like-cake/ast-types';
 import { nanoid } from '../../utils/nanoid';
-import { StartNode, EndNode, ScenarioNode } from './nodes';
+import {
+  StartNode,
+  EndNode,
+  ScenarioNode,
+  ConditionNode,
+  SetVariableNode,
+  ExtractVariableNode,
+} from './nodes';
 import type { SidebarScenario } from './ScenarioSidebar';
+import type { ToolboxNodeType } from './FlowToolbox';
 
 const nodeTypes: NodeTypes = {
   start: StartNode,
   end: EndNode,
   scenario: ScenarioNode,
+  condition: ConditionNode,
+  setVariable: SetVariableNode,
+  extractVariable: ExtractVariableNode,
 };
 
 interface FlowCanvasProps {
@@ -35,6 +54,8 @@ interface FlowCanvasProps {
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
   onDrop: (scenario: SidebarScenario, position: { x: number; y: number }) => void;
+  onToolboxDrop?: (type: ToolboxNodeType, position: { x: number; y: number }) => void;
+  onNodeDoubleClick?: (nodeId: string, nodeType: string) => void;
 }
 
 export function FlowCanvas({
@@ -44,6 +65,8 @@ export function FlowCanvas({
   onEdgesChange,
   onConnect,
   onDrop,
+  onToolboxDrop,
+  onNodeDoubleClick,
 }: FlowCanvasProps) {
   const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -54,6 +77,20 @@ export function FlowCanvas({
     (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
 
+      const reactFlowBounds = event.currentTarget.getBoundingClientRect();
+      const position = {
+        x: event.clientX - reactFlowBounds.left - 80,
+        y: event.clientY - reactFlowBounds.top - 30,
+      };
+
+      // Check for toolbox node types first
+      const toolboxType = event.dataTransfer.getData('toolbox-node') as ToolboxNodeType | '';
+      if (toolboxType && onToolboxDrop) {
+        onToolboxDrop(toolboxType, position);
+        return;
+      }
+
+      // Handle scenario drop
       const type = event.dataTransfer.getData('application/reactflow');
       if (type !== 'scenario') return;
 
@@ -61,17 +98,18 @@ export function FlowCanvas({
       if (!scenarioData) return;
 
       const scenario = JSON.parse(scenarioData) as SidebarScenario;
-
-      // Get the position relative to the canvas
-      const reactFlowBounds = event.currentTarget.getBoundingClientRect();
-      const position = {
-        x: event.clientX - reactFlowBounds.left - 80, // Center the node
-        y: event.clientY - reactFlowBounds.top - 30,
-      };
-
       onDrop(scenario, position);
     },
-    [onDrop]
+    [onDrop, onToolboxDrop]
+  );
+
+  const handleNodeDoubleClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      if (onNodeDoubleClick && node.type) {
+        onNodeDoubleClick(node.id, node.type);
+      }
+    },
+    [onNodeDoubleClick]
   );
 
   return (
@@ -84,6 +122,7 @@ export function FlowCanvas({
         onConnect={onConnect}
         onDragOver={onDragOver}
         onDrop={handleDrop}
+        onNodeDoubleClick={handleNodeDoubleClick}
         nodeTypes={nodeTypes}
         fitView
         snapToGrid
@@ -106,6 +145,12 @@ export function FlowCanvas({
                 return '#ef4444';
               case 'scenario':
                 return '#6366f1';
+              case 'condition':
+                return '#f59e0b';
+              case 'setVariable':
+                return '#a855f7';
+              case 'extractVariable':
+                return '#06b6d4';
               default:
                 return '#6b7280';
             }
@@ -127,12 +172,20 @@ export function useFlowState(initialNodes: FlowNode[] = [], initialEdges: FlowEd
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
+      // Color edges from condition nodes based on handle
+      let strokeColor = '#6b7280';
+      if (connection.sourceHandle === 'true') {
+        strokeColor = '#22c55e'; // Green for true branch
+      } else if (connection.sourceHandle === 'false') {
+        strokeColor = '#ef4444'; // Red for false branch
+      }
+
       setEdges((eds) =>
         addEdge(
           {
             ...connection,
             id: `edge-${nanoid(8)}`,
-            style: { strokeWidth: 2, stroke: '#6b7280' },
+            style: { strokeWidth: 2, stroke: strokeColor },
             type: 'smoothstep',
           },
           eds
@@ -157,6 +210,81 @@ export function useFlowState(initialNodes: FlowNode[] = [], initialEdges: FlowEd
         data: data as unknown as Record<string, unknown>,
       };
       setNodes((nds) => [...nds, newNode]);
+    },
+    [setNodes]
+  );
+
+  const addConditionNode = useCallback(
+    (position: { x: number; y: number }) => {
+      const data: ConditionNodeData = {
+        label: 'Condition',
+        condition: {
+          left: '{{variableName}}',
+          operator: 'eq',
+          right: 'value',
+        },
+        status: 'pending',
+      };
+      const newNode: Node = {
+        id: `node-${nanoid(8)}`,
+        type: 'condition',
+        position,
+        data: data as unknown as Record<string, unknown>,
+      };
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [setNodes]
+  );
+
+  const addSetVariableNode = useCallback(
+    (position: { x: number; y: number }) => {
+      const data: SetVariableNodeData = {
+        label: 'Set Variables',
+        variables: [{ name: 'variableName', value: '', type: 'string' }],
+        status: 'pending',
+      };
+      const newNode: Node = {
+        id: `node-${nanoid(8)}`,
+        type: 'setVariable',
+        position,
+        data: data as unknown as Record<string, unknown>,
+      };
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [setNodes]
+  );
+
+  const addExtractVariableNode = useCallback(
+    (position: { x: number; y: number }) => {
+      const data: ExtractVariableNodeData = {
+        label: 'Extract Variables',
+        extractions: [{ variableName: '', source: 'lastApiResponse', jsonPath: '$.data' }],
+        status: 'pending',
+      };
+      const newNode: Node = {
+        id: `node-${nanoid(8)}`,
+        type: 'extractVariable',
+        position,
+        data: data as unknown as Record<string, unknown>,
+      };
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [setNodes]
+  );
+
+  const updateNodeData = useCallback(
+    (nodeId: string, data: Partial<ConditionNodeData | SetVariableNodeData | ExtractVariableNodeData>) => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: { ...node.data, ...data },
+            };
+          }
+          return node;
+        })
+      );
     },
     [setNodes]
   );
@@ -202,11 +330,15 @@ export function useFlowState(initialNodes: FlowNode[] = [], initialEdges: FlowEd
     (nodeId: string, status: ScenarioNodeData['status']) => {
       setNodes((nds) =>
         nds.map((node) => {
-          if (node.id === nodeId && node.type === 'scenario') {
-            return {
-              ...node,
-              data: { ...node.data, status },
-            };
+          if (node.id === nodeId) {
+            // Update status for scenario, condition, setVariable, extractVariable nodes
+            const updatableTypes = ['scenario', 'condition', 'setVariable', 'extractVariable'];
+            if (updatableTypes.includes(node.type || '')) {
+              return {
+                ...node,
+                data: { ...node.data, status },
+              };
+            }
           }
           return node;
         })
@@ -218,10 +350,11 @@ export function useFlowState(initialNodes: FlowNode[] = [], initialEdges: FlowEd
   const resetNodeStatuses = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
-        if (node.type === 'scenario') {
+        const resettableTypes = ['scenario', 'condition', 'setVariable', 'extractVariable'];
+        if (resettableTypes.includes(node.type || '')) {
           return {
             ...node,
-            data: { ...node.data, status: 'pending' },
+            data: { ...node.data, status: 'pending', lastResult: undefined },
           };
         }
         return node;
@@ -243,10 +376,14 @@ export function useFlowState(initialNodes: FlowNode[] = [], initialEdges: FlowEd
     onEdgesChange,
     onConnect,
     addScenarioNode,
+    addConditionNode,
+    addSetVariableNode,
+    addExtractVariableNode,
     addStartNode,
     addEndNode,
     clearFlow,
     updateNodeStatus,
+    updateNodeData,
     resetNodeStatuses,
     getFlowData,
     setNodes,
@@ -270,35 +407,71 @@ function reactFlowNodeToFlowNode(node: Node): FlowNode {
     position: node.position,
   };
 
-  if (node.type === 'scenario') {
-    return {
-      ...baseNode,
-      type: 'scenario',
-      data: node.data as unknown as ScenarioNodeData,
-    };
+  switch (node.type) {
+    case 'scenario':
+      return {
+        ...baseNode,
+        type: 'scenario',
+        data: node.data as unknown as ScenarioNodeData,
+      };
+    case 'start':
+      return {
+        ...baseNode,
+        type: 'start',
+        data: node.data as unknown as ControlNodeData,
+      };
+    case 'end':
+      return {
+        ...baseNode,
+        type: 'end',
+        data: node.data as unknown as ControlNodeData,
+      };
+    case 'condition':
+      return {
+        ...baseNode,
+        type: 'condition',
+        data: node.data as unknown as ConditionNodeData,
+      };
+    case 'setVariable':
+      return {
+        ...baseNode,
+        type: 'setVariable',
+        data: node.data as unknown as SetVariableNodeData,
+      };
+    case 'extractVariable':
+      return {
+        ...baseNode,
+        type: 'extractVariable',
+        data: node.data as unknown as ExtractVariableNodeData,
+      };
+    default:
+      return {
+        ...baseNode,
+        type: 'end',
+        data: node.data as unknown as ControlNodeData,
+      };
   }
-  if (node.type === 'start') {
-    return {
-      ...baseNode,
-      type: 'start',
-      data: node.data as unknown as ControlNodeData,
-    };
-  }
-  return {
-    ...baseNode,
-    type: 'end',
-    data: node.data as unknown as ControlNodeData,
-  };
 }
 
 function flowEdgeToReactFlowEdge(flowEdge: FlowEdge): Edge {
+  // Color edges based on condition branch
+  let strokeColor = '#6b7280';
+  if (flowEdge.sourceHandle === 'true') {
+    strokeColor = '#22c55e'; // Green for true branch
+  } else if (flowEdge.sourceHandle === 'false') {
+    strokeColor = '#ef4444'; // Red for false branch
+  }
+
   return {
     id: flowEdge.id,
     source: flowEdge.source,
     target: flowEdge.target,
+    sourceHandle: flowEdge.sourceHandle,
+    targetHandle: flowEdge.targetHandle,
     label: flowEdge.label,
-    style: { strokeWidth: 2, stroke: '#6b7280' },
-    type: 'smoothstep',
+    style: { strokeWidth: 2, stroke: strokeColor },
+    type: flowEdge.type || 'smoothstep',
+    animated: flowEdge.animated,
   };
 }
 
@@ -307,6 +480,10 @@ function reactFlowEdgeToFlowEdge(edge: Edge): FlowEdge {
     id: edge.id,
     source: edge.source,
     target: edge.target,
+    sourceHandle: edge.sourceHandle as FlowEdge['sourceHandle'],
+    targetHandle: edge.targetHandle || undefined,
     label: typeof edge.label === 'string' ? edge.label : undefined,
+    type: edge.type as FlowEdge['type'],
+    animated: edge.animated,
   };
 }

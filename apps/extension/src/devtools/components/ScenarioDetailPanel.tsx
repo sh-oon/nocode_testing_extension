@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { Step } from '@like-cake/ast-types';
 import { getApiClient, type BackendScenarioDetail } from '../../shared/api';
+import { StepList } from './StepList';
 
 interface ScenarioDetailPanelProps {
   scenarioId: string;
@@ -25,6 +27,8 @@ export function ScenarioDetailPanel({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [activeTab, setActiveTab] = useState<'info' | 'steps'>('steps');
 
   // Load scenario details
   useEffect(() => {
@@ -43,6 +47,7 @@ export function ScenarioDetailPanel({
           setName(response.data.name || '');
           setDescription(response.data.description || '');
           setTags(response.data.tags?.join(', ') || '');
+          setSteps((response.data.steps || []) as Step[]);
         } else {
           setError(response.error || 'Failed to load scenario');
         }
@@ -74,11 +79,13 @@ export function ScenarioDetailPanel({
         name: name || undefined,
         description: description || undefined,
         tags: parsedTags.length > 0 ? parsedTags : undefined,
+        steps: steps as Array<{ type: string; [key: string]: unknown }>,
       });
 
       if (response.success && response.data) {
         setScenario(response.data);
         onUpdate?.(response.data);
+        onClose();
       } else {
         setError(response.error || 'Failed to save scenario');
       }
@@ -87,7 +94,7 @@ export function ScenarioDetailPanel({
     } finally {
       setIsSaving(false);
     }
-  }, [scenarioId, name, description, tags, onUpdate]);
+  }, [scenarioId, name, description, tags, steps, onUpdate, onClose]);
 
   // Handle delete
   const handleDelete = useCallback(async () => {
@@ -114,11 +121,31 @@ export function ScenarioDetailPanel({
     }
   }, [scenarioId, onDelete, onClose]);
 
+  // Handle step update
+  const handleStepUpdate = useCallback(
+    async (index: number, updatedStep: Step) => {
+      const updatedSteps = [...steps];
+      updatedSteps[index] = updatedStep;
+      setSteps(updatedSteps);
+
+      // Auto-save step changes to backend
+      try {
+        const client = await getApiClient();
+        await client.updateScenario(scenarioId, {
+          steps: updatedSteps as Array<{ type: string; [key: string]: unknown }>,
+        });
+      } catch (err) {
+        console.error('Failed to save step update:', err);
+      }
+    },
+    [scenarioId, steps]
+  );
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
+      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
           <h2 className="text-lg font-semibold text-white">Scenario Details</h2>
@@ -132,105 +159,155 @@ export function ScenarioDetailPanel({
           </button>
         </div>
 
+        {/* Tabs */}
+        {scenario && (
+          <div className="flex border-b border-gray-700">
+            <button
+              type="button"
+              onClick={() => setActiveTab('steps')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === 'steps'
+                  ? 'text-primary-400 border-b-2 border-primary-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Steps ({steps.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('info')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === 'info'
+                  ? 'text-primary-400 border-b-2 border-primary-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Info
+            </button>
+          </div>
+        )}
+
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <LoadingSpinner />
               <span className="ml-2 text-gray-400">Loading...</span>
             </div>
           ) : error ? (
-            <div className="bg-red-900/50 border border-red-800 rounded-md p-3 text-red-200 text-sm">
+            <div className="m-4 bg-red-900/50 border border-red-800 rounded-md p-3 text-red-200 text-sm">
               {error}
             </div>
           ) : scenario ? (
-            <div className="space-y-4">
-              {/* ID (read-only) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">ID</label>
-                <div className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-gray-300 text-sm font-mono">
-                  {scenario.id}
+            <>
+              {/* Steps Tab */}
+              {activeTab === 'steps' && (
+                <div>
+                  {steps.length > 0 ? (
+                    <StepList
+                      steps={steps}
+                      editable
+                      onStepUpdate={handleStepUpdate}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                      <p>No steps in this scenario.</p>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* Name */}
-              <div>
-                <label htmlFor="scenario-name" className="block text-sm font-medium text-gray-400 mb-1">
-                  Name
-                </label>
-                <input
-                  id="scenario-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter scenario name"
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500"
-                />
-              </div>
+              {/* Info Tab */}
+              {activeTab === 'info' && (
+                <div className="p-4 space-y-4">
+                  {/* ID (read-only) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">ID</label>
+                    <div className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-gray-300 text-sm font-mono">
+                      {scenario.id}
+                    </div>
+                  </div>
 
-              {/* Description */}
-              <div>
-                <label htmlFor="scenario-description" className="block text-sm font-medium text-gray-400 mb-1">
-                  Description
-                </label>
-                <textarea
-                  id="scenario-description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter description"
-                  rows={3}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500 resize-none"
-                />
-              </div>
+                  {/* Name */}
+                  <div>
+                    <label htmlFor="scenario-name" className="block text-sm font-medium text-gray-400 mb-1">
+                      Name
+                    </label>
+                    <input
+                      id="scenario-name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter scenario name"
+                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500"
+                    />
+                  </div>
 
-              {/* Tags */}
-              <div>
-                <label htmlFor="scenario-tags" className="block text-sm font-medium text-gray-400 mb-1">
-                  Tags
-                </label>
-                <input
-                  id="scenario-tags"
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="tag1, tag2, tag3"
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500"
-                />
-                <p className="mt-1 text-xs text-gray-500">Separate tags with commas</p>
-              </div>
+                  {/* Description */}
+                  <div>
+                    <label htmlFor="scenario-description" className="block text-sm font-medium text-gray-400 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      id="scenario-description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Enter description"
+                      rows={3}
+                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500 resize-none"
+                    />
+                  </div>
 
-              {/* Meta info */}
-              <div className="pt-4 border-t border-gray-700 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">URL:</span>
-                  <span className="text-gray-300 truncate max-w-[250px]" title={scenario.url}>
-                    {scenario.url}
-                  </span>
+                  {/* Tags */}
+                  <div>
+                    <label htmlFor="scenario-tags" className="block text-sm font-medium text-gray-400 mb-1">
+                      Tags
+                    </label>
+                    <input
+                      id="scenario-tags"
+                      type="text"
+                      value={tags}
+                      onChange={(e) => setTags(e.target.value)}
+                      placeholder="tag1, tag2, tag3"
+                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Separate tags with commas</p>
+                  </div>
+
+                  {/* Meta info */}
+                  <div className="pt-4 border-t border-gray-700 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">URL:</span>
+                      <span className="text-gray-300 truncate max-w-[250px]" title={scenario.url}>
+                        {scenario.url}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Steps:</span>
+                      <span className="text-gray-300">{steps.length}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Viewport:</span>
+                      <span className="text-gray-300">
+                        {scenario.viewport?.width} x {scenario.viewport?.height}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Created:</span>
+                      <span className="text-gray-300">
+                        {new Date(scenario.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Updated:</span>
+                      <span className="text-gray-300">
+                        {new Date(scenario.updatedAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Steps:</span>
-                  <span className="text-gray-300">{scenario.steps?.length || 0}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Viewport:</span>
-                  <span className="text-gray-300">
-                    {scenario.viewport?.width} x {scenario.viewport?.height}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Created:</span>
-                  <span className="text-gray-300">
-                    {new Date(scenario.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Updated:</span>
-                  <span className="text-gray-300">
-                    {new Date(scenario.updatedAt).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
+              )}
+            </>
           ) : null}
         </div>
 

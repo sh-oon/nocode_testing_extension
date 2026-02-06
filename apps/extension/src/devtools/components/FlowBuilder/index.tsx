@@ -1,10 +1,17 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
+import type {
+  ConditionNodeData,
+  ExtractVariableNodeData,
+  SetVariableNodeData,
+} from '@like-cake/ast-types';
 import { getApiClient } from '../../../shared/api';
 import { ScenarioDetailPanel } from '../ScenarioDetailPanel';
 import { FlowCanvas, useFlowState } from './FlowCanvas';
 import { FlowToolbar } from './FlowToolbar';
+import { FlowToolbox, type ToolboxNodeType } from './FlowToolbox';
 import { ScenarioSidebar, type SidebarScenario } from './ScenarioSidebar';
+import { ConditionEditor, VariableEditor, ExtractionEditor } from './editors';
 
 interface FlowBuilderProps {
   isConnected: boolean;
@@ -19,6 +26,7 @@ interface ExecutionSummary {
   passedSteps: number;
   failedSteps: number;
   duration: number;
+  errors?: string[];
 }
 
 function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
@@ -46,13 +54,21 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     onEdgesChange,
     onConnect,
     addScenarioNode,
+    addConditionNode,
+    addSetVariableNode,
+    addExtractVariableNode,
     addStartNode,
     addEndNode,
     clearFlow,
     updateNodeStatus,
+    updateNodeData,
     resetNodeStatuses,
     getFlowData,
   } = useFlowState();
+
+  // Node editing state
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+  const [editingNodeType, setEditingNodeType] = useState<string | null>(null);
 
   // Load scenarios from backend
   const loadScenarios = useCallback(async () => {
@@ -105,6 +121,53 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     [addScenarioNode]
   );
 
+  // Handle toolbox node drop
+  const handleToolboxDrop = useCallback(
+    (type: ToolboxNodeType, position: { x: number; y: number }) => {
+      switch (type) {
+        case 'condition':
+          addConditionNode(position);
+          break;
+        case 'setVariable':
+          addSetVariableNode(position);
+          break;
+        case 'extractVariable':
+          addExtractVariableNode(position);
+          break;
+      }
+    },
+    [addConditionNode, addSetVariableNode, addExtractVariableNode]
+  );
+
+  // Handle node double click for editing
+  const handleNodeDoubleClick = useCallback((nodeId: string, nodeType: string) => {
+    if (['condition', 'setVariable', 'extractVariable'].includes(nodeType)) {
+      setEditingNodeId(nodeId);
+      setEditingNodeType(nodeType);
+    } else if (nodeType === 'scenario') {
+      // Open ScenarioDetailPanel for scenario nodes
+      const node = nodes.find((n) => n.id === nodeId);
+      const scenarioId = (node?.data as Record<string, unknown>)?.scenarioId as string;
+      if (scenarioId) {
+        setSelectedScenarioId(scenarioId);
+        setIsDetailPanelOpen(true);
+      }
+    }
+  }, [nodes]);
+
+  // Close node editor
+  const handleCloseEditor = useCallback(() => {
+    setEditingNodeId(null);
+    setEditingNodeType(null);
+  }, []);
+
+  // Get editing node data
+  const getEditingNodeData = useCallback(() => {
+    if (!editingNodeId) return null;
+    const node = nodes.find((n) => n.id === editingNodeId);
+    return node?.data || null;
+  }, [editingNodeId, nodes]);
+
   // Handle scenario edit
   const handleScenarioEdit = useCallback((scenarioId: string) => {
     setSelectedScenarioId(scenarioId);
@@ -125,11 +188,11 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     []
   );
 
-  // Handle save
-  const handleSave = useCallback(async () => {
+  // Handle save - returns the saved flow ID (or null on failure)
+  const handleSave = useCallback(async (): Promise<string | null> => {
     if (!isConnected || !flowName.trim()) {
       alert('Please enter a flow name');
-      return;
+      return null;
     }
 
     setIsSaving(true);
@@ -146,6 +209,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
         });
         if (response.success) {
           setIsModified(false);
+          return flowId;
         }
       } else {
         // Create new flow
@@ -157,10 +221,13 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
         if (response.success && response.data) {
           setFlowId(response.data.id);
           setIsModified(false);
+          return response.data.id;
         }
       }
+      return null;
     } catch (error) {
       console.error('Failed to save flow:', error);
+      return null;
     } finally {
       setIsSaving(false);
     }
@@ -170,14 +237,23 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
   const handleExecute = useCallback(async () => {
     if (!isConnected) return;
 
-    // Save first if not saved or modified
-    if (!flowId || isModified) {
-      await handleSave();
+    // Ensure flow name is provided before attempting save
+    if (!flowName.trim()) {
+      alert('Please enter a flow name before executing.');
+      return;
     }
 
-    const currentFlowId = flowId;
+    // Save first if not saved or modified, and use the returned ID
+    let currentFlowId = flowId;
+    if (!currentFlowId || isModified) {
+      const savedId = await handleSave();
+      if (savedId) {
+        currentFlowId = savedId;
+      }
+    }
+
     if (!currentFlowId) {
-      alert('Please save the flow first');
+      alert('Failed to save the flow. Check the backend connection and try again.');
       return;
     }
 
@@ -187,14 +263,20 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
 
     try {
       const client = await getApiClient();
-      const response = await client.executeUserFlow(currentFlowId);
+      const response = await client.executeUserFlow(currentFlowId, {
+        headless: false,
+      });
 
       if (response.success && response.data) {
         const result = response.data;
 
         // Update node statuses based on results
+        const errors: string[] = [];
         for (const nodeResult of result.nodeResults || []) {
           updateNodeStatus(nodeResult.nodeId, nodeResult.status);
+          if (nodeResult.status === 'failed' && nodeResult.error?.message) {
+            errors.push(nodeResult.error.message);
+          }
         }
 
         setExecutionSummary({
@@ -206,6 +288,19 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
           passedSteps: result.summary?.passedSteps || 0,
           failedSteps: result.summary?.failedSteps || 0,
           duration: result.summary?.duration || 0,
+          errors: errors.length > 0 ? errors : undefined,
+        });
+      } else if (!response.success) {
+        setExecutionSummary({
+          status: 'failed',
+          totalNodes: 0,
+          passedNodes: 0,
+          failedNodes: 0,
+          totalSteps: 0,
+          passedSteps: 0,
+          failedSteps: 0,
+          duration: 0,
+          errors: [response.error || 'Unknown execution error'],
         });
       }
     } catch (error) {
@@ -213,7 +308,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     } finally {
       setIsExecuting(false);
     }
-  }, [isConnected, flowId, isModified, handleSave, resetNodeStatuses, updateNodeStatus]);
+  }, [isConnected, flowName, flowId, isModified, handleSave, resetNodeStatuses, updateNodeStatus]);
 
   // Handle clear
   const handleClear = useCallback(() => {
@@ -275,6 +370,17 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
         </div>
       )}
 
+      {/* Error Details */}
+      {executionSummary?.errors && executionSummary.errors.length > 0 && (
+        <div className="px-4 py-2 bg-red-950/50 border-b border-red-900 text-xs font-mono text-red-300 max-h-32 overflow-y-auto">
+          {executionSummary.errors.map((err, i) => (
+            <div key={i} className="py-0.5">
+              {err}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
         <ScenarioSidebar
           scenarios={scenarios}
@@ -283,6 +389,8 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
           onScenarioEdit={handleScenarioEdit}
         />
 
+        <FlowToolbox />
+
         <FlowCanvas
           nodes={nodes}
           edges={edges}
@@ -290,6 +398,8 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onDrop={handleDrop}
+          onToolboxDrop={handleToolboxDrop}
+          onNodeDoubleClick={handleNodeDoubleClick}
         />
       </div>
 
@@ -317,6 +427,52 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
           onDelete={handleScenarioDelete}
         />
       )}
+
+      {/* Node Editors */}
+      {editingNodeId && editingNodeType === 'condition' && (() => {
+        const nodeData = getEditingNodeData() as unknown as ConditionNodeData | null;
+        return (
+          <ConditionEditor
+            condition={nodeData?.condition}
+            label={nodeData?.label}
+            onChange={(data) => {
+              updateNodeData(editingNodeId, data);
+              setIsModified(true);
+            }}
+            onClose={handleCloseEditor}
+          />
+        );
+      })()}
+
+      {editingNodeId && editingNodeType === 'setVariable' && (() => {
+        const nodeData = getEditingNodeData() as unknown as SetVariableNodeData | null;
+        return (
+          <VariableEditor
+            variables={nodeData?.variables}
+            label={nodeData?.label}
+            onChange={(data) => {
+              updateNodeData(editingNodeId, data);
+              setIsModified(true);
+            }}
+            onClose={handleCloseEditor}
+          />
+        );
+      })()}
+
+      {editingNodeId && editingNodeType === 'extractVariable' && (() => {
+        const nodeData = getEditingNodeData() as unknown as ExtractVariableNodeData | null;
+        return (
+          <ExtractionEditor
+            extractions={nodeData?.extractions}
+            label={nodeData?.label}
+            onChange={(data) => {
+              updateNodeData(editingNodeId, data);
+              setIsModified(true);
+            }}
+            onClose={handleCloseEditor}
+          />
+        );
+      })()}
     </div>
   );
 }
