@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../../app';
 import { closeDb, getDb, initializeDb } from '../../db';
 import { CREATE_TABLES_SQL, DROP_TABLES_SQL } from '../../db/schema';

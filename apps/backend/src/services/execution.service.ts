@@ -37,13 +37,20 @@ export class ExecutionService {
   async execute(
     scenarioId: string,
     options: Partial<RunnerOptions> = {},
-    subscriber?: WebSocket
+    subscriber?: WebSocket,
+    runtimeVariables?: Record<string, string | number | boolean>
   ): Promise<ScenarioExecutionResult> {
     // Get scenario from database
     const storedScenario = scenarioService.getById(scenarioId);
     if (!storedScenario) {
       throw new Error(`Scenario not found: ${scenarioId}`);
     }
+
+    // Merge stored variables with runtime variables (runtime takes precedence)
+    const mergedVariables = {
+      ...(storedScenario.variables ?? {}),
+      ...runtimeVariables,
+    };
 
     // Convert to runner Scenario format
     const scenario: Scenario = {
@@ -59,15 +66,26 @@ export class ExecutionService {
       steps: storedScenario.steps,
       setup: storedScenario.setup,
       teardown: storedScenario.teardown,
-      variables: storedScenario.variables,
+      variables: mergedVariables,
     };
+
+    // Derive baseUrl from scenario URL if not explicitly provided
+    const resolvedOptions = { ...options };
+    if (!resolvedOptions.baseUrl && storedScenario.url) {
+      try {
+        const origin = new URL(storedScenario.url).origin;
+        resolvedOptions.baseUrl = origin;
+      } catch {
+        // Invalid URL - skip baseUrl derivation
+      }
+    }
 
     const executionId = `exec-${nanoid(12)}`;
     const runner = new ScenarioRunner({
       headless: true,
       screenshotOnFailure: true,
       continueOnFailure: false,
-      ...options,
+      ...resolvedOptions,
     });
 
     // Track active execution

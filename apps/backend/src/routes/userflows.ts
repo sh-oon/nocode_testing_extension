@@ -10,7 +10,7 @@ const userflows = new Hono();
 // Flow node schema
 const flowNodeSchema = z.object({
   id: z.string(),
-  type: z.enum(['scenario', 'start', 'end']),
+  type: z.enum(['scenario', 'start', 'end', 'condition', 'setVariable', 'extractVariable']),
   position: z.object({
     x: z.number(),
     y: z.number(),
@@ -24,6 +24,10 @@ const flowEdgeSchema = z.object({
   source: z.string(),
   target: z.string(),
   label: z.string().optional(),
+  sourceHandle: z.string().optional(),
+  targetHandle: z.string().optional(),
+  type: z.string().optional(),
+  animated: z.boolean().optional(),
 });
 
 const createUserFlowSchema = z.object({

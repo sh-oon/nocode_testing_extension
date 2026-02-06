@@ -1,4 +1,4 @@
-import type { FlowEdge, FlowNode, FlowNodeResult } from '@like-cake/ast-types';
+import type { FlowEdge, FlowNode, FlowNodeResult, FlowVariableValue } from '@like-cake/ast-types';
 import { nanoid } from 'nanoid';
 import { getDb } from '../db';
 import type {
@@ -10,6 +10,7 @@ import type {
   UpdateUserFlowInput,
 } from '../types';
 import { executionService } from './execution.service';
+import { FlowExecutor } from './flow-executor';
 import { scenarioService } from './scenario.service';
 
 /**
@@ -79,25 +80,29 @@ export class UserFlowService {
     const limit = params.limit || 20;
     const offset = (page - 1) * limit;
 
-    const countStmt = db.prepare('SELECT COUNT(*) as count FROM user_flows');
-    const { count: total } = countStmt.get() as { count: number };
+    const transaction = db.transaction(() => {
+      const countStmt = db.prepare('SELECT COUNT(*) as count FROM user_flows');
+      const { count: total } = countStmt.get() as { count: number };
 
-    const stmt = db.prepare(`
-      SELECT id, name, description, nodes, edges, variables, created_at, updated_at
-      FROM user_flows
-      ORDER BY created_at DESC
-      LIMIT ? OFFSET ?
-    `);
+      const stmt = db.prepare(`
+        SELECT id, name, description, nodes, edges, variables, created_at, updated_at
+        FROM user_flows
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+      `);
 
-    const rows = stmt.all(limit, offset) as UserFlowRow[];
+      const rows = stmt.all(limit, offset) as UserFlowRow[];
 
-    return {
-      items: rows.map(this.mapRowToUserFlow),
-      total,
-      page,
-      limit,
-      hasMore: offset + rows.length < total,
-    };
+      return {
+        items: rows.map(this.mapRowToUserFlow),
+        total,
+        page,
+        limit,
+        hasMore: offset + rows.length < total,
+      };
+    });
+
+    return transaction();
   }
 
   /**
@@ -133,14 +138,18 @@ export class UserFlowService {
 
     values.push(id);
 
-    const stmt = db.prepare(`
-      UPDATE user_flows SET ${updates.join(', ')} WHERE id = ?
-    `);
+    const transaction = db.transaction(() => {
+      const stmt = db.prepare(`
+        UPDATE user_flows SET ${updates.join(', ')} WHERE id = ?
+      `);
 
-    const result = stmt.run(...values);
-    if (result.changes === 0) return null;
+      const result = stmt.run(...values);
+      if (result.changes === 0) return null;
 
-    return this.getById(id);
+      return this.getById(id);
+    });
+
+    return transaction();
   }
 
   /**
@@ -222,7 +231,8 @@ export class UserFlowService {
   }
 
   /**
-   * Execute a user flow
+   * Execute a user flow using the FlowExecutor
+   * Supports conditional branching and variable passing
    */
   async execute(
     id: string,
@@ -231,6 +241,8 @@ export class UserFlowService {
       defaultTimeout?: number;
       baseUrl?: string;
       viewport?: { width: number; height: number };
+      onNodeStatusChange?: (nodeId: string, status: string, result?: FlowNodeResult) => void;
+      continueOnFailure?: boolean;
     } = {}
   ): Promise<StoredFlowExecutionResult | null> {
     console.log('[UserFlowService.execute] Starting execution for flow:', id);
@@ -242,9 +254,89 @@ export class UserFlowService {
 
     console.log('[UserFlowService.execute] Flow found:', flow.name, 'with', flow.nodes.length, 'nodes');
 
+    // Check if flow has condition nodes - use new FlowExecutor
+    const hasConditionNodes = flow.nodes.some(
+      (n) => n.type === 'condition' || n.type === 'setVariable' || n.type === 'extractVariable'
+    );
+
+    if (hasConditionNodes) {
+      console.log('[UserFlowService.execute] Using FlowExecutor for conditional flow');
+      return this.executeWithFlowExecutor(id, flow, options);
+    }
+
+    // Fallback to legacy execution for simple flows (backward compatibility)
+    console.log('[UserFlowService.execute] Using legacy execution for simple flow');
+    return this.executeLegacy(id, flow, options);
+  }
+
+  /**
+   * Execute flow using the new FlowExecutor (supports conditions and variables)
+   */
+  private async executeWithFlowExecutor(
+    id: string,
+    flow: StoredUserFlow,
+    options: {
+      headless?: boolean;
+      defaultTimeout?: number;
+      baseUrl?: string;
+      viewport?: { width: number; height: number };
+      onNodeStatusChange?: (nodeId: string, status: string, result?: FlowNodeResult) => void;
+      continueOnFailure?: boolean;
+    }
+  ): Promise<StoredFlowExecutionResult> {
+    const executor = new FlowExecutor(flow.nodes, flow.edges, {
+      initialVariables: flow.variables as Record<string, FlowVariableValue> || {},
+      scenarioService,
+      executionService,
+      runnerOptions: {
+        headless: options.headless,
+        defaultTimeout: options.defaultTimeout,
+        baseUrl: options.baseUrl,
+        viewport: options.viewport,
+      },
+      onNodeStatusChange: options.onNodeStatusChange,
+      continueOnFailure: options.continueOnFailure,
+    });
+
+    const result = await executor.execute();
+
+    // Store the result
+    const executionResult = this.addExecutionResult(id, {
+      status: result.status,
+      totalNodes: result.summary.totalNodes,
+      passedNodes: result.summary.passedNodes,
+      failedNodes: result.summary.failedNodes,
+      skippedNodes: result.summary.skippedNodes,
+      totalSteps: result.summary.totalSteps,
+      passedSteps: result.summary.passedSteps,
+      failedSteps: result.summary.failedSteps,
+      skippedSteps: result.summary.skippedSteps,
+      duration: result.summary.duration,
+      nodeResults: result.nodeResults,
+      startedAt: result.startedAt,
+      endedAt: result.endedAt,
+    });
+
+    return executionResult;
+  }
+
+  /**
+   * Legacy execution for simple flows (no conditions/variables)
+   * Kept for backward compatibility
+   */
+  private async executeLegacy(
+    id: string,
+    flow: StoredUserFlow,
+    options: {
+      headless?: boolean;
+      defaultTimeout?: number;
+      baseUrl?: string;
+      viewport?: { width: number; height: number };
+    }
+  ): Promise<StoredFlowExecutionResult> {
     const startedAt = Date.now();
     const scenarioIds = this.flatten(flow);
-    console.log('[UserFlowService.execute] Scenario IDs to execute:', scenarioIds);
+    console.log('[UserFlowService.executeLegacy] Scenario IDs to execute:', scenarioIds);
     const nodeResults: FlowNodeResult[] = [];
 
     let totalSteps = 0;
@@ -261,6 +353,7 @@ export class UserFlowService {
         const nodeId = this.findNodeIdByScenarioId(flow.nodes, scenarioId);
         nodeResults.push({
           nodeId: nodeId || scenarioId,
+          nodeType: 'scenario',
           status: 'skipped',
           duration: 0,
           error: { message: `Scenario ${scenarioId} not found` },
@@ -278,6 +371,7 @@ export class UserFlowService {
 
         const nodeResult: FlowNodeResult = {
           nodeId: nodeId || scenarioId,
+          nodeType: 'scenario',
           status,
           duration: Date.now() - nodeStartTime,
           scenarioResult: {
@@ -304,6 +398,7 @@ export class UserFlowService {
         hasFailure = true;
         nodeResults.push({
           nodeId: nodeId || scenarioId,
+          nodeType: 'scenario',
           status: 'failed',
           duration: Date.now() - nodeStartTime,
           error: {
@@ -396,30 +491,43 @@ export class UserFlowService {
     const limit = params.limit || 20;
     const offset = (page - 1) * limit;
 
-    const countStmt = db.prepare(
-      'SELECT COUNT(*) as count FROM flow_execution_results WHERE flow_id = ?'
-    );
-    const { count: total } = countStmt.get(flowId) as { count: number };
+    const transaction = db.transaction(() => {
+      const countStmt = db.prepare(
+        'SELECT COUNT(*) as count FROM flow_execution_results WHERE flow_id = ?'
+      );
+      const { count: total } = countStmt.get(flowId) as { count: number };
 
-    const stmt = db.prepare(`
-      SELECT id, flow_id, status, total_nodes, passed_nodes, failed_nodes, skipped_nodes,
-             total_steps, passed_steps, failed_steps, skipped_steps,
-             duration, node_results, started_at, ended_at, created_at
-      FROM flow_execution_results
-      WHERE flow_id = ?
-      ORDER BY started_at DESC
-      LIMIT ? OFFSET ?
-    `);
+      const stmt = db.prepare(`
+        SELECT id, flow_id, status, total_nodes, passed_nodes, failed_nodes, skipped_nodes,
+               total_steps, passed_steps, failed_steps, skipped_steps,
+               duration, node_results, started_at, ended_at, created_at
+        FROM flow_execution_results
+        WHERE flow_id = ?
+        ORDER BY started_at DESC
+        LIMIT ? OFFSET ?
+      `);
 
-    const rows = stmt.all(flowId, limit, offset) as FlowExecutionResultRow[];
+      const rows = stmt.all(flowId, limit, offset) as FlowExecutionResultRow[];
 
-    return {
-      items: rows.map(this.mapRowToFlowExecutionResult),
-      total,
-      page,
-      limit,
-      hasMore: offset + rows.length < total,
-    };
+      return {
+        items: rows.map(this.mapRowToFlowExecutionResult),
+        total,
+        page,
+        limit,
+        hasMore: offset + rows.length < total,
+      };
+    });
+
+    return transaction();
+  }
+
+  private parseJsonSafely<T>(data: string, fallback: T): T {
+    try {
+      return JSON.parse(data) as T;
+    } catch {
+      console.error('[UserFlowService] Failed to parse JSON:', data.slice(0, 100));
+      return fallback;
+    }
   }
 
   private findNodeIdByScenarioId(nodes: FlowNode[], scenarioId: string): string | null {
@@ -427,22 +535,22 @@ export class UserFlowService {
     return node?.id || null;
   }
 
-  private mapRowToUserFlow(row: UserFlowRow): StoredUserFlow {
+  private mapRowToUserFlow = (row: UserFlowRow): StoredUserFlow => {
     return {
       id: row.id,
       name: row.name,
       description: row.description || undefined,
-      nodes: JSON.parse(row.nodes) as FlowNode[],
-      edges: JSON.parse(row.edges) as FlowEdge[],
+      nodes: this.parseJsonSafely<FlowNode[]>(row.nodes, []),
+      edges: this.parseJsonSafely<FlowEdge[]>(row.edges, []),
       variables: row.variables
-        ? (JSON.parse(row.variables) as Record<string, string | number | boolean>)
+        ? this.parseJsonSafely<Record<string, string | number | boolean>>(row.variables, {})
         : undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
-  }
+  };
 
-  private mapRowToFlowExecutionResult(row: FlowExecutionResultRow): StoredFlowExecutionResult {
+  private mapRowToFlowExecutionResult = (row: FlowExecutionResultRow): StoredFlowExecutionResult => {
     return {
       id: row.id,
       flowId: row.flow_id,
@@ -456,12 +564,12 @@ export class UserFlowService {
       failedSteps: row.failed_steps,
       skippedSteps: row.skipped_steps,
       duration: row.duration,
-      nodeResults: JSON.parse(row.node_results) as FlowNodeResult[],
+      nodeResults: this.parseJsonSafely<FlowNodeResult[]>(row.node_results, []),
       startedAt: row.started_at,
       endedAt: row.ended_at,
       createdAt: row.created_at,
     };
-  }
+  };
 }
 
 // Internal row types

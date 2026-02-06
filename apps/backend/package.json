@@ -22,6 +22,7 @@
     "@like-cake/ast-types": "*",
     "@like-cake/event-collector": "*",
     "@like-cake/runner": "*",
+    "@like-cake/variable-store": "*",
     "better-sqlite3": "^11.10.0",
     "hono": "^4.7.10",
     "nanoid": "^5.0.9",
