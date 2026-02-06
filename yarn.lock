@@ -1315,7 +1315,7 @@ __metadata:
     "@like-cake/tsconfig": "npm:*"
     "@like-cake/variable-store": "npm:*"
     "@types/better-sqlite3": "npm:^7.6.12"
-    "@types/node": "npm:^24"
+    "@types/node": "npm:^25"
     "@types/ws": "npm:^8.5.13"
     better-sqlite3: "npm:^11.10.0"
     hono: "npm:^4.7.10"
@@ -1419,7 +1419,7 @@ __metadata:
     "@like-cake/diff-engine": "npm:*"
     "@like-cake/step-player": "npm:*"
     "@like-cake/tsconfig": "npm:*"
-    "@types/node": "npm:^24"
+    "@types/node": "npm:^25"
     commander: "npm:^13.1.0"
     jsonpath-plus: "npm:^10.3.0"
     puppeteer: "npm:^24.9.0"
@@ -2078,12 +2078,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^24":
-  version: 24.7.1
-  resolution: "@types/node@npm:24.7.1"
+"@types/node@npm:^25":
+  version: 25.2.1
+  resolution: "@types/node@npm:25.2.1"
   dependencies:
-    undici-types: "npm:~7.14.0"
-  checksum: 10c0/2525f2aa865d78b1c75faaf8c6bf2af51c930962d8078306620d9a76eafcbbea035142cf2cdc2fcf1b4010cd3958a1c6c59b67aba1ac205dc1e5f895ef6af673
+    undici-types: "npm:~7.16.0"
+  checksum: 10c0/ce42fa07495093c55b6398e3c4346d644a61b8c4f59d2e0c0ed152ea0e4327c60a41d5fdfa3e0fc4f4776eb925e2b783b6b942501fc044328a44980bc2de4dc6
   languageName: node
   linkType: hard
 
@@ -6240,13 +6240,6 @@ __metadata:
   version: 1.6.1
   resolution: "ufo@npm:1.6.1"
   checksum: 10c0/5a9f041e5945fba7c189d5410508cbcbefef80b253ed29aa2e1f8a2b86f4bd51af44ee18d4485e6d3468c92be9bf4a42e3a2b72dcaf27ce39ce947ec994f1e6b
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~7.14.0":
-  version: 7.14.0
-  resolution: "undici-types@npm:7.14.0"
-  checksum: 10c0/e7f3214b45d788f03c51ceb33817be99c65dae203863aa9386b3ccc47201a245a7955fc721fb581da9c888b6ebad59fa3f53405214afec04c455a479908f0f14
   languageName: node
   linkType: hard
 
