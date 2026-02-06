@@ -93,7 +93,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: create-bomb-boilerplate-dist
           path: packages/create-bomb-boilerplate/dist
