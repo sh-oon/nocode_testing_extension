@@ -1,4 +1,4 @@
-import type { Selector, SelectorStrategy } from '@like-cake/ast-types';
+import type { Selector, SelectorCandidate, SelectorStrategy } from '@like-cake/ast-types';
 
 /**
  * Information extracted from a DOM element for selector generation
@@ -29,6 +29,10 @@ export interface ElementInfo {
   siblingCount?: number;
   /** XPath from document root */
   xpath?: string;
+  /** Multiple selector candidates with stability scores (populated by collector) */
+  selectorCandidates?: SelectorCandidate[];
+  /** Truncated outer HTML for preview (populated by collector) */
+  elementHtml?: string;
 }
 
 /**

@@ -6,6 +6,10 @@ export {
   type ScoreWeights,
 } from './scorer';
 export {
+  calculateStabilityScore,
+  rankByStability,
+} from './stability-scorer';
+export {
   isSelectorStable,
   type ValidationResult,
   validateSelector,

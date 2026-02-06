@@ -60,3 +60,22 @@ export type Selector = TestIdSelector | RoleSelector | CssSelector | XPathSelect
  * String format: "[data-testid=email]" for backward compatibility
  */
 export type SelectorInput = string | Selector;
+
+/**
+ * A selector candidate with stability metadata
+ * Used by the Selector Recommender to present multiple options to the user
+ */
+export interface SelectorCandidate {
+  /** The selector strategy that generated this candidate */
+  strategy: string;
+  /** The CSS/XPath selector string */
+  selector: string;
+  /** Stability score (0-100) indicating how resistant to UI changes */
+  score: number;
+  /** Whether this selector uniquely identifies one element on the page */
+  isUnique: boolean;
+  /** Whether the selector is human-readable */
+  isReadable: boolean;
+  /** Confidence level from the generator (0-100) */
+  confidence: number;
+}

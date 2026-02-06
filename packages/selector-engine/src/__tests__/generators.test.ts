@@ -119,6 +119,7 @@ describe('RoleGenerator', () => {
       tagName: 'section',
       classNames: [],
       role: 'region',
+      ariaLabel: 'Main content',
       attributes: {},
     };
 

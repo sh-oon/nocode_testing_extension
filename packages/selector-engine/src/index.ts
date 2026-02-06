@@ -3,6 +3,7 @@ export type {
   CssSelector,
   RoleSelector,
   Selector,
+  SelectorCandidate,
   SelectorInput,
   SelectorStrategy,
   TestIdSelector,
@@ -39,9 +40,11 @@ export { DEFAULT_GENERATOR_OPTIONS } from './types';
 // Export utilities
 export {
   calculateCompositeScore,
+  calculateStabilityScore,
   compareSelectorResults,
   DEFAULT_WEIGHTS,
   isSelectorStable,
+  rankByStability,
   rankSelectorResults,
   type ScoreWeights,
   type ValidationResult,
