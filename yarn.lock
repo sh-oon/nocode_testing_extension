@@ -1402,7 +1402,7 @@ __metadata:
     autoprefixer: "npm:^10.4.20"
     postcss: "npm:^8.5.1"
     react: "npm:^19.0.0"
-    react-dom: "npm:^19.0.0"
+    react-dom: "npm:^19.2.4"
     sharp: "npm:^0.34.5"
     tailwindcss: "npm:^3.4.17"
     typescript: "npm:~5.9.2"
@@ -1475,7 +1475,7 @@ __metadata:
     "@biomejs/biome": "npm:^2.2.5"
     "@like-cake/tsconfig": "npm:*"
     "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.0"
     tsup: "npm:~8.5.0"
     typescript: "npm:~5.9.2"
@@ -2096,12 +2096,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19, @types/react-dom@npm:^19.2.1":
+"@types/react-dom@npm:^19":
   version: 19.2.1
   resolution: "@types/react-dom@npm:19.2.1"
   peerDependencies:
     "@types/react": ^19.2.0
   checksum: 10c0/0dbbc5b7ecd74681bfac95a413133b26118a70b8840748277abafa47e5c7a037beae6a660e6a21fb53f5cbdb0b2d33e117ea7bbd976a888c298392a8a96bc68f
+  languageName: node
+  linkType: hard
+
+"@types/react-dom@npm:^19.2.3":
+  version: 19.2.3
+  resolution: "@types/react-dom@npm:19.2.3"
+  peerDependencies:
+    "@types/react": ^19.2.0
+  checksum: 10c0/b486ebe0f4e2fb35e2e108df1d8fc0927ca5d6002d5771e8a739de11239fe62d0e207c50886185253c99eb9dedfeeb956ea7429e5ba17f6693c7acb4c02f8cd1
   languageName: node
   linkType: hard
 
@@ -5117,14 +5126,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.0.0":
-  version: 19.2.3
-  resolution: "react-dom@npm:19.2.3"
+"react-dom@npm:^19.2.4":
+  version: 19.2.4
+  resolution: "react-dom@npm:19.2.4"
   dependencies:
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.3
-  checksum: 10c0/dc43f7ede06f46f3acc16ee83107c925530de9b91d1d0b3824583814746ff4c498ea64fd65cd83aba363205268adff52e2827c582634ae7b15069deaeabc4892
+    react: ^19.2.4
+  checksum: 10c0/f0c63f1794dedb154136d4d0f59af00b41907f4859571c155940296808f4b94bf9c0c20633db75b5b2112ec13d8d7dd4f9bf57362ed48782f317b11d05a44f35
   languageName: node
   linkType: hard
 
