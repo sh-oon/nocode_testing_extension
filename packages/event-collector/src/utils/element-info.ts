@@ -1,10 +1,18 @@
+import type { SelectorCandidate } from '@like-cake/ast-types';
 import type { ElementInfo } from '@like-cake/selector-engine';
 
 /**
  * Extract ElementInfo from a DOM element
  * This is the bridge between DOM and the selector engine
+ *
+ * When collectCandidates is true, generates multiple selector candidates
+ * with stability scores for the Selector Recommender feature.
  */
-export function extractElementInfo(element: Element, maxParentDepth = 3): ElementInfo {
+export function extractElementInfo(
+  element: Element,
+  maxParentDepth = 3,
+  collectCandidates = false,
+): ElementInfo {
   const tagName = element.tagName.toLowerCase();
 
   // Extract basic attributes
@@ -34,7 +42,7 @@ export function extractElementInfo(element: Element, maxParentDepth = 3): Elemen
   // Build XPath
   const xpath = buildXPath(element);
 
-  return {
+  const info: ElementInfo = {
     tagName,
     id,
     classNames,
@@ -48,6 +56,14 @@ export function extractElementInfo(element: Element, maxParentDepth = 3): Elemen
     parent,
     xpath,
   };
+
+  // Collect multiple selector candidates if requested
+  if (collectCandidates) {
+    info.selectorCandidates = collectSelectorCandidates(element);
+    info.elementHtml = element.outerHTML.slice(0, 200);
+  }
+
+  return info;
 }
 
 /**
@@ -259,4 +275,154 @@ export function findInteractiveAncestor(element: Element): Element | null {
   }
 
   return null;
+}
+
+/**
+ * Selector strategy definitions for multi-candidate collection
+ */
+interface SelectorStrategy {
+  name: string;
+  priority: number;
+  generate: (element: Element) => string | null;
+}
+
+const SELECTOR_STRATEGIES: SelectorStrategy[] = [
+  {
+    name: 'testId',
+    priority: 100,
+    generate: (el) => {
+      const testId = el.getAttribute('data-testid');
+      return testId ? `[data-testid="${testId}"]` : null;
+    },
+  },
+  {
+    name: 'ariaLabel',
+    priority: 90,
+    generate: (el) => {
+      const label = el.getAttribute('aria-label');
+      const role = el.getAttribute('role') || getImplicitRole(el);
+      if (!label) return null;
+      return role ? `[role="${role}"][aria-label="${label}"]` : `[aria-label="${label}"]`;
+    },
+  },
+  {
+    name: 'role',
+    priority: 85,
+    generate: (el) => {
+      const role = el.getAttribute('role') || getImplicitRole(el);
+      if (!role) return null;
+      const text = getTextContent(el);
+      return text ? `${el.tagName.toLowerCase()}[role="${role}"]:has-text("${text.slice(0, 50)}")` : null;
+    },
+  },
+  {
+    name: 'id',
+    priority: 75,
+    generate: (el) => {
+      const id = el.id;
+      if (!id) return null;
+      // Skip dynamic-looking IDs
+      if (/^[0-9a-f]{8,}$/i.test(id) || /^\d+$/.test(id)) return null;
+      return `#${id}`;
+    },
+  },
+  {
+    name: 'name',
+    priority: 70,
+    generate: (el) => {
+      const name = el.getAttribute('name');
+      return name ? `${el.tagName.toLowerCase()}[name="${name}"]` : null;
+    },
+  },
+  {
+    name: 'class',
+    priority: 50,
+    generate: (el) => {
+      const classes = Array.from(el.classList).filter(
+        (c) => !isDynamicClassName(c) && c.length < 40,
+      );
+      if (classes.length === 0) return null;
+      const selected = classes.slice(0, 2);
+      return `${el.tagName.toLowerCase()}.${selected.join('.')}`;
+    },
+  },
+  {
+    name: 'css',
+    priority: 30,
+    generate: (el) => {
+      const { siblingIndex, siblingCount } = getSiblingInfo(el);
+      const tag = el.tagName.toLowerCase();
+      if (siblingCount > 1) {
+        return `${tag}:nth-child(${siblingIndex + 1})`;
+      }
+      return tag;
+    },
+  },
+  {
+    name: 'xpath',
+    priority: 10,
+    generate: (el) => {
+      return buildXPath(el);
+    },
+  },
+];
+
+/**
+ * Check if a class name looks dynamically generated (CSS-in-JS, hashed, etc.)
+ */
+function isDynamicClassName(className: string): boolean {
+  const dynamicPatterns = [
+    /^[a-z]{1,3}[A-Z]/, // CSS-in-JS pattern (e.g., aB1234)
+    /^_[a-z0-9]+$/, // Underscore prefix
+    /^css-[a-z0-9]+$/, // Emotion
+    /^sc-[a-zA-Z]+$/, // styled-components
+    /^jsx-[a-z0-9]+$/, // JSX
+    /^svelte-[a-z0-9]+$/, // Svelte
+    /^[a-f0-9]{8,}$/, // Hash-only
+  ];
+  return dynamicPatterns.some((p) => p.test(className));
+}
+
+/**
+ * Collect multiple selector candidates for an element
+ * Each candidate is scored for stability and uniqueness
+ */
+function collectSelectorCandidates(element: Element): SelectorCandidate[] {
+  const candidates: SelectorCandidate[] = [];
+
+  for (const strategy of SELECTOR_STRATEGIES) {
+    try {
+      const selector = strategy.generate(element);
+      if (!selector) continue;
+
+      // Check uniqueness by querying the DOM
+      let isUnique = false;
+      try {
+        if (strategy.name === 'xpath') {
+          // XPath uniqueness check
+          isUnique = true; // Assume unique for XPath (can't easily querySelectorAll)
+        } else if (!selector.includes(':has-text')) {
+          isUnique = document.querySelectorAll(selector).length === 1;
+        }
+      } catch {
+        // Invalid selector, skip uniqueness check
+      }
+
+      candidates.push({
+        strategy: strategy.name,
+        selector,
+        score: strategy.priority,
+        isUnique,
+        isReadable: selector.length < 80,
+        confidence: strategy.priority,
+      });
+    } catch {
+      // Skip strategies that fail
+    }
+  }
+
+  // Sort by score descending
+  candidates.sort((a, b) => b.score - a.score);
+
+  return candidates;
 }

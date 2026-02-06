@@ -10,5 +10,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   treeshake: true,
-  external: ['@like-cake/ast-types', '@like-cake/selector-engine'],
+  external: ['@like-cake/ast-types', '@like-cake/selector-engine', '@like-cake/api-interceptor'],
 });
