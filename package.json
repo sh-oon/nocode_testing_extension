@@ -42,7 +42,7 @@
     "puppeteer": "^24.34.0",
     "tsx": "^4.19.4",
     "turbo": "^2.5.8",
-    "typescript": "^5.3.3"
+    "typescript": "~5.9.2"
   },
   "packageManager": "yarn@4.12.0"
 }

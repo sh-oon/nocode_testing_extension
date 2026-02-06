@@ -1,8 +1,7 @@
 {
   "extends": "@like-cake/tsconfig/react-library.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "composite": true
+    "rootDir": "./src"
   },
   "include": ["./src/**/*"]
 }

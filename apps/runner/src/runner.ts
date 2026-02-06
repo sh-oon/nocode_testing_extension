@@ -108,6 +108,18 @@ export class ScenarioRunner {
         scenarioId: scenario.id,
       };
 
+      // Navigate to initial URL if first step is not a navigate
+      const firstStep = scenario.setup?.[0] ?? scenario.steps[0];
+      if (!firstStep || firstStep.type !== 'navigate') {
+        const initialUrl = this.options.baseUrl || scenario.meta.url;
+        if (initialUrl) {
+          await page.goto(initialUrl, {
+            waitUntil: 'networkidle2',
+            timeout: this.options.defaultTimeout ?? 30000,
+          });
+        }
+      }
+
       // Execute setup steps
       if (scenario.setup?.length) {
         for (let i = 0; i < scenario.setup.length; i++) {
