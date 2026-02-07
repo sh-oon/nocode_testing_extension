@@ -100,13 +100,15 @@ export interface KeypressStep extends BaseStep {
 export interface WaitStep extends BaseStep {
   type: 'wait';
   /** Wait strategy */
-  strategy: 'time' | 'selector' | 'navigation' | 'networkIdle';
+  strategy: 'time' | 'selector' | 'navigation' | 'networkIdle' | 'domStable';
   /** Duration to wait (for 'time' strategy) */
   duration?: number;
   /** Selector to wait for (for 'selector' strategy) */
   selector?: SelectorInput;
   /** Visibility state to wait for */
   state?: 'visible' | 'hidden' | 'attached' | 'detached';
+  /** DOM stability threshold in ms (for 'domStable' strategy). Default: 1500 */
+  stabilityThreshold?: number;
 }
 
 /**

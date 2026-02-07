@@ -4,8 +4,13 @@ import { captureFullSnapshot, type FullSnapshot } from '@like-cake/dom-serialize
 import {
   type CollectorConfig,
   createEventCollector,
+  createIdleDetector,
+  createDomMutationTracker,
   type EventCollector,
+  type IdleDetector,
+  type DomMutationTracker,
   type RawEvent,
+  type TrackedMutation,
 } from '@like-cake/event-collector';
 import {
   ExtensionAdapter,
@@ -30,6 +35,8 @@ injectNavigationPatchEarly();
 injectApiInterceptorEarly();
 
 let collector: EventCollector | null = null;
+let idleDetector: IdleDetector | null = null;
+let domTracker: DomMutationTracker | null = null;
 let isInitialized = false;
 let navigationEventBuffer: Array<{ type: string; url: string; timestamp: number }> = [];
 
@@ -172,9 +179,42 @@ function initializeCollector(config: Partial<CollectorConfig> = {}): void {
     ],
   });
 
-  // Forward events to service worker
+  // Forward events to service worker and notify idle detector
   collector.onEvent((event: RawEvent) => {
     sendEventToBackground(event);
+    // Notify idle detector of user activity
+    idleDetector?.recordEvent(event.type);
+  });
+
+  // Create idle detector — fires when user stops interacting
+  idleDetector = createIdleDetector({
+    idleThreshold: 2000,
+    minIdleDuration: 800,
+    onIdle: (context) => {
+      console.log('[Like Cake] Idle detected:', context);
+      sendIdleDetectedToBackground(
+        context.startedAt,
+        context.duration,
+        context.lastEventType
+      );
+    },
+  });
+
+  // Create DOM mutation tracker — fires when DOM stabilizes after changes
+  domTracker = createDomMutationTracker({
+    stabilityThreshold: 1500,
+    ignoreSelectors: [
+      '[data-like-cake-ignore]',
+      '.like-cake-overlay',
+      'script',
+      'style',
+    ],
+    onStable: (mutations) => {
+      if (mutations.length > 0) {
+        console.log('[Like Cake] DOM stable with mutations:', mutations.length);
+        sendDomMutationsStableToBackground(mutations);
+      }
+    },
   });
 
   isInitialized = true;
@@ -241,6 +281,40 @@ function sendSnapshotToBackground(snapshot: FullSnapshot, label?: string): void 
     .catch((error) => {
       // Extension context might be invalidated
       console.warn('[Like Cake] Failed to send snapshot:', error);
+    });
+}
+
+/**
+ * Send idle detection event to background service worker
+ */
+function sendIdleDetectedToBackground(
+  idleStartedAt: number,
+  idleDuration: number,
+  lastEventType: string
+): void {
+  chrome.runtime
+    .sendMessage({
+      type: 'IDLE_DETECTED',
+      idleStartedAt,
+      idleDuration,
+      lastEventType,
+    })
+    .catch((error) => {
+      console.warn('[Like Cake] Failed to send idle detected:', error);
+    });
+}
+
+/**
+ * Send DOM mutations stable event to background service worker
+ */
+function sendDomMutationsStableToBackground(mutations: TrackedMutation[]): void {
+  chrome.runtime
+    .sendMessage({
+      type: 'DOM_MUTATIONS_STABLE',
+      mutations,
+    })
+    .catch((error) => {
+      console.warn('[Like Cake] Failed to send DOM mutations stable:', error);
     });
 }
 
@@ -438,6 +512,8 @@ function handleMessage(
         initializeCollector(message.config);
       }
       collector?.start();
+      idleDetector?.start();
+      domTracker?.start();
 
       // Notify main world to start capturing and flush buffered API calls
       notifyMainWorldRecordingState(true);
@@ -464,6 +540,8 @@ function handleMessage(
     case 'STOP_RECORDING': {
       const eventCount = collector?.getEvents().length ?? 0;
       collector?.stop();
+      idleDetector?.stop();
+      domTracker?.stop();
 
       // Notify main world to stop capturing
       notifyMainWorldRecordingState(false);
@@ -478,6 +556,8 @@ function handleMessage(
 
     case 'PAUSE_RECORDING': {
       collector?.pause();
+      idleDetector?.stop();
+      domTracker?.stop();
       notifyMainWorldRecordingState(false);
       sendResponse({ success: true });
       console.log('[Like Cake] Recording paused');
@@ -486,6 +566,8 @@ function handleMessage(
 
     case 'RESUME_RECORDING': {
       collector?.resume();
+      idleDetector?.start();
+      domTracker?.start();
       notifyMainWorldRecordingState(true);
       sendResponse({ success: true });
       console.log('[Like Cake] Recording resumed');

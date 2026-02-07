@@ -1,7 +1,7 @@
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
 import type { Scenario, Step } from '@like-cake/ast-types';
 import type { FullSnapshot } from '@like-cake/dom-serializer';
-import type { RawEvent } from '@like-cake/event-collector';
+import type { RawEvent, TrackedMutation } from '@like-cake/event-collector';
 import type { ScenarioBaseline } from './storage';
 
 /**
@@ -50,6 +50,9 @@ export type MessageType =
   | 'SAVE_BASELINE'
   | 'DELETE_BASELINE'
   | 'BASELINES_DATA'
+  // Auto-assertion messages (content script → service worker)
+  | 'IDLE_DETECTED'
+  | 'DOM_MUTATIONS_STABLE'
   // Utility messages
   | 'PING'
   | 'PONG';
@@ -295,6 +298,28 @@ export interface BaselinesDataMessage extends BaseMessage {
 }
 
 /**
+ * Idle period detected during recording (content script → service worker)
+ */
+export interface IdleDetectedMessage extends BaseMessage {
+  type: 'IDLE_DETECTED';
+  /** Timestamp when idle started (last event time) */
+  idleStartedAt: number;
+  /** Duration of the idle period (ms) */
+  idleDuration: number;
+  /** Last event type before idle */
+  lastEventType: string;
+}
+
+/**
+ * DOM mutations stabilized during recording (content script → service worker)
+ */
+export interface DomMutationsStableMessage extends BaseMessage {
+  type: 'DOM_MUTATIONS_STABLE';
+  /** Significant DOM mutations detected */
+  mutations: TrackedMutation[];
+}
+
+/**
  * Union of all message types
  */
 export type Message =
@@ -327,6 +352,8 @@ export type Message =
   | SaveBaselineMessage
   | DeleteBaselineMessage
   | BaselinesDataMessage
+  | IdleDetectedMessage
+  | DomMutationsStableMessage
   | { type: 'PAUSE_RECORDING' }
   | { type: 'RESUME_RECORDING' }
   | { type: 'RESET_SESSION' }
