@@ -667,7 +667,7 @@ let apiClient: BackendApiClient | null = null;
  */
 export async function getApiClient(): Promise<BackendApiClient> {
   const settings = await getSettings();
-  const url = settings.backendUrl || 'http://localhost:4000';
+  const url = settings.backendUrl || 'http://localhost:8888';
 
   if (!apiClient || apiClient.baseUrl !== url) {
     apiClient = new BackendApiClient(url);
@@ -684,7 +684,7 @@ export async function checkBackendConnection(): Promise<{
   url: string;
 }> {
   const settings = await getSettings();
-  const url = settings.backendUrl || 'http://localhost:4000';
+  const url = settings.backendUrl || 'http://localhost:8888';
   const client = new BackendApiClient(url);
   const connected = await client.healthCheck();
 

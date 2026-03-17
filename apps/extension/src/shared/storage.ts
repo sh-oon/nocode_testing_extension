@@ -128,7 +128,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   captureApiRequestBody: true,
   captureApiResponseBody: true,
   apiMaxBodySize: 1024 * 1024, // 1MB
-  backendUrl: 'http://localhost:4000',
+  backendUrl: 'http://localhost:8888',
   autoUpload: true,
   autoSave: false,
 };
