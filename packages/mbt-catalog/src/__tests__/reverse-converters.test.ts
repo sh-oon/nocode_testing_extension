@@ -413,6 +413,7 @@ describe('convertScenarioToModel', () => {
       url: 'https://example.com',
       viewport: { width: 1440, height: 900 },
       astSchemaVersion: '1.0.0',
+      recordedAt: new Date().toISOString(),
     },
     steps,
   });

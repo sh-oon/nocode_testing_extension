@@ -336,6 +336,7 @@ function ModelBuilderInner({ isConnected }: ModelBuilderProps) {
       {showGenerateModal && (
         <GenerateScenariosModal
           model={getCurrentModel()}
+          isConnected={isConnected}
           onClose={() => setShowGenerateModal(false)}
         />
       )}

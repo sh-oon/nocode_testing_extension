@@ -114,6 +114,71 @@ export interface FlowExecutionResult {
 }
 
 /**
+ * Model execution request
+ */
+export interface ModelExecutionRequest {
+  modelId: string;
+  modelName: string;
+  scenarios: Array<{
+    id: string;
+    name?: string;
+    meta: unknown;
+    steps: unknown[];
+    variables?: Record<string, string | number | boolean>;
+  }>;
+  options?: {
+    headless?: boolean;
+    timeout?: number;
+    baseUrl?: string;
+    viewport?: { width: number; height: number };
+    continueOnFailure?: boolean;
+  };
+}
+
+/**
+ * Model execution result
+ */
+export interface ModelExecutionResult {
+  modelId: string;
+  modelName: string;
+  status: 'passed' | 'failed' | 'partial';
+  scenarioResults: Array<{
+    scenarioId: string;
+    scenarioName: string;
+    status: 'passed' | 'failed' | 'skipped';
+    stepResults: Array<{
+      stepId: string;
+      index: number;
+      status: 'passed' | 'failed' | 'skipped';
+      duration: number;
+      error?: { message: string; stack?: string };
+    }>;
+    summary: {
+      totalSteps: number;
+      passed: number;
+      failed: number;
+      skipped: number;
+      duration: number;
+      success: boolean;
+    };
+    duration: number;
+  }>;
+  summary: {
+    totalScenarios: number;
+    passedScenarios: number;
+    failedScenarios: number;
+    skippedScenarios: number;
+    totalSteps: number;
+    passedSteps: number;
+    failedSteps: number;
+    skippedSteps: number;
+    duration: number;
+  };
+  startedAt: number;
+  endedAt: number;
+}
+
+/**
  * Backend API Client
  */
 export class BackendApiClient {
@@ -541,6 +606,54 @@ export class BackendApiClient {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to execute user flow',
+      };
+    }
+  }
+
+  /**
+   * Execute model (batch scenario execution)
+   */
+  async executeModel(request: ModelExecutionRequest): Promise<ApiResponse<ModelExecutionResult>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/models/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+      return await response.json();
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to execute model',
+      };
+    }
+  }
+
+  /**
+   * Save model-generated scenarios to backend DB
+   */
+  async saveModelScenarios(params: {
+    modelName: string;
+    baseUrl: string;
+    scenarios: Array<{
+      id: string;
+      name?: string;
+      meta: unknown;
+      steps: unknown[];
+      variables?: Record<string, string | number | boolean>;
+    }>;
+  }): Promise<ApiResponse<{ savedIds: string[]; count: number }>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/models/save-scenarios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      return await response.json();
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save scenarios',
       };
     }
   }

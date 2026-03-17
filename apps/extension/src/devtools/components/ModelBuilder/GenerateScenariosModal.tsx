@@ -1,21 +1,35 @@
 import { useCallback, useState } from 'react';
 import type { TestModel, ScenarioGenerationResult, TraversalStrategy } from '@like-cake/mbt-catalog';
 import { generateScenariosFromModel } from '@like-cake/mbt-catalog';
+import type { ModelExecutionResult } from '../../../shared/api';
+import { getApiClient } from '../../../shared/api';
+import { ModelExecutionResultPanel } from './ModelExecutionResultPanel';
 
 interface GenerateScenariosModalProps {
   model: TestModel;
+  isConnected: boolean;
   onClose: () => void;
 }
 
-export function GenerateScenariosModal({ model, onClose }: GenerateScenariosModalProps) {
+export function GenerateScenariosModal({ model, isConnected, onClose }: GenerateScenariosModalProps) {
   const [strategy, setStrategy] = useState<TraversalStrategy>('shortest');
   const [maxPaths, setMaxPaths] = useState(10);
   const [result, setResult] = useState<ScenarioGenerationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Execution state
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executionResult, setExecutionResult] = useState<ModelExecutionResult | null>(null);
+
+  // Save state
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<{ count: number } | null>(null);
+
   const handleGenerate = useCallback(() => {
     try {
       setError(null);
+      setExecutionResult(null);
+      setSaveResult(null);
       const generationResult = generateScenariosFromModel(model, {
         strategy,
         maxPaths: maxPaths || undefined,
@@ -40,9 +54,79 @@ export function GenerateScenariosModal({ model, onClose }: GenerateScenariosModa
     URL.revokeObjectURL(url);
   }, [result, model.name]);
 
+  const handleExecuteAll = useCallback(async () => {
+    if (!result || !isConnected) return;
+
+    setIsExecuting(true);
+    setExecutionResult(null);
+    setError(null);
+
+    try {
+      const client = await getApiClient();
+      const response = await client.executeModel({
+        modelId: model.id,
+        modelName: model.name,
+        scenarios: result.scenarios.map((s) => ({
+          id: s.id,
+          name: s.name,
+          meta: s.meta,
+          steps: s.steps,
+          variables: s.variables,
+        })),
+        options: {
+          headless: false,
+          baseUrl: model.baseUrl || undefined,
+          continueOnFailure: true,
+        },
+      });
+
+      if (response.success && response.data) {
+        setExecutionResult(response.data);
+      } else {
+        setError(response.error || 'Execution failed');
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Execution failed');
+    } finally {
+      setIsExecuting(false);
+    }
+  }, [result, isConnected, model]);
+
+  const handleSaveToBackend = useCallback(async () => {
+    if (!result || !isConnected) return;
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const client = await getApiClient();
+      const response = await client.saveModelScenarios({
+        modelName: model.name,
+        baseUrl: model.baseUrl,
+        scenarios: result.scenarios.map((s) => ({
+          id: s.id,
+          name: s.name || `[${model.name}] Scenario`,
+          meta: s.meta,
+          steps: s.steps,
+          variables: s.variables,
+        })),
+      });
+
+      if (response.success && response.data) {
+        setSaveResult({ count: response.data.count });
+      } else {
+        setError(response.error || 'Save failed');
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [result, isConnected, model]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-[560px] max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-gray-800 rounded-lg shadow-xl w-[600px] max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-white">시나리오 생성</h3>
@@ -105,20 +189,56 @@ export function GenerateScenariosModal({ model, onClose }: GenerateScenariosModa
 
           {result && (
             <div className="space-y-4">
-              {/* Summary */}
-              <div className="flex items-center justify-between px-3 py-2 bg-gray-700 rounded-md">
-                <div className="text-sm text-gray-300">
-                  <span className="font-medium text-white">{result.scenarios.length}</span> 시나리오 생성
-                  <span className="text-gray-500 ml-2">({result.pathCount} paths found)</span>
+              {/* Summary + Actions */}
+              <div className="px-3 py-2 bg-gray-700 rounded-md">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-gray-300">
+                    <span className="font-medium text-white">{result.scenarios.length}</span> 시나리오 생성
+                    <span className="text-gray-500 ml-2">({result.pathCount} paths found)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExportAll}
+                    className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    Export JSON
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleExportAll}
-                  className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
-                >
-                  Export All JSON
-                </button>
+
+                {/* Action buttons */}
+                {isConnected && result.scenarios.length > 0 && (
+                  <div className="flex gap-2 pt-2 border-t border-gray-600">
+                    <button
+                      type="button"
+                      onClick={handleExecuteAll}
+                      disabled={isExecuting}
+                      className="flex-1 px-3 py-1.5 text-sm font-medium bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:opacity-50 text-white rounded-md transition-colors"
+                    >
+                      {isExecuting ? 'Executing...' : 'Execute All'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveToBackend}
+                      disabled={isSaving}
+                      className="flex-1 px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:opacity-50 text-white rounded-md transition-colors"
+                    >
+                      {isSaving ? 'Saving...' : 'Save to Backend'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Save success message */}
+                {saveResult && (
+                  <div className="mt-2 px-2 py-1.5 bg-green-900/30 border border-green-800/50 rounded text-xs text-green-300">
+                    {saveResult.count}개 시나리오 저장 완료 — FlowBuilder에서 조합 가능합니다
+                  </div>
+                )}
               </div>
+
+              {/* Execution Results */}
+              {executionResult && (
+                <ModelExecutionResultPanel result={executionResult} />
+              )}
 
               {/* Warnings */}
               {result.warnings.length > 0 && (
@@ -130,7 +250,7 @@ export function GenerateScenariosModal({ model, onClose }: GenerateScenariosModa
                 </div>
               )}
 
-              {/* Errors */}
+              {/* Conversion Errors */}
               {result.errors.length > 0 && (
                 <div className="px-3 py-2 bg-red-900/30 border border-red-800/50 rounded-md">
                   <div className="text-xs font-medium text-red-400 mb-1">Conversion Errors</div>
@@ -143,26 +263,28 @@ export function GenerateScenariosModal({ model, onClose }: GenerateScenariosModa
               )}
 
               {/* Scenario List */}
-              <div className="space-y-2">
-                {result.scenarios.map((scenario, idx) => (
-                  <div
-                    key={scenario.id}
-                    className="px-3 py-2 bg-gray-700 rounded-md border border-gray-600"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-white">
-                        Scenario {idx + 1}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {scenario.steps.length} steps
-                      </span>
+              {!executionResult && (
+                <div className="space-y-2">
+                  {result.scenarios.map((scenario, idx) => (
+                    <div
+                      key={scenario.id}
+                      className="px-3 py-2 bg-gray-700 rounded-md border border-gray-600"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-white">
+                          Scenario {idx + 1}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {scenario.steps.length} steps
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500 font-mono truncate">
+                        {scenario.steps.map((s) => s.type).join(' → ')}
+                      </div>
                     </div>
-                    <div className="mt-1 text-xs text-gray-500 font-mono truncate">
-                      {scenario.steps.map((s) => s.type).join(' → ')}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
