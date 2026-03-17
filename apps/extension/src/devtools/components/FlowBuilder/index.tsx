@@ -127,9 +127,10 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     }
   }, [nodes.length, flowManager.flowId, flowManager.isLoading, addStartNode, addEndNode]);
 
-  // Mark flow as modified when nodes/edges change (skip during load)
+  // Mark flow as modified when nodes/edges change (skip during load and initial setup)
+  const isInitialSetup = nodes.length <= 2 && !flowManager.flowId && !flowManager.flowName;
   useEffect(() => {
-    if (!flowManager.isLoading) {
+    if (!flowManager.isLoading && !isInitialSetup) {
       flowManager.markModified();
     }
   }, [nodes, edges]); // eslint-disable-line react-hooks/exhaustive-deps
