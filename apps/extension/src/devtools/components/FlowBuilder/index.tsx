@@ -219,17 +219,19 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
   );
 
   const handleCreateNew = useCallback(() => {
-    const result = flowManager.createNewFlow();
-    if (result.needsConfirmation) {
+    // Skip confirmation if in initial state (no real work to lose)
+    const hasRealContent = flowManager.flowId || flowManager.flowName || nodes.length > 2;
+    if (flowManager.isModified && hasRealContent) {
       setConfirmModal({ isOpen: true, action: 'createNew' });
       return;
     }
+    flowManager.forceCreateNewFlow();
     setExecutionSummary(null);
     setTimeout(() => {
       addStartNode({ x: 250, y: 50 });
       addEndNode({ x: 250, y: 400 });
     }, 0);
-  }, [flowManager, addStartNode, addEndNode]);
+  }, [flowManager, nodes.length, addStartNode, addEndNode]);
 
   // Confirm modal handlers
   const handleConfirmSave = useCallback(async () => {
