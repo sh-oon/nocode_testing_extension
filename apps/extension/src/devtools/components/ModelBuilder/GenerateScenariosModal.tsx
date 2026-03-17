@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import type { TestModel, ScenarioGenerationResult, TraversalStrategy } from '@like-cake/mbt-catalog';
-import { generateScenariosFromModel } from '@like-cake/mbt-catalog';
+import type { TestModel, ScenarioGenerationResult, TraversalStrategy, ValidationIssue } from '@like-cake/mbt-catalog';
+import { generateScenariosFromModel, validateTestModel, countIssues } from '@like-cake/mbt-catalog';
 import type { ModelExecutionResult } from '../../../shared/api';
 import { getApiClient } from '../../../shared/api';
 import { ModelExecutionResultPanel } from './ModelExecutionResultPanel';
@@ -25,7 +25,20 @@ export function GenerateScenariosModal({ model, isConnected, onClose }: Generate
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ count: number } | null>(null);
 
+  // Validation state
+  const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
+
   const handleGenerate = useCallback(() => {
+    // Run validation before generation
+    const issues = validateTestModel(model);
+    setValidationIssues(issues);
+
+    const { errors: errorCount } = countIssues(issues);
+    if (errorCount > 0) {
+      setError(`모델에 ${errorCount}개의 에러가 있습니다. 수정 후 다시 시도하세요.`);
+      setResult(null);
+      return;
+    }
     try {
       setError(null);
       setExecutionResult(null);
@@ -181,7 +194,26 @@ export function GenerateScenariosModal({ model, isConnected, onClose }: Generate
             </div>
           )}
 
-          {!result && !error && (
+          {/* Validation Issues */}
+          {validationIssues.length > 0 && !result && (
+            <div className="space-y-1 mb-4">
+              {validationIssues.map((issue, idx) => (
+                <div
+                  key={idx}
+                  className={`px-3 py-1.5 rounded-md text-xs ${
+                    issue.type === 'error'
+                      ? 'bg-red-900/20 border border-red-800/50 text-red-300'
+                      : 'bg-yellow-900/20 border border-yellow-800/50 text-yellow-300'
+                  }`}
+                >
+                  <span className="font-mono mr-1">[{issue.code}]</span>
+                  {issue.message}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!result && !error && validationIssues.length === 0 && (
             <div className="text-sm text-gray-500 text-center py-12">
               전략과 옵션을 설정한 후 Generate를 클릭하세요
             </div>

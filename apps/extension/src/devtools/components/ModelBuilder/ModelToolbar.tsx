@@ -5,6 +5,8 @@ interface ModelToolbarProps {
   baseUrl: string;
   isModified: boolean;
   isSaving: boolean;
+  validationErrors?: number;
+  validationWarnings?: number;
   onModelNameChange: (name: string) => void;
   onBaseUrlChange: (url: string) => void;
   onOpenList: () => void;
@@ -13,6 +15,7 @@ interface ModelToolbarProps {
   onExport: () => void;
   onGenerate: () => void;
   onImportRecording: () => void;
+  onValidate?: () => void;
 }
 
 export function ModelToolbar({
@@ -28,6 +31,9 @@ export function ModelToolbar({
   onExport,
   onGenerate,
   onImportRecording,
+  onValidate,
+  validationErrors = 0,
+  validationWarnings = 0,
 }: ModelToolbarProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -138,6 +144,28 @@ export function ModelToolbar({
         <ImportIcon />
         <span className="hidden sm:inline">가져오기</span>
       </button>
+
+      {/* Validation badge */}
+      {onValidate && (validationErrors > 0 || validationWarnings > 0) && (
+        <button
+          type="button"
+          onClick={onValidate}
+          className="flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-gray-700 transition-colors"
+          aria-label="유효성 검사 결과"
+          data-test-id="model-toolbar-validation"
+        >
+          {validationErrors > 0 && (
+            <span className="px-1.5 py-0.5 bg-red-600/30 text-red-300 rounded-full text-[10px] font-medium">
+              {validationErrors}
+            </span>
+          )}
+          {validationWarnings > 0 && (
+            <span className="px-1.5 py-0.5 bg-yellow-600/30 text-yellow-300 rounded-full text-[10px] font-medium">
+              {validationWarnings}
+            </span>
+          )}
+        </button>
+      )}
 
       <div className="w-px h-5 bg-gray-700" aria-hidden="true" />
 

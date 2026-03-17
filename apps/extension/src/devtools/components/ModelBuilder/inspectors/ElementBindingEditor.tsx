@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ElementBinding, ElementSelectionMethod } from '@like-cake/mbt-catalog';
+import { validateBindingAccessibility, type AccessibilityWarning } from '@like-cake/mbt-catalog';
 import { nanoid } from '../../../utils/nanoid';
 import { selectorToString } from '../utils';
 
@@ -26,6 +27,11 @@ export function ElementBindingEditor({
   );
 
   const isNew = !binding;
+
+  const a11yWarnings = useMemo<AccessibilityWarning[]>(() => {
+    if (!binding?.accessibility) return [];
+    return validateBindingAccessibility(binding, 'click');
+  }, [binding]);
 
   const handleSave = () => {
     if (!label.trim() || !selector.trim()) return;
@@ -130,6 +136,31 @@ export function ElementBindingEditor({
                 <div>
                   Focusable: <span className="text-gray-300">{binding.accessibility.focusable ? 'Yes' : 'No'}</span>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Accessibility Warnings */}
+          {a11yWarnings.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                접근성 경고 ({a11yWarnings.length})
+              </label>
+              <div className="space-y-1">
+                {a11yWarnings.map((w, i) => {
+                  const impactColor = w.impact === 'critical' ? 'red' : w.impact === 'serious' ? 'orange' : w.impact === 'moderate' ? 'yellow' : 'gray';
+                  return (
+                    <div key={i} className={`px-2.5 py-1.5 bg-${impactColor}-900/20 border border-${impactColor}-800/50 rounded text-xs`}>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-1 py-0.5 text-[9px] font-medium bg-${impactColor}-600/30 text-${impactColor}-300 rounded`}>
+                          {w.impact}
+                        </span>
+                        <span className="text-gray-400 font-mono">{w.rule}</span>
+                      </div>
+                      <div className="text-gray-300 mt-0.5">{w.message}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

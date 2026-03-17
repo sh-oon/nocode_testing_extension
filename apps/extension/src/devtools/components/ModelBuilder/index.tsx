@@ -1,5 +1,6 @@
 import { ReactFlowProvider } from '@xyflow/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { validateTestModel, countIssues } from '@like-cake/mbt-catalog';
 import { ConfirmModal } from '../ConfirmModal';
 import { ModelCanvas, useModelState, type ModelNodeData, type ModelEdgeData } from './ModelCanvas';
 import { ModelEmptyState } from './ModelEmptyState';
@@ -7,6 +8,7 @@ import { ModelToolbar } from './ModelToolbar';
 import { ModelToolbox, type ModelToolboxNodeType } from './ModelToolbox';
 import { GenerateScenariosModal } from './GenerateScenariosModal';
 import { ImportRecordingModal } from './ImportRecordingModal';
+import { ModelValidationPanel } from './ModelValidationPanel';
 import { StateEditor, TransitionEditor } from './editors';
 import { ElementBindingSidebar } from './inspectors/ElementBindingSidebar';
 import { useModelManager } from './useModelManager';
@@ -45,6 +47,7 @@ function ModelBuilderInner({ isConnected }: ModelBuilderProps) {
   const [isListOpen, setIsListOpen] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showValidationPanel, setShowValidationPanel] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
 
@@ -215,6 +218,18 @@ function ModelBuilderInner({ isConnected }: ModelBuilderProps) {
     });
   }, [toTestModel, modelManager]);
 
+  // Validation
+  const currentModel = getCurrentModel();
+  const validationIssues = useMemo(() => validateTestModel(currentModel), [currentModel]);
+  const { errors: validationErrors, warnings: validationWarnings } = useMemo(
+    () => countIssues(validationIssues),
+    [validationIssues],
+  );
+
+  const handleValidate = useCallback(() => {
+    setShowValidationPanel(true);
+  }, []);
+
   // Get editing node/edge data
   const editingNode = editingNodeId ? nodes.find((n) => n.id === editingNodeId) : null;
   const editingEdge = editingEdgeId ? edges.find((e) => e.id === editingEdgeId) : null;
@@ -236,6 +251,9 @@ function ModelBuilderInner({ isConnected }: ModelBuilderProps) {
         onExport={handleExport}
         onGenerate={handleGenerate}
         onImportRecording={handleImportRecording}
+        onValidate={handleValidate}
+        validationErrors={validationErrors}
+        validationWarnings={validationWarnings}
       />
 
       <div className="flex flex-1 overflow-hidden relative">
@@ -338,6 +356,14 @@ function ModelBuilderInner({ isConnected }: ModelBuilderProps) {
           model={getCurrentModel()}
           isConnected={isConnected}
           onClose={() => setShowGenerateModal(false)}
+        />
+      )}
+
+      {/* Validation Panel */}
+      {showValidationPanel && (
+        <ModelValidationPanel
+          issues={validationIssues}
+          onClose={() => setShowValidationPanel(false)}
         />
       )}
 
