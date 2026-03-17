@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Scenario, Step, StepResult } from '@like-cake/ast-types';
 import type { EventCatalogEntry } from '@like-cake/mbt-catalog';
 import { getEventById, convertBoundEventToStep } from '@like-cake/mbt-catalog';
@@ -42,17 +42,13 @@ export function useScenarioWizard() {
   });
   const [backendScenarioId, setBackendScenarioId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const tabIdRef = useRef<number | undefined>(undefined);
-
-  // Resolve tab ID
-  useEffect(() => {
+  // Resolve tab ID synchronously if possible (DevTools panel)
+  const getTabId = useCallback(async (): Promise<number | undefined> => {
     if (typeof chrome.devtools?.inspectedWindow?.tabId === 'number') {
-      tabIdRef.current = chrome.devtools.inspectedWindow.tabId;
-    } else {
-      chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
-        tabIdRef.current = tab?.id;
-      });
+      return chrome.devtools.inspectedWindow.tabId;
     }
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    return tab?.id;
   }, []);
 
   // Listen for messages
@@ -124,17 +120,21 @@ export function useScenarioWizard() {
     // If element required, start inspect mode
     if (entry.elementRequirement !== 'none') {
       setIsInspecting(true);
-      chrome.runtime.sendMessage({ type: 'START_ELEMENT_INSPECT', tabId: tabIdRef.current });
+      getTabId().then((tabId) => {
+        chrome.runtime.sendMessage({ type: 'START_ELEMENT_INSPECT', tabId });
+      });
     }
-  }, []);
+  }, [getTabId]);
 
   const cancelDraft = useCallback(() => {
     if (isInspecting) {
-      chrome.runtime.sendMessage({ type: 'STOP_ELEMENT_INSPECT', tabId: tabIdRef.current });
+      getTabId().then((tabId) => {
+        chrome.runtime.sendMessage({ type: 'STOP_ELEMENT_INSPECT', tabId });
+      });
       setIsInspecting(false);
     }
     setDraft(null);
-  }, [isInspecting]);
+  }, [isInspecting, getTabId]);
 
   const selectSelector = useCallback((selector: string) => {
     setDraft((prev) => prev ? { ...prev, selectedSelector: selector } : prev);
@@ -188,12 +188,14 @@ export function useScenarioWizard() {
     };
 
     setPlaybackState({ state: 'playing', currentStepIndex: -1, stepResults: [] });
-    chrome.runtime.sendMessage({
-      type: 'START_PLAYBACK',
-      tabId: tabIdRef.current,
-      scenario,
+    getTabId().then((tabId) => {
+      chrome.runtime.sendMessage({
+        type: 'START_PLAYBACK',
+        tabId,
+        scenario,
+      });
     });
-  }, [steps, scenarioName]);
+  }, [steps, scenarioName, getTabId]);
 
   const saveToBackend = useCallback(async () => {
     if (steps.length === 0) return;

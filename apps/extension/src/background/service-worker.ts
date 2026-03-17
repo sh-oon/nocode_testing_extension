@@ -849,12 +849,24 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
 
     case 'START_ELEMENT_INSPECT': {
       const inspectTabId = messageTabId ?? sender.tab?.id ?? activeTabId;
-      if (inspectTabId) {
-        chrome.tabs.sendMessage(inspectTabId, { type: 'START_ELEMENT_INSPECT' })
+      const sendInspect = async (tabId: number) => {
+        await ensureContentScriptInjected(tabId);
+        chrome.tabs.sendMessage(tabId, { type: 'START_ELEMENT_INSPECT' })
           .then(() => sendResponse({ success: true }))
           .catch((error) => sendResponse({ success: false, error: String(error) }));
+      };
+
+      if (inspectTabId) {
+        sendInspect(inspectTabId);
       } else {
-        sendResponse({ error: 'No active tab' });
+        // Fallback: query active tab
+        chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+          if (tab?.id) {
+            sendInspect(tab.id);
+          } else {
+            sendResponse({ error: 'No active tab' });
+          }
+        });
       }
       return true;
     }
