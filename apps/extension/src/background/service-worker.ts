@@ -897,6 +897,17 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
       if (playTabId && message.scenario) {
         startPlayback(playTabId, message.scenario);
         sendResponse({ success: true });
+      } else if (message.scenario) {
+        // Fallback: query active tab (wizard mode without prior recording)
+        chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+          if (tab?.id) {
+            startPlayback(tab.id, message.scenario);
+            sendResponse({ success: true });
+          } else {
+            sendResponse({ error: 'No active tab' });
+          }
+        });
+        return true;
       } else {
         sendResponse({ error: 'No tab ID or scenario' });
       }
