@@ -74,15 +74,14 @@ export function WizardStepList({
     <div className="flex-1 overflow-y-auto" data-test-id="wizard-step-list">
       {steps.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center px-4">
-          <div className="text-4xl mb-4">📝</div>
-          <h3 className="text-lg font-semibold text-gray-200 mb-2">스텝을 추가하세요</h3>
-          <p className="text-sm text-gray-400 mb-6 max-w-xs">
-            아래 버튼을 눌러 액션을 선택하고, 페이지에서 요소를 지정하세요.
+          <div className="text-3xl mb-3">📝</div>
+          <p className="text-sm text-gray-400 mb-4">
+            스텝을 추가하세요
           </p>
           <button
             type="button"
             onClick={onAddStep}
-            className="px-4 py-2.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
             data-test-id="wizard-add-first-step"
           >
             + 스텝 추가
@@ -94,12 +93,12 @@ export function WizardStepList({
             const result = stepResults[idx];
             const isCurrent = idx === currentPlaybackIndex;
             const statusColor = result
-              ? result.status === 'passed' ? 'border-green-600/50 bg-green-900/10'
-                : result.status === 'failed' ? 'border-red-600/50 bg-red-900/10'
-                : 'border-gray-600'
+              ? result.status === 'passed' ? 'border-green-300 bg-green-50'
+                : result.status === 'failed' ? 'border-red-300 bg-red-50'
+                : 'border-gray-200'
               : isCurrent
-                ? 'border-orange-500 bg-orange-900/10'
-                : 'border-gray-600';
+                ? 'border-blue-400 bg-blue-50'
+                : 'border-gray-200';
 
             return (
               <div
@@ -114,8 +113,8 @@ export function WizardStepList({
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-white">{STEP_LABELS[step.type] ?? step.type}</div>
-                  <div className="text-[10px] text-gray-500 font-mono truncate">
+                  <div className="text-sm text-gray-800">{STEP_LABELS[step.type] ?? step.type}</div>
+                  <div className="text-[10px] text-gray-400 font-mono truncate">
                     {getStepSummary(step)}
                   </div>
                 </div>
@@ -124,7 +123,7 @@ export function WizardStepList({
                 {result ? (
                   <StatusBadge status={result.status} />
                 ) : isCurrent ? (
-                  <span className="text-[10px] text-orange-400 animate-pulse">실행 중</span>
+                  <span className="text-[10px] text-blue-500 animate-pulse">실행 중</span>
                 ) : (
                   <button
                     type="button"
@@ -143,7 +142,7 @@ export function WizardStepList({
           <button
             type="button"
             onClick={onAddStep}
-            className="w-full px-3 py-2 mt-2 text-sm text-gray-400 border border-dashed border-gray-600 rounded-md hover:border-orange-500 hover:text-orange-300 transition-colors"
+            className="w-full px-3 py-2 mt-2 text-sm text-gray-400 border border-dashed border-gray-300 rounded-md hover:border-blue-400 hover:text-blue-600 transition-colors"
             data-test-id="wizard-add-step"
           >
             + 스텝 추가

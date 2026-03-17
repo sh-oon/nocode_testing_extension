@@ -126,6 +126,28 @@ export function useScenarioWizard() {
     }
   }, [getTabId]);
 
+  const switchAction = useCallback((eventId: string) => {
+    const entry = getEventById(eventId);
+    if (!entry) return;
+
+    const defaultParams: Record<string, unknown> = {};
+    for (const p of entry.params) {
+      if (p.defaultValue !== undefined) defaultParams[p.name] = p.defaultValue;
+    }
+
+    setDraft((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        eventId,
+        catalogEntry: entry,
+        params: defaultParams,
+        // Keep existing element info if the new action also needs an element
+        ...(entry.elementRequirement === 'none' ? { elementInfo: null, selectorCandidates: [], selectedSelector: null } : {}),
+      };
+    });
+  }, []);
+
   const cancelDraft = useCallback(() => {
     if (isInspecting) {
       getTabId().then((tabId) => {
@@ -136,8 +158,19 @@ export function useScenarioWizard() {
     setDraft(null);
   }, [isInspecting, getTabId]);
 
+  const startInspect = useCallback(() => {
+    setIsInspecting(true);
+    getTabId().then((tabId) => {
+      chrome.runtime.sendMessage({ type: 'START_ELEMENT_INSPECT', tabId });
+    });
+  }, [getTabId]);
+
   const selectSelector = useCallback((selector: string) => {
     setDraft((prev) => prev ? { ...prev, selectedSelector: selector } : prev);
+  }, []);
+
+  const manualSelector = useCallback((selector: string) => {
+    setDraft((prev) => prev ? { ...prev, selectedSelector: selector, selectorCandidates: [{ strategy: 'manual', selector, score: 100, isUnique: true, isReadable: true, confidence: 100 }] } : prev);
   }, []);
 
   const updateParams = useCallback((params: Record<string, unknown>) => {
@@ -242,8 +275,11 @@ export function useScenarioWizard() {
     canSave,
 
     startDraftFromCatalog,
+    switchAction,
     cancelDraft,
+    startInspect,
     selectSelector,
+    manualSelector,
     updateParams,
     confirmStep,
     removeStep,
