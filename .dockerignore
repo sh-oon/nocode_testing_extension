@@ -3,7 +3,11 @@ dist
 .git
 .idea
 *.db
-apps/extension
-apps/web
 .claude
 .agents
+
+# Extension/Web 소스는 제외하되 package.json은 포함 (Yarn resolution용)
+apps/extension/src
+apps/extension/dist
+apps/extension/public
+apps/web

@@ -33,7 +33,12 @@
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "test:e2e": "tsx scripts/e2e-flow-test.ts",
-    "test:e2e:runner": "tsx scripts/e2e-runner-test.ts"
+    "test:e2e:runner": "tsx scripts/e2e-runner-test.ts",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f backend",
+    "docker:restart": "docker compose down && docker compose up --build -d"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",

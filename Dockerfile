@@ -1,29 +1,38 @@
 # ── Stage 1: Build ───────────────────────────────────────────────────────
 FROM node:20-slim AS builder
 
+# Corepack 활성화 (Yarn Berry 4.x 사용)
+RUN corepack enable
+
 WORKDIR /app
 
 # Yarn Berry 설정
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn .yarn
 
-# 워크스페이스 package.json 복사
+# 모든 워크스페이스 package.json 복사 (Yarn resolution에 필요)
 COPY apps/backend/package.json apps/backend/
+COPY apps/extension/package.json apps/extension/
 COPY apps/runner/package.json apps/runner/
+COPY packages/api-interceptor/package.json packages/api-interceptor/
 COPY packages/ast-types/package.json packages/ast-types/
+COPY packages/diff-engine/package.json packages/diff-engine/
+COPY packages/dom-serializer/package.json packages/dom-serializer/
 COPY packages/event-collector/package.json packages/event-collector/
-COPY packages/selector-engine/package.json packages/selector-engine/
-COPY packages/variable-store/package.json packages/variable-store/
-COPY packages/step-player/package.json packages/step-player/
 COPY packages/mbt-catalog/package.json packages/mbt-catalog/
+COPY packages/selector-engine/package.json packages/selector-engine/
+COPY packages/step-player/package.json packages/step-player/
 COPY packages/tsconfig/package.json packages/tsconfig/
+COPY packages/ui/package.json packages/ui/
+COPY packages/utils/package.json packages/utils/
+COPY packages/variable-store/package.json packages/variable-store/
 
 # Python + build tools for native modules (better-sqlite3)
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 RUN yarn install
 
-# 소스 복사 및 빌드
+# 소스 복사 및 빌드 (backend + 의존 패키지만)
 COPY packages/ packages/
 COPY apps/backend/ apps/backend/
 COPY apps/runner/ apps/runner/
