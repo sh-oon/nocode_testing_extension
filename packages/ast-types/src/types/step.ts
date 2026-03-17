@@ -12,8 +12,15 @@ export type StepType =
   | 'hover'
   | 'scroll'
   | 'select'
+  | 'mouseOut'
+  | 'dragAndDrop'
+  | 'fileUpload'
+  | 'historyBack'
+  | 'historyForward'
   | 'assertApi'
   | 'assertElement'
+  | 'assertPage'
+  | 'assertStyle'
   | 'snapshotDom';
 
 /**
@@ -146,6 +153,51 @@ export interface SelectStep extends BaseStep {
   values: string | string[];
 }
 
+/**
+ * Move mouse away from an element (mouseout/mouseleave)
+ */
+export interface MouseOutStep extends BaseStep {
+  type: 'mouseOut';
+  /** Target element to move mouse away from */
+  selector: SelectorInput;
+}
+
+/**
+ * Drag an element and drop onto a target
+ */
+export interface DragAndDropStep extends BaseStep {
+  type: 'dragAndDrop';
+  /** Source element to drag */
+  selector: SelectorInput;
+  /** Target element or position to drop on */
+  dropTarget: SelectorInput;
+}
+
+/**
+ * Upload file(s) to a file input element
+ */
+export interface FileUploadStep extends BaseStep {
+  type: 'fileUpload';
+  /** File input element selector */
+  selector: SelectorInput;
+  /** Path(s) to the file(s) to upload */
+  filePaths: string | string[];
+}
+
+/**
+ * Navigate back in browser history
+ */
+export interface HistoryBackStep extends BaseStep {
+  type: 'historyBack';
+}
+
+/**
+ * Navigate forward in browser history
+ */
+export interface HistoryForwardStep extends BaseStep {
+  type: 'historyForward';
+}
+
 // ============================================
 // Assertion Steps
 // ============================================
@@ -204,7 +256,9 @@ export type ElementAssertion =
   | { type: 'notExists' }
   | { type: 'text'; value: string; contains?: boolean }
   | { type: 'attribute'; name: string; value?: string }
-  | { type: 'count'; value: number; operator?: 'eq' | 'gt' | 'gte' | 'lt' | 'lte' };
+  | { type: 'count'; value: number; operator?: 'eq' | 'gt' | 'gte' | 'lt' | 'lte' }
+  | { type: 'enabled' }
+  | { type: 'value'; value: string };
 
 /**
  * Assert element state
@@ -215,6 +269,36 @@ export interface AssertElementStep extends BaseStep {
   selector: SelectorInput;
   /** Expected state */
   assertion: ElementAssertion;
+}
+
+/**
+ * Page-level assertion types (no element selector needed)
+ */
+export type PageAssertion =
+  | { type: 'url'; value: string; matchType?: 'contains' | 'exact' | 'regex' }
+  | { type: 'title'; value: string }
+  | { type: 'documentLoaded' };
+
+/**
+ * Assert page-level properties (URL, title, document state)
+ */
+export interface AssertPageStep extends BaseStep {
+  type: 'assertPage';
+  /** Page-level assertion */
+  assertion: PageAssertion;
+}
+
+/**
+ * Assert an element's computed CSS style
+ */
+export interface AssertStyleStep extends BaseStep {
+  type: 'assertStyle';
+  /** Target element selector */
+  selector: SelectorInput;
+  /** CSS property name */
+  property: string;
+  /** Expected computed value */
+  value: string;
 }
 
 // ============================================
@@ -252,8 +336,15 @@ export type Step =
   | HoverStep
   | ScrollStep
   | SelectStep
+  | MouseOutStep
+  | DragAndDropStep
+  | FileUploadStep
+  | HistoryBackStep
+  | HistoryForwardStep
   | AssertApiStep
   | AssertElementStep
+  | AssertPageStep
+  | AssertStyleStep
   | SnapshotDomStep;
 
 /**
@@ -267,12 +358,17 @@ export type UIActionStep =
   | WaitStep
   | HoverStep
   | ScrollStep
-  | SelectStep;
+  | SelectStep
+  | MouseOutStep
+  | DragAndDropStep
+  | FileUploadStep
+  | HistoryBackStep
+  | HistoryForwardStep;
 
 /**
  * Assertion step types
  */
-export type AssertionStep = AssertApiStep | AssertElementStep;
+export type AssertionStep = AssertApiStep | AssertElementStep | AssertPageStep | AssertStyleStep;
 
 /**
  * Observation step types

@@ -41,3 +41,13 @@ yarn-error.log*
 # Biome
 .biome/cache
 
+# IDE
+.idea
+
+# Claude Code auto-generated
+.agents/
+.claude/skills/
+
+# Database
+*.db
+

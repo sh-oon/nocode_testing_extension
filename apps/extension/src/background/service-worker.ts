@@ -5,7 +5,6 @@ import {
   mergeTypeSteps,
   type RawEvent,
   transformEventsToSteps,
-  transformApiCallsToSteps,
   generateApiAssertions,
   getRelevantApiCalls,
   DEFAULT_EXCLUDE_PATTERNS,
@@ -274,36 +273,13 @@ function getRecordingState(): RecordingStateMessage & {
 
 /**
  * Get all recorded events and steps
- * Steps include both UI actions and API assertions
+ * Steps include UI actions + auto-assertion steps (already inserted by handleIdleDetected)
  */
-function getEventsData(): { events: RawEvent[]; steps: Step[] } {
-  const uiSteps = sessionCache?.steps ?? [];
-  const apiCalls = sessionCache?.apiCalls ?? [];
-
-  // Transform API calls to assertApi steps
-  const apiSteps = transformApiCallsToSteps(apiCalls, {
-    includeResponseBody: false, // Don't include body by default
-    excludePatterns: [
-      /google-analytics/,
-      /googletagmanager/,
-      /facebook\.com\/tr/,
-      /analytics/,
-      /tracking/,
-      /beacon/,
-      /hot-update/,
-      /__vite/,
-      /__webpack/,
-      /\.map$/,
-    ],
-  });
-
-  // Merge UI steps and API steps
-  // API steps are added after the UI steps that triggered them
-  const allSteps = [...uiSteps, ...apiSteps];
-
+function getEventsData(): { events: RawEvent[]; steps: Step[]; url: string } {
   return {
     events: sessionCache?.events ?? [],
-    steps: allSteps,
+    steps: sessionCache?.steps ?? [],
+    url: sessionCache?.url ?? '',
   };
 }
 

@@ -28,8 +28,13 @@ export async function executeNavigate(
   const startTime = Date.now();
 
   try {
-    const url = substituteVariables(step.url, context.variables);
+    let url = substituteVariables(step.url, context.variables);
     const timeout = step.timeout ?? context.defaultTimeout;
+
+    // Resolve relative URLs against the scenario's base URL
+    if (!url.startsWith('http') && context.scenario.meta?.url) {
+      url = new URL(url, context.scenario.meta.url).href;
+    }
 
     await adapter.navigate(url, {
       waitUntil: step.waitUntil,
@@ -87,6 +92,14 @@ export async function executeWait(
 
       case 'networkIdle': {
         await adapter.waitForNetworkIdle({ timeout });
+        break;
+      }
+
+      case 'domStable': {
+        await adapter.waitForDomStable({
+          timeout,
+          stabilityThreshold: step.stabilityThreshold ?? 1500,
+        });
         break;
       }
 

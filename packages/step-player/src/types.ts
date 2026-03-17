@@ -172,6 +172,11 @@ export interface PlaybackAdapter {
   waitForNetworkIdle(options?: WaitOptions): Promise<void>;
 
   /**
+   * Wait for DOM to stabilize (no mutations for stabilityThreshold ms)
+   */
+  waitForDomStable(options?: WaitOptions & { stabilityThreshold?: number }): Promise<void>;
+
+  /**
    * Wait for specific duration
    */
   wait(duration: number): Promise<void>;
@@ -218,6 +223,36 @@ export interface PlaybackAdapter {
    * Stop API interception
    */
   stopApiInterception(): Promise<void>;
+
+  /**
+   * Navigate back in browser history
+   */
+  goBack(): Promise<void>;
+
+  /**
+   * Navigate forward in browser history
+   */
+  goForward(): Promise<void>;
+
+  /**
+   * Move mouse away from an element (mouseout/mouseleave)
+   */
+  mouseOut(selector: SelectorInput): Promise<void>;
+
+  /**
+   * Drag source element and drop onto target
+   */
+  dragAndDrop(source: SelectorInput, target: SelectorInput): Promise<void>;
+
+  /**
+   * Upload file(s) to a file input element
+   */
+  uploadFile(selector: SelectorInput, filePaths: string | string[]): Promise<void>;
+
+  /**
+   * Get computed CSS style value of an element
+   */
+  getComputedStyle(selector: SelectorInput, property: string): Promise<string>;
 
   /**
    * Check element assertion

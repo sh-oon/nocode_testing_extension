@@ -1,6 +1,12 @@
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
 import type { Selector, SelectorInput } from '@like-cake/ast-types';
-import type { DomSnapshot, ScreenshotResult } from '@like-cake/dom-serializer';
+import {
+  captureSnapshot as captureDomSnapshot,
+  captureScreenshot as captureDomScreenshot,
+  type DomSnapshot,
+  type ScreenshotResult,
+} from '@like-cake/dom-serializer';
+import { ACTION_CHECKS, checkActionability } from '../actionability';
 import type {
   ClickOptions,
   FoundElement,
@@ -268,17 +274,80 @@ export class ExtensionAdapter implements PlaybackAdapter {
     return attrs;
   }
 
-  async click(selector: SelectorInput, options?: ClickOptions): Promise<void> {
-    const found = await this.findElement(selector);
-    if (!found.found || !found.element) {
-      throw new Error(`Element not found: ${JSON.stringify(selector)}`);
-    }
+  /**
+   * Ensures an element is actionable before performing an action.
+   * Polls via rAF, checking all required conditions per action type.
+   * Returns the ready element for immediate use.
+   */
+  private async ensureActionable(
+    selector: SelectorInput,
+    action: 'click' | 'hover' | 'type' | 'select',
+    timeout = DEFAULT_WAIT_OPTIONS.timeout,
+  ): Promise<Element> {
+    const checks = ACTION_CHECKS[action];
+    const startTime = Date.now();
+    let lastFailure = '';
+    let prevRect: { x: number; y: number; width: number; height: number } | null = null;
 
-    const element = found.element as Element;
+    const pollFrame = (): Promise<Element> =>
+      new Promise<Element>((resolve, reject) => {
+        const tick = () => {
+          if (Date.now() - startTime > timeout) {
+            reject(
+              new Error(
+                `Actionability timeout after ${timeout}ms: ${lastFailure || 'element not found'}`,
+              ),
+            );
+            return;
+          }
+
+          const element = findElementBySelector(selector);
+          if (!element) {
+            lastFailure = 'Element not found';
+            prevRect = null;
+            requestAnimationFrame(tick);
+            return;
+          }
+
+          const result = checkActionability(element, checks);
+          if (!result.passed) {
+            lastFailure = result.failure!.message;
+            prevRect = null;
+            requestAnimationFrame(tick);
+            return;
+          }
+
+          // Stability: compare boundingRect across 2 frames
+          if (checks.stable && result.boundingRect) {
+            const cur = result.boundingRect;
+            if (
+              !prevRect ||
+              prevRect.x !== cur.x ||
+              prevRect.y !== cur.y ||
+              prevRect.width !== cur.width ||
+              prevRect.height !== cur.height
+            ) {
+              prevRect = cur;
+              lastFailure = 'Element position is not stable';
+              requestAnimationFrame(tick);
+              return;
+            }
+          }
+
+          resolve(element);
+        };
+
+        requestAnimationFrame(tick);
+      });
+
+    return pollFrame();
+  }
+
+  async click(selector: SelectorInput, options?: ClickOptions): Promise<void> {
+    const element = await this.ensureActionable(selector, 'click');
 
     // Scroll element into view
     element.scrollIntoView({ behavior: 'auto', block: 'center' });
-    await this.wait(50); // Small delay after scroll
 
     // Calculate click position
     const rect = element.getBoundingClientRect();
@@ -314,12 +383,7 @@ export class ExtensionAdapter implements PlaybackAdapter {
   }
 
   async type(selector: SelectorInput, text: string, options?: TypeOptions): Promise<void> {
-    const found = await this.findElement(selector);
-    if (!found.found || !found.element) {
-      throw new Error(`Element not found: ${JSON.stringify(selector)}`);
-    }
-
-    const element = found.element as HTMLElement;
+    const element = await this.ensureActionable(selector, 'type') as HTMLElement;
 
     // Focus the element
     element.focus();
@@ -383,12 +447,7 @@ export class ExtensionAdapter implements PlaybackAdapter {
   }
 
   async hover(selector: SelectorInput, position?: { x: number; y: number }): Promise<void> {
-    const found = await this.findElement(selector);
-    if (!found.found || !found.element) {
-      throw new Error(`Element not found: ${JSON.stringify(selector)}`);
-    }
-
-    const element = found.element as Element;
+    const element = await this.ensureActionable(selector, 'hover');
     const rect = element.getBoundingClientRect();
     const clientX = position?.x ?? rect.left + rect.width / 2;
     const clientY = position?.y ?? rect.top + rect.height / 2;
@@ -419,12 +478,7 @@ export class ExtensionAdapter implements PlaybackAdapter {
   }
 
   async select(selector: SelectorInput, values: string | string[]): Promise<void> {
-    const found = await this.findElement(selector);
-    if (!found.found || !found.element) {
-      throw new Error(`Element not found: ${JSON.stringify(selector)}`);
-    }
-
-    const selectElement = found.element as HTMLSelectElement;
+    const selectElement = await this.ensureActionable(selector, 'select') as HTMLSelectElement;
     if (!(selectElement instanceof HTMLSelectElement)) {
       throw new Error('Element is not a select element');
     }
@@ -503,6 +557,45 @@ export class ExtensionAdapter implements PlaybackAdapter {
     throw new Error(`Network idle timeout after ${opts.timeout}ms`);
   }
 
+  async waitForDomStable(
+    options?: WaitOptions & { stabilityThreshold?: number }
+  ): Promise<void> {
+    const stabilityThreshold = options?.stabilityThreshold ?? 1500;
+    const timeout = options?.timeout ?? DEFAULT_WAIT_OPTIONS.timeout;
+
+    return new Promise<void>((resolve, reject) => {
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const globalTimer = setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`DOM stability timeout after ${timeout}ms`));
+      }, timeout);
+
+      const observer = new MutationObserver(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          observer.disconnect();
+          clearTimeout(globalTimer);
+          resolve();
+        }, stabilityThreshold);
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+      });
+
+      // If DOM is already stable, resolve after stabilityThreshold
+      timer = setTimeout(() => {
+        observer.disconnect();
+        clearTimeout(globalTimer);
+        resolve();
+      }, stabilityThreshold);
+    });
+  }
+
   async wait(duration: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, duration));
   }
@@ -519,19 +612,14 @@ export class ExtensionAdapter implements PlaybackAdapter {
     computedStyles?: string[];
     fullPage?: boolean;
   }): Promise<DomSnapshot> {
-    // This would typically call the dom-serializer package
-    // For now, returning a placeholder that should be replaced with actual implementation
-    const { captureSnapshot } = await import('@like-cake/dom-serializer');
-    return captureSnapshot({
+    return captureDomSnapshot({
       includeComputedStyles: !!options?.computedStyles?.length,
       styleProperties: options?.computedStyles,
     });
   }
 
   async captureScreenshot(options?: { fullPage?: boolean }): Promise<ScreenshotResult> {
-    // This would typically call the dom-serializer package
-    const { captureScreenshot } = await import('@like-cake/dom-serializer');
-    return captureScreenshot({
+    return captureDomScreenshot({
       fullPage: options?.fullPage,
     });
   }
@@ -564,6 +652,55 @@ export class ExtensionAdapter implements PlaybackAdapter {
     // The interceptor should be stopped via its own method
     // For now, just mark as inactive
     this.apiInterceptionActive = false;
+  }
+
+  async goBack(): Promise<void> {
+    window.history.back();
+    // Wait briefly for navigation to process
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  async goForward(): Promise<void> {
+    window.history.forward();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  async mouseOut(selector: SelectorInput): Promise<void> {
+    const elements = findAllElements(selector);
+    const element = elements[0];
+    if (!element) throw new Error(`Element not found for mouseOut: ${JSON.stringify(selector)}`);
+
+    element.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
+    element.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+  }
+
+  async dragAndDrop(source: SelectorInput, target: SelectorInput): Promise<void> {
+    const sourceElements = findAllElements(source);
+    const targetElements = findAllElements(target);
+    const sourceEl = sourceElements[0];
+    const targetEl = targetElements[0];
+    if (!sourceEl) throw new Error(`Source element not found for dragAndDrop: ${JSON.stringify(source)}`);
+    if (!targetEl) throw new Error(`Target element not found for dragAndDrop: ${JSON.stringify(target)}`);
+
+    const dataTransfer = new DataTransfer();
+    sourceEl.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer }));
+    targetEl.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer }));
+    targetEl.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer }));
+    sourceEl.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+  }
+
+  async uploadFile(_selector: SelectorInput, _filePaths: string | string[]): Promise<void> {
+    // File upload via extension content script is limited — files can't be set programmatically
+    // from content scripts due to security restrictions. This requires devtools protocol support.
+    throw new Error('File upload is not supported in the extension adapter. Use the Puppeteer adapter.');
+  }
+
+  async getComputedStyle(selector: SelectorInput, property: string): Promise<string> {
+    const elements = findAllElements(selector);
+    const element = elements[0];
+    if (!element) throw new Error(`Element not found for getComputedStyle: ${JSON.stringify(selector)}`);
+
+    return window.getComputedStyle(element).getPropertyValue(property);
   }
 
   async assertElement(
@@ -674,6 +811,27 @@ export class ExtensionAdapter implements PlaybackAdapter {
           return { passed: true, message: `Element count ${count} ${op} ${expected}` };
         }
         return { passed: false, message: `Element count ${count} is not ${op} ${expected}` };
+      }
+
+      case 'enabled': {
+        const isDisabled = element?.hasAttribute('disabled') ?? true;
+        if (!isDisabled) {
+          return { passed: true, message: 'Element is enabled' };
+        }
+        return { passed: false, message: 'Element is disabled but expected enabled' };
+      }
+
+      case 'value': {
+        const inputEl = element as HTMLInputElement | HTMLTextAreaElement | null;
+        const currentValue = inputEl?.value ?? '';
+        const expectedValue = String(assertion.value ?? '');
+        if (currentValue === expectedValue) {
+          return { passed: true, message: `Value matches "${expectedValue}"` };
+        }
+        return {
+          passed: false,
+          message: `Value does not match, expected: "${expectedValue}", actual: "${currentValue}"`,
+        };
       }
 
       default:

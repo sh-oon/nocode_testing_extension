@@ -1,5 +1,6 @@
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
-import type { AssertApiStep, AssertElementStep } from '@like-cake/ast-types';
+import type { AssertApiStep, AssertElementStep, AssertPageStep, AssertStyleStep } from '@like-cake/ast-types';
+import { JSONPath } from 'jsonpath-plus';
 import type { ExecutionContext, PlaybackAdapter, StepExecutionResult } from '../types';
 
 /**
@@ -47,27 +48,16 @@ function findMatchingApiCall(
 }
 
 /**
- * Gets a value from an object using JSONPath-like syntax
+ * Gets a value from an object using JSONPath expression.
+ * Supports full JSONPath spec via jsonpath-plus (e.g. $.data[0].id, $..name)
  */
 function getByJsonPath(obj: unknown, path: string): unknown {
   if (!obj || typeof obj !== 'object') {
     return undefined;
   }
 
-  const parts = path.replace(/\[(\d+)\]/g, '.$1').split('.');
-  let current: unknown = obj;
-
-  for (const part of parts) {
-    if (current === null || current === undefined) {
-      return undefined;
-    }
-    if (typeof current !== 'object') {
-      return undefined;
-    }
-    current = (current as Record<string, unknown>)[part];
-  }
-
-  return current;
+  const results = JSONPath({ path, json: obj as object });
+  return results.length > 0 ? results[0] : undefined;
 }
 
 /**
@@ -277,6 +267,131 @@ export async function executeAssertElement(
         duration: Date.now() - startTime,
         error: {
           message: result.message,
+        },
+      };
+    }
+
+    return {
+      status: 'passed',
+      duration: Date.now() - startTime,
+    };
+  } catch (error) {
+    return {
+      status: 'failed',
+      duration: Date.now() - startTime,
+      error: {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    };
+  }
+}
+
+/**
+ * Execute an assertPage step — page-level assertions (URL, title, document loaded)
+ */
+export async function executeAssertPage(
+  step: AssertPageStep,
+  adapter: PlaybackAdapter,
+  _context: ExecutionContext
+): Promise<StepExecutionResult> {
+  const startTime = Date.now();
+
+  try {
+    const { assertion } = step;
+
+    switch (assertion.type) {
+      case 'url': {
+        const currentUrl = await adapter.getCurrentUrl();
+        const matchType = assertion.matchType ?? 'contains';
+        let passed = false;
+
+        switch (matchType) {
+          case 'exact':
+            passed = currentUrl === assertion.value;
+            break;
+          case 'contains':
+            passed = currentUrl.includes(assertion.value);
+            break;
+          case 'regex':
+            passed = new RegExp(assertion.value).test(currentUrl);
+            break;
+        }
+
+        if (!passed) {
+          return {
+            status: 'failed',
+            duration: Date.now() - startTime,
+            error: {
+              message: `URL assertion failed (${matchType}): expected "${assertion.value}", got "${currentUrl}"`,
+            },
+          };
+        }
+        break;
+      }
+
+      case 'title': {
+        const title = await adapter.getTitle();
+        if (title !== assertion.value) {
+          return {
+            status: 'failed',
+            duration: Date.now() - startTime,
+            error: {
+              message: `Title assertion failed: expected "${assertion.value}", got "${title}"`,
+            },
+          };
+        }
+        break;
+      }
+
+      case 'documentLoaded': {
+        const url = await adapter.getCurrentUrl();
+        if (!url) {
+          return {
+            status: 'failed',
+            duration: Date.now() - startTime,
+            error: { message: 'Document is not loaded' },
+          };
+        }
+        break;
+      }
+    }
+
+    return {
+      status: 'passed',
+      duration: Date.now() - startTime,
+    };
+  } catch (error) {
+    return {
+      status: 'failed',
+      duration: Date.now() - startTime,
+      error: {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    };
+  }
+}
+
+/**
+ * Execute an assertStyle step — check computed CSS style of an element
+ */
+export async function executeAssertStyle(
+  step: AssertStyleStep,
+  adapter: PlaybackAdapter,
+  _context: ExecutionContext
+): Promise<StepExecutionResult> {
+  const startTime = Date.now();
+
+  try {
+    const actualValue = await adapter.getComputedStyle(step.selector, step.property);
+
+    if (actualValue !== step.value) {
+      return {
+        status: 'failed',
+        duration: Date.now() - startTime,
+        error: {
+          message: `Style assertion failed for "${step.property}": expected "${step.value}", got "${actualValue}"`,
         },
       };
     }

@@ -1,5 +1,4 @@
-import type { ExecutionSummary, Step, StepResult } from '@like-cake/ast-types';
-import type { Browser, CDPSession, Page } from 'puppeteer';
+import type { ExecutionSummary, StepResult } from '@like-cake/ast-types';
 
 // Re-export StepResult for use in other modules
 export type { StepResult };
@@ -28,28 +27,6 @@ export interface RunnerOptions {
   continueOnFailure?: boolean;
   /** Custom user agent */
   userAgent?: string;
-}
-
-/**
- * Execution context passed to step executors
- */
-export interface ExecutionContext {
-  /** Puppeteer page instance */
-  page: Page;
-  /** Puppeteer browser instance */
-  browser: Browser;
-  /** CDP session for low-level operations */
-  cdpSession: CDPSession;
-  /** Runner options */
-  options: RunnerOptions;
-  /** Scenario variables */
-  variables: Record<string, string | number | boolean>;
-  /** API observer for tracking requests */
-  apiObserver: ApiObserver;
-  /** Current step index */
-  stepIndex: number;
-  /** Scenario ID */
-  scenarioId: string;
 }
 
 /**
@@ -111,14 +88,6 @@ export interface DomSnapshot {
   /** Screenshot path if captured */
   screenshotPath?: string;
 }
-
-/**
- * Step executor function signature
- */
-export type StepExecutor<T extends Step = Step> = (
-  step: T,
-  context: ExecutionContext
-) => Promise<Partial<StepResult>>;
 
 /**
  * Scenario execution result

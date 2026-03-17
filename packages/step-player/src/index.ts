@@ -5,9 +5,18 @@
  * Executes recorded scenarios with support for pause/resume and step-by-step debugging.
  */
 
+// Actionability
+export {
+  ACTION_CHECKS,
+  checkActionability,
+  type ActionabilityChecks,
+  type ActionabilityFailure,
+  type ActionabilityResult,
+} from './actionability';
 // Adapters
 export { ExtensionAdapter } from './adapters/extension-adapter';
 export {
+  type CDPSessionLike,
   PuppeteerAdapter,
   type PuppeteerAdapterConfig,
   type PuppeteerPageLike,
@@ -16,9 +25,16 @@ export {
 export {
   executeAssertApi,
   executeAssertElement,
+  executeAssertPage,
+  executeAssertStyle,
   executeClick,
+  executeDragAndDrop,
+  executeFileUpload,
+  executeHistoryBack,
+  executeHistoryForward,
   executeHover,
   executeKeypress,
+  executeMouseOut,
   executeNavigate,
   executeScroll,
   executeSelect,

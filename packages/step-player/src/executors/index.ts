@@ -5,8 +5,15 @@ import type {
   StepExecutionResult,
   StepExecutor,
 } from '../types';
-import { executeAssertApi, executeAssertElement } from './assertions';
+import { executeAssertApi, executeAssertElement, executeAssertPage, executeAssertStyle } from './assertions';
 import { executeNavigate, executeSnapshotDom, executeWait } from './navigation';
+import {
+  executeDragAndDrop,
+  executeFileUpload,
+  executeHistoryBack,
+  executeHistoryForward,
+  executeMouseOut,
+} from './new-actions';
 import {
   executeClick,
   executeHover,
@@ -16,8 +23,15 @@ import {
   executeType,
 } from './ui-actions';
 
-export { executeAssertApi, executeAssertElement } from './assertions';
+export { executeAssertApi, executeAssertElement, executeAssertPage, executeAssertStyle } from './assertions';
 export { executeNavigate, executeSnapshotDom, executeWait } from './navigation';
+export {
+  executeDragAndDrop,
+  executeFileUpload,
+  executeHistoryBack,
+  executeHistoryForward,
+  executeMouseOut,
+} from './new-actions';
 export {
   executeClick,
   executeHover,
@@ -39,8 +53,15 @@ const executorRegistry: Record<string, StepExecutor> = {
   hover: executeHover as StepExecutor,
   scroll: executeScroll as StepExecutor,
   select: executeSelect as StepExecutor,
+  mouseOut: executeMouseOut as StepExecutor,
+  dragAndDrop: executeDragAndDrop as StepExecutor,
+  fileUpload: executeFileUpload as StepExecutor,
+  historyBack: executeHistoryBack as StepExecutor,
+  historyForward: executeHistoryForward as StepExecutor,
   assertApi: executeAssertApi as StepExecutor,
   assertElement: executeAssertElement as StepExecutor,
+  assertPage: executeAssertPage as StepExecutor,
+  assertStyle: executeAssertStyle as StepExecutor,
   snapshotDom: executeSnapshotDom as StepExecutor,
 };
 

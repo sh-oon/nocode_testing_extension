@@ -1,6 +1,7 @@
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
 import type { Selector, SelectorInput } from '@like-cake/ast-types';
 import type { DomSnapshot, ScreenshotResult } from '@like-cake/dom-serializer';
+import { ACTION_CHECKS, ACTIONABILITY_POLL_FN } from '../actionability';
 import type {
   ClickOptions,
   FoundElement,
@@ -42,6 +43,21 @@ export interface PuppeteerPageLike {
   setRequestInterception(enabled: boolean): Promise<void>;
   on(event: string, handler: (...args: unknown[]) => void): void;
   off(event: string, handler: (...args: unknown[]) => void): void;
+  goBack(options?: { waitUntil?: string; timeout?: number }): Promise<unknown>;
+  goForward(options?: { waitUntil?: string; timeout?: number }): Promise<unknown>;
+  mouse: {
+    move(x: number, y: number): Promise<void>;
+  };
+}
+
+/**
+ * Minimal CDP session interface for type-safe integration without requiring Puppeteer as a dependency.
+ * Matches the subset of Puppeteer's CDPSession used for Network observation.
+ */
+export interface CDPSessionLike {
+  send(method: string, params?: Record<string, unknown>): Promise<unknown>;
+  on(event: string, handler: (params: unknown) => void): void;
+  off(event: string, handler: (params: unknown) => void): void;
 }
 
 /**
@@ -50,6 +66,8 @@ export interface PuppeteerPageLike {
 export interface PuppeteerAdapterConfig {
   /** Puppeteer Page instance */
   page: PuppeteerPageLike;
+  /** Optional CDP session for reliable Network-level API observation */
+  cdpSession?: CDPSessionLike;
   /** Default timeout for operations */
   defaultTimeout?: number;
 }
@@ -89,17 +107,58 @@ function resolveSelectorForPuppeteer(selector: SelectorInput): {
 /**
  * Puppeteer adapter - runs in Node.js with Puppeteer
  */
+/**
+ * CDP Network domain event payloads (subset used for API observation)
+ */
+interface CDPRequestWillBeSent {
+  requestId: string;
+  request: { url: string; method: string; headers: Record<string, string>; postData?: string };
+  type: string;
+  timestamp: number;
+}
+
+interface CDPResponseReceived {
+  requestId: string;
+  response: {
+    url: string;
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    mimeType: string;
+  };
+  type: string;
+  timestamp: number;
+}
+
+interface CDPLoadingFinished {
+  requestId: string;
+  timestamp: number;
+}
+
 export class PuppeteerAdapter implements PlaybackAdapter {
   readonly name = 'puppeteer';
 
   private page: PuppeteerPageLike;
+  private cdpSession: CDPSessionLike | null;
   private defaultTimeout: number;
   private apiCalls: CapturedApiCall[] = [];
+
+  // Puppeteer-level interception state (fallback when no CDP session)
+  private pendingRequests = new Map<unknown, CapturedApiCall>();
   private requestHandler: ((request: unknown) => void) | null = null;
   private responseHandler: ((response: unknown) => void) | null = null;
 
+  // CDP-level observation state
+  private cdpRequestMap = new Map<string, CapturedApiCall>();
+  private cdpHandlers: {
+    onRequest: ((params: unknown) => void) | null;
+    onResponse: ((params: unknown) => void) | null;
+    onFinished: ((params: unknown) => void) | null;
+  } = { onRequest: null, onResponse: null, onFinished: null };
+
   constructor(config: PuppeteerAdapterConfig) {
     this.page = config.page;
+    this.cdpSession = config.cdpSession ?? null;
     this.defaultTimeout = config.defaultTimeout ?? 30000;
   }
 
@@ -191,8 +250,30 @@ export class PuppeteerAdapter implements PlaybackAdapter {
     return resolved.value;
   }
 
+  /**
+   * Ensures an element is actionable by running Playwright-style checks
+   * inside the browser context via page.evaluate.
+   */
+  private async ensureActionable(
+    selector: SelectorInput,
+    action: 'click' | 'hover' | 'type' | 'select',
+    timeout?: number,
+  ): Promise<void> {
+    const sel = await this.getSelector(selector);
+    const checks = ACTION_CHECKS[action];
+    const timeoutMs = timeout ?? this.defaultTimeout;
+
+    await this.page.evaluate(
+      ACTIONABILITY_POLL_FN,
+      sel,
+      JSON.stringify(checks),
+      timeoutMs,
+    );
+  }
+
   async click(selector: SelectorInput, options?: ClickOptions): Promise<void> {
     const sel = await this.getSelector(selector);
+    await this.ensureActionable(selector, 'click');
 
     const clickOptions: Record<string, unknown> = {};
     if (options?.button) {
@@ -223,6 +304,7 @@ export class PuppeteerAdapter implements PlaybackAdapter {
 
   async type(selector: SelectorInput, text: string, options?: TypeOptions): Promise<void> {
     const sel = await this.getSelector(selector);
+    await this.ensureActionable(selector, 'type');
 
     if (options?.clear) {
       // Triple-click to select all and then type
@@ -256,6 +338,7 @@ export class PuppeteerAdapter implements PlaybackAdapter {
 
   async hover(selector: SelectorInput, _position?: { x: number; y: number }): Promise<void> {
     const sel = await this.getSelector(selector);
+    await this.ensureActionable(selector, 'hover');
     await this.page.hover(sel);
   }
 
@@ -288,6 +371,7 @@ export class PuppeteerAdapter implements PlaybackAdapter {
 
   async select(selector: SelectorInput, values: string | string[]): Promise<void> {
     const sel = await this.getSelector(selector);
+    await this.ensureActionable(selector, 'select');
     const valueArray = Array.isArray(values) ? values : [values];
     await this.page.select(sel, ...valueArray);
   }
@@ -324,6 +408,50 @@ export class PuppeteerAdapter implements PlaybackAdapter {
       idleTime: 500,
       timeout: options?.timeout ?? this.defaultTimeout,
     });
+  }
+
+  async waitForDomStable(options?: WaitOptions & { stabilityThreshold?: number }): Promise<void> {
+    const stabilityThreshold = options?.stabilityThreshold ?? 1500;
+    const timeout = options?.timeout ?? this.defaultTimeout;
+
+    await this.page.evaluate(
+      `(function() {
+        var threshold = arguments[0];
+        var maxTimeout = arguments[1];
+        return new Promise(function(resolve, reject) {
+          var timer = null;
+          var globalTimer = setTimeout(function() {
+            observer.disconnect();
+            reject(new Error('DOM stability timeout after ' + maxTimeout + 'ms'));
+          }, maxTimeout);
+
+          var observer = new MutationObserver(function() {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function() {
+              observer.disconnect();
+              clearTimeout(globalTimer);
+              resolve(true);
+            }, threshold);
+          });
+
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: true,
+          });
+
+          // If DOM is already stable, resolve after threshold
+          timer = setTimeout(function() {
+            observer.disconnect();
+            clearTimeout(globalTimer);
+            resolve(true);
+          }, threshold);
+        });
+      })()`,
+      stabilityThreshold,
+      timeout
+    );
   }
 
   async wait(duration: number): Promise<void> {
@@ -386,9 +514,134 @@ export class PuppeteerAdapter implements PlaybackAdapter {
   }
 
   async startApiInterception(): Promise<void> {
+    if (this.cdpSession) {
+      await this.startCdpNetworkObservation();
+    } else {
+      await this.startPuppeteerInterception();
+    }
+  }
+
+  async stopApiInterception(): Promise<void> {
+    if (this.cdpSession) {
+      await this.stopCdpNetworkObservation();
+    } else {
+      await this.stopPuppeteerInterception();
+    }
+  }
+
+  // ─── CDP Network observation (preferred) ──────────────────────
+  // Uses passive observation via Network domain. No request pausing,
+  // unique requestId per call, and explicit body retrieval via
+  // Network.getResponseBody after loadingFinished.
+
+  private async startCdpNetworkObservation(): Promise<void> {
+    const cdp = this.cdpSession!;
+    this.cdpRequestMap.clear();
+
+    await cdp.send('Network.enable');
+
+    this.cdpHandlers.onRequest = (params: unknown) => {
+      const event = params as CDPRequestWillBeSent;
+      // Only track XHR/Fetch requests
+      if (event.type !== 'XHR' && event.type !== 'Fetch') return;
+
+      const call: CapturedApiCall = {
+        request: {
+          id: event.requestId,
+          url: event.request.url,
+          method: event.request.method,
+          headers: event.request.headers,
+          body: event.request.postData,
+          timestamp: Date.now(),
+          initiator: 'fetch',
+        },
+        pending: true,
+      };
+
+      this.cdpRequestMap.set(event.requestId, call);
+      this.apiCalls.push(call);
+    };
+
+    this.cdpHandlers.onResponse = (params: unknown) => {
+      const event = params as CDPResponseReceived;
+      const call = this.cdpRequestMap.get(event.requestId);
+      if (!call) return;
+
+      // Store response metadata immediately (body comes after loadingFinished)
+      call.response = {
+        status: event.response.status,
+        statusText: event.response.statusText,
+        headers: event.response.headers,
+        body: undefined,
+        responseTime: Date.now() - call.request.timestamp,
+      };
+    };
+
+    this.cdpHandlers.onFinished = (params: unknown) => {
+      const event = params as CDPLoadingFinished;
+      const call = this.cdpRequestMap.get(event.requestId);
+      if (!call?.response) return;
+
+      // Explicitly retrieve response body from browser cache
+      cdp
+        .send('Network.getResponseBody', { requestId: event.requestId })
+        .then((result) => {
+          const { body, base64Encoded } = result as { body: string; base64Encoded: boolean };
+          if (base64Encoded) {
+            call.response!.body = body; // keep as base64 string
+          } else {
+            // Parse JSON if content-type suggests it
+            const contentType = call.response!.headers['content-type'] ?? '';
+            if (contentType.includes('application/json')) {
+              try {
+                call.response!.body = JSON.parse(body);
+              } catch {
+                call.response!.body = body;
+              }
+            } else {
+              call.response!.body = body;
+            }
+          }
+          call.response!.responseTime = Date.now() - call.request.timestamp;
+          call.pending = false;
+        })
+        .catch(() => {
+          // Body unavailable (e.g. redirect, aborted). Mark as completed anyway.
+          call.pending = false;
+        });
+    };
+
+    cdp.on('Network.requestWillBeSent', this.cdpHandlers.onRequest);
+    cdp.on('Network.responseReceived', this.cdpHandlers.onResponse);
+    cdp.on('Network.loadingFinished', this.cdpHandlers.onFinished);
+  }
+
+  private async stopCdpNetworkObservation(): Promise<void> {
+    const cdp = this.cdpSession!;
+
+    if (this.cdpHandlers.onRequest) {
+      cdp.off('Network.requestWillBeSent', this.cdpHandlers.onRequest);
+    }
+    if (this.cdpHandlers.onResponse) {
+      cdp.off('Network.responseReceived', this.cdpHandlers.onResponse);
+    }
+    if (this.cdpHandlers.onFinished) {
+      cdp.off('Network.loadingFinished', this.cdpHandlers.onFinished);
+    }
+    this.cdpHandlers = { onRequest: null, onResponse: null, onFinished: null };
+    this.cdpRequestMap.clear();
+
+    await cdp.send('Network.disable').catch(() => {});
+  }
+
+  // ─── Puppeteer-level interception (fallback) ──────────────────
+  // Used when no CDP session is provided. Intercepts requests at the
+  // Puppeteer API level. Less reliable for body capture (async race).
+
+  private async startPuppeteerInterception(): Promise<void> {
     await this.page.setRequestInterception(true);
 
-    const requestIdMap = new Map<string, CapturedApiCall>();
+    this.pendingRequests.clear();
 
     this.requestHandler = (request: unknown) => {
       const req = request as {
@@ -413,7 +666,7 @@ export class PuppeteerAdapter implements PlaybackAdapter {
         pending: true,
       };
 
-      requestIdMap.set(req.url() + req.method(), call);
+      this.pendingRequests.set(request, call);
       this.apiCalls.push(call);
 
       req.continue();
@@ -422,27 +675,38 @@ export class PuppeteerAdapter implements PlaybackAdapter {
     this.responseHandler = (response: unknown) => {
       const res = response as {
         url: () => string;
-        request: () => { method: () => string };
+        request: () => unknown;
         status: () => number;
         statusText: () => string;
         headers: () => Record<string, string>;
         json: () => Promise<unknown>;
+        text: () => Promise<string>;
       };
 
-      const key = res.url() + res.request().method();
-      const call = requestIdMap.get(key);
+      const requestRef = res.request();
+      const call = this.pendingRequests.get(requestRef);
 
       if (call) {
         const startTime = call.request.timestamp;
-        call.response = {
-          status: res.status(),
-          statusText: res.statusText(),
-          headers: res.headers(),
-          body: undefined, // Would need async handling for body
-          responseTime: Date.now() - startTime,
-        };
-        call.pending = false;
-        requestIdMap.delete(key);
+        const headers = res.headers();
+        const contentType = headers['content-type'] ?? '';
+
+        const bodyPromise = contentType.includes('application/json')
+          ? res.json().catch(() => res.text().catch(() => undefined))
+          : res.text().catch(() => undefined);
+
+        bodyPromise.then((body) => {
+          call.response = {
+            status: res.status(),
+            statusText: res.statusText(),
+            headers,
+            body,
+            responseTime: Date.now() - startTime,
+          };
+          call.pending = false;
+        });
+
+        this.pendingRequests.delete(requestRef);
       }
     };
 
@@ -450,7 +714,7 @@ export class PuppeteerAdapter implements PlaybackAdapter {
     this.page.on('response', this.responseHandler);
   }
 
-  async stopApiInterception(): Promise<void> {
+  private async stopPuppeteerInterception(): Promise<void> {
     if (this.requestHandler) {
       this.page.off('request', this.requestHandler);
       this.requestHandler = null;
@@ -459,7 +723,75 @@ export class PuppeteerAdapter implements PlaybackAdapter {
       this.page.off('response', this.responseHandler);
       this.responseHandler = null;
     }
+    this.pendingRequests.clear();
     await this.page.setRequestInterception(false);
+  }
+
+  async goBack(): Promise<void> {
+    await this.page.goBack({ waitUntil: 'networkidle2' });
+  }
+
+  async goForward(): Promise<void> {
+    await this.page.goForward({ waitUntil: 'networkidle2' });
+  }
+
+  async mouseOut(selector: SelectorInput): Promise<void> {
+    const sel = await this.getSelector(selector);
+    // Move mouse to the element first, then move away
+    await this.page.hover(sel);
+    await this.page.mouse.move(0, 0);
+  }
+
+  async dragAndDrop(source: SelectorInput, target: SelectorInput): Promise<void> {
+    const sourceSel = await this.getSelector(source);
+    const targetSel = await this.getSelector(target);
+
+    // Use page.evaluate to dispatch drag events
+    await this.page.evaluate(
+      `(function() {
+        const source = document.querySelector(arguments[0]);
+        const target = document.querySelector(arguments[1]);
+        if (!source) throw new Error('Source element not found');
+        if (!target) throw new Error('Target element not found');
+
+        const dataTransfer = new DataTransfer();
+        source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer }));
+        target.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer }));
+        target.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer }));
+        source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+      })()`,
+      sourceSel,
+      targetSel
+    );
+  }
+
+  async uploadFile(selector: SelectorInput, filePaths: string | string[]): Promise<void> {
+    const sel = await this.getSelector(selector);
+    const element = await this.page.$(sel);
+    if (!element) throw new Error(`Element not found for uploadFile: ${sel}`);
+
+    const paths = Array.isArray(filePaths) ? filePaths : [filePaths];
+    // Puppeteer ElementHandle exposes uploadFile
+    const el = element as unknown as { uploadFile: (...paths: string[]) => Promise<void> };
+    if (typeof el.uploadFile === 'function') {
+      await el.uploadFile(...paths);
+    } else {
+      throw new Error('uploadFile is not supported on this element handle');
+    }
+  }
+
+  async getComputedStyle(selector: SelectorInput, property: string): Promise<string> {
+    const sel = await this.getSelector(selector);
+    const result = await this.page.evaluate(
+      `(function() {
+        const el = document.querySelector(arguments[0]);
+        if (!el) throw new Error('Element not found');
+        return window.getComputedStyle(el).getPropertyValue(arguments[1]);
+      })()`,
+      sel,
+      property
+    );
+    return result as string;
   }
 
   async assertElement(
@@ -556,6 +888,23 @@ export class PuppeteerAdapter implements PlaybackAdapter {
                 break;
             }
             return { passed, message: 'Count: ' + count + ' ' + op + ' ' + expected + ' = ' + passed };
+          }
+          case 'enabled': {
+            const isDisabled = element?.hasAttribute('disabled') ?? true;
+            return {
+              passed: !isDisabled,
+              message: !isDisabled ? 'Element is enabled' : 'Element is disabled',
+            };
+          }
+          case 'value': {
+            var currentValue = element?.value ?? '';
+            var expectedValue = String(a.value ?? '');
+            return {
+              passed: currentValue === expectedValue,
+              message: currentValue === expectedValue
+                ? 'Value matches'
+                : 'Value mismatch: "' + currentValue + '" vs "' + expectedValue + '"',
+            };
           }
           default:
             return { passed: false, message: 'Unknown assertion: ' + a.type };

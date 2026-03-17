@@ -1,5 +1,10 @@
 import type { Scenario, StepResult } from '@like-cake/ast-types';
-import { ScenarioRunner, type RunnerOptions, type ScenarioExecutionResult } from '@like-cake/runner';
+import {
+  type RunnerEventListener,
+  type RunnerOptions,
+  type ScenarioExecutionResult,
+  ScenarioRunner,
+} from '@like-cake/runner';
 import { nanoid } from 'nanoid';
 import type { WebSocket } from 'ws';
 import { scenarioService } from './scenario.service';
@@ -159,30 +164,35 @@ export class ExecutionService {
   }
 
   /**
-   * Run scenario with step-by-step progress events
+   * Run scenario with real-time step-by-step progress events
    */
   private async runWithProgress(
     execution: ActiveExecution,
     scenario: Scenario
   ): Promise<ScenarioExecutionResult> {
-    // Unfortunately, the current runner doesn't expose step-by-step events
-    // We'll need to run the full scenario and report completion
-    // For now, just run the scenario directly
-    const result = await execution.runner.run(scenario);
+    // Bridge StepPlayer events to WebSocket subscribers in real-time
+    const stepEventListener: RunnerEventListener = (event) => {
+      if (event.type === 'step_start') {
+        this.broadcast(execution, {
+          type: 'step_start',
+          executionId: execution.id,
+          stepIndex: event.stepIndex,
+          stepId: event.stepId ?? `step-${event.stepIndex}`,
+          stepType: event.stepType ?? 'unknown',
+        });
+      } else if (event.type === 'step_complete' && event.result) {
+        this.broadcast(execution, {
+          type: 'step_complete',
+          executionId: execution.id,
+          stepIndex: event.stepIndex,
+          result: event.result,
+        });
+      }
+    };
 
-    // Emit step results after completion (not ideal, but works)
-    for (let i = 0; i < result.stepResults.length; i++) {
-      const stepResult = result.stepResults[i];
+    execution.runner.onStepEvent(stepEventListener);
 
-      this.broadcast(execution, {
-        type: 'step_complete',
-        executionId: execution.id,
-        stepIndex: i,
-        result: stepResult,
-      });
-    }
-
-    return result;
+    return execution.runner.run(scenario);
   }
 
   /**

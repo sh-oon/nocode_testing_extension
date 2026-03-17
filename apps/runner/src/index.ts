@@ -1,35 +1,17 @@
 // Core runner
-export { runScenario, ScenarioRunner } from './runner';
 
 // Comparison runner (step-player + diff-engine integration)
 export {
-  captureBaseline,
-  ComparisonRunner,
-  runScenarioWithComparison,
   type Baseline,
   type ComparisonResult,
+  ComparisonRunner,
   type ComparisonRunnerOptions,
+  captureBaseline,
+  runScenarioWithComparison,
 } from './comparison-runner';
-
-// Executors
-export {
-  executeAssertApi,
-  executeAssertElement,
-  executeClick,
-  executeHover,
-  executeKeypress,
-  executeNavigate,
-  executeScroll,
-  executeSelect,
-  executeSnapshotDom,
-  executeStep,
-  executeType,
-  executeWait,
-} from './executors';
-// Observers
-export { createApiObserver } from './observers';
 // Reporters
 export {
+  type ComparisonJsonReport,
   generateComparisonJsonReport,
   generateJsonReport,
   generateJunitReport,
@@ -40,8 +22,8 @@ export {
   writeComparisonJsonReport,
   writeJsonReport,
   writeJunitReport,
-  type ComparisonJsonReport,
 } from './reporters';
+export { type RunnerEventListener, runScenario, ScenarioRunner } from './runner';
 // Types
 export type {
   ApiObserver,
@@ -49,9 +31,7 @@ export type {
   ApiResponseData,
   CliRunOptions,
   DomSnapshot,
-  ExecutionContext,
   ObservedApiCall,
   RunnerOptions,
   ScenarioExecutionResult,
-  StepExecutor,
 } from './types';

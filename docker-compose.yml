@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "4000:4000"
+      - "${PORT:-8888}:4000"
     volumes:
       # SQLite DB를 호스트에 영속화
       - backend-data:/app/apps/backend/data

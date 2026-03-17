@@ -1,7 +1,7 @@
 {
-  "name": "@like-cake/step-player",
+  "name": "@like-cake/mbt-catalog",
   "version": "1.0.0",
-  "description": "Step playback engine for Extension and Puppeteer",
+  "description": "Model-Based Testing catalog: event/verification definitions, element binding, and state machine model types",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -22,11 +22,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@like-cake/api-interceptor": "*",
     "@like-cake/ast-types": "*",
-    "@like-cake/diff-engine": "*",
-    "@like-cake/dom-serializer": "*",
-    "jsonpath-plus": "^10.3.0"
+    "xstate": "^5.28.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",
