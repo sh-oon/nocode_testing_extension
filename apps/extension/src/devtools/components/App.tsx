@@ -8,7 +8,7 @@ import { getSettings } from '../../shared/storage';
 import { DiffViewer } from './DiffViewer';
 import { EventList } from './EventList';
 import { FlowBuilder } from './FlowBuilder';
-import { ModelBuilder } from './ModelBuilder';
+import { ScenarioWizard } from './ScenarioWizard';
 import { PlaybackControls, PlaybackProgress } from './PlaybackControls';
 import { RecordingControls } from './RecordingControls';
 import { ScenarioSelector } from './ScenarioSelector';
@@ -34,7 +34,7 @@ function extractOriginFromEvents(events: RawEvent[]): string {
   return '';
 }
 
-type AppMode = 'record' | 'playback' | 'flow' | 'model';
+type AppMode = 'record' | 'playback' | 'flow' | 'wizard';
 type ViewTab = 'events' | 'steps' | 'diff';
 
 interface RecordingState {
@@ -538,14 +538,14 @@ export function App() {
               </button>
               <button
                 type="button"
-                onClick={() => setMode('model')}
+                onClick={() => setMode('wizard')}
                 className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                  mode === 'model'
+                  mode === 'wizard'
                     ? 'bg-orange-600 text-white'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
-                Model
+                Wizard
               </button>
             </div>
           </div>
@@ -555,8 +555,8 @@ export function App() {
                 ? `${events.length} events / ${steps.length} steps`
                 : mode === 'playback'
                   ? `${totalSteps} steps`
-                  : mode === 'model'
-                    ? 'Model Builder'
+                  : mode === 'wizard'
+                    ? 'Scenario Wizard'
                     : 'Flow Builder'}
             </span>
             <button
@@ -574,8 +574,8 @@ export function App() {
       {/* Flow Builder Mode */}
       {mode === 'flow' ? (
         <FlowBuilder isConnected={isConnected} />
-      ) : mode === 'model' ? (
-        <ModelBuilder isConnected={isConnected} />
+      ) : mode === 'wizard' ? (
+        <ScenarioWizard isConnected={isConnected} />
       ) : (
         <>
           {/* Mode-specific Controls */}

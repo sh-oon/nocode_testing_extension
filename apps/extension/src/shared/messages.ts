@@ -53,6 +53,10 @@ export type MessageType =
   // Auto-assertion messages (content script → service worker)
   | 'IDLE_DETECTED'
   | 'DOM_MUTATIONS_STABLE'
+  // Element inspect messages (wizard)
+  | 'START_ELEMENT_INSPECT'
+  | 'STOP_ELEMENT_INSPECT'
+  | 'ELEMENT_INSPECTED'
   // Utility messages
   | 'PING'
   | 'PONG';
@@ -320,6 +324,40 @@ export interface DomMutationsStableMessage extends BaseMessage {
 }
 
 /**
+ * Element inspect messages (ScenarioWizard)
+ */
+export interface StartElementInspectMessage extends BaseMessage {
+  type: 'START_ELEMENT_INSPECT';
+}
+
+export interface StopElementInspectMessage extends BaseMessage {
+  type: 'STOP_ELEMENT_INSPECT';
+}
+
+export interface ElementInspectedMessage extends BaseMessage {
+  type: 'ELEMENT_INSPECTED';
+  elementInfo: {
+    tagName: string;
+    id?: string;
+    testId?: string;
+    role?: string;
+    ariaLabel?: string;
+    textContent?: string;
+    attributes: Record<string, string>;
+    xpath: string;
+    elementHtml?: string;
+    selectorCandidates?: Array<{
+      strategy: string;
+      selector: string;
+      score: number;
+      isUnique: boolean;
+      isReadable: boolean;
+      confidence: number;
+    }>;
+  };
+}
+
+/**
  * Union of all message types
  */
 export type Message =
@@ -354,6 +392,9 @@ export type Message =
   | BaselinesDataMessage
   | IdleDetectedMessage
   | DomMutationsStableMessage
+  | StartElementInspectMessage
+  | StopElementInspectMessage
+  | ElementInspectedMessage
   | { type: 'PAUSE_RECORDING' }
   | { type: 'RESUME_RECORDING' }
   | { type: 'RESET_SESSION' }

@@ -11,6 +11,8 @@ import {
   type DomMutationTracker,
   type RawEvent,
   type TrackedMutation,
+  extractElementInfo,
+  findInteractiveAncestor,
 } from '@like-cake/event-collector';
 import {
   ExtensionAdapter,
@@ -498,6 +500,91 @@ function notifyServiceWorker(
   });
 }
 
+// ============================================
+// ELEMENT INSPECT MODE (ScenarioWizard)
+// ============================================
+
+let inspectOverlay: HTMLDivElement | null = null;
+let inspectCleanup: (() => void) | null = null;
+
+function startElementInspect(): void {
+  stopElementInspect();
+
+  // Create highlight overlay
+  inspectOverlay = document.createElement('div');
+  inspectOverlay.setAttribute('data-like-cake-ignore', 'true');
+  inspectOverlay.style.cssText =
+    'position:fixed;pointer-events:none;border:2px solid #f97316;background:rgba(249,115,22,0.1);z-index:2147483647;display:none;transition:all 0.05s ease;border-radius:2px;';
+  document.documentElement.appendChild(inspectOverlay);
+
+  const overlay = inspectOverlay;
+
+  const handleMouseMove = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (!target || target === overlay || target.hasAttribute?.('data-like-cake-ignore')) return;
+
+    const rect = target.getBoundingClientRect();
+    overlay.style.left = `${rect.left}px`;
+    overlay.style.top = `${rect.top}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.height = `${rect.height}px`;
+    overlay.style.display = 'block';
+  };
+
+  const handleClick = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    const target = e.target as Element;
+    if (!target || target === overlay || target.hasAttribute?.('data-like-cake-ignore')) return;
+
+    const interactiveEl = findInteractiveAncestor(target) || target;
+    const info = extractElementInfo(interactiveEl, 3, true);
+
+    chrome.runtime.sendMessage({
+      type: 'ELEMENT_INSPECTED',
+      elementInfo: info,
+    }).catch(() => {});
+
+    stopElementInspect();
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      stopElementInspect();
+      chrome.runtime.sendMessage({ type: 'ELEMENT_INSPECTED', elementInfo: null }).catch(() => {});
+    }
+  };
+
+  document.addEventListener('mousemove', handleMouseMove, true);
+  document.addEventListener('click', handleClick, true);
+  document.addEventListener('keydown', handleKeyDown, true);
+
+  inspectCleanup = () => {
+    document.removeEventListener('mousemove', handleMouseMove, true);
+    document.removeEventListener('click', handleClick, true);
+    document.removeEventListener('keydown', handleKeyDown, true);
+  };
+
+  console.log('[Like Cake] Element inspect mode started');
+}
+
+function stopElementInspect(): void {
+  inspectCleanup?.();
+  inspectCleanup = null;
+
+  if (inspectOverlay) {
+    inspectOverlay.remove();
+    inspectOverlay = null;
+  }
+}
+
+// ============================================
+// MESSAGE HANDLER
+// ============================================
+
 /**
  * Handle messages from service worker or panel
  */
@@ -685,6 +772,18 @@ function handleMessage(
 
     case 'GET_PLAYBACK_STATE': {
       sendResponse(getPlaybackState());
+      break;
+    }
+
+    case 'START_ELEMENT_INSPECT': {
+      startElementInspect();
+      sendResponse({ success: true });
+      break;
+    }
+
+    case 'STOP_ELEMENT_INSPECT': {
+      stopElementInspect();
+      sendResponse({ success: true });
       break;
     }
 

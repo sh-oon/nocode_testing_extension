@@ -847,6 +847,33 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
       return true; // Keep channel open for async
     }
 
+    case 'START_ELEMENT_INSPECT': {
+      const inspectTabId = messageTabId ?? sender.tab?.id ?? activeTabId;
+      if (inspectTabId) {
+        chrome.tabs.sendMessage(inspectTabId, { type: 'START_ELEMENT_INSPECT' })
+          .then(() => sendResponse({ success: true }))
+          .catch((error) => sendResponse({ success: false, error: String(error) }));
+      } else {
+        sendResponse({ error: 'No active tab' });
+      }
+      return true;
+    }
+
+    case 'STOP_ELEMENT_INSPECT': {
+      const stopInspectTabId = messageTabId ?? sender.tab?.id ?? activeTabId;
+      if (stopInspectTabId) {
+        chrome.tabs.sendMessage(stopInspectTabId, { type: 'STOP_ELEMENT_INSPECT' }).catch(() => {});
+      }
+      sendResponse({ success: true });
+      break;
+    }
+
+    case 'ELEMENT_INSPECTED': {
+      notifyPanels(message);
+      sendResponse({ success: true });
+      break;
+    }
+
     case 'PING': {
       sendResponse({ type: 'PONG' });
       break;
