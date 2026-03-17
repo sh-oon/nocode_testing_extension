@@ -73,6 +73,17 @@ function findElementBySelector(selector: SelectorInput): Element | null {
     return result.singleNodeValue as Element | null;
   }
 
+  // Handle :has-text() pseudo-selector (not standard CSS)
+  const hasTextMatch = selectorStr.match(/^(.+):has-text\("(.+)"\)$/);
+  if (hasTextMatch) {
+    const [, baseSelector, text] = hasTextMatch;
+    const candidates = document.querySelectorAll(baseSelector);
+    for (const el of candidates) {
+      if (el.textContent?.includes(text)) return el;
+    }
+    return null;
+  }
+
   return document.querySelector(selectorStr);
 }
 

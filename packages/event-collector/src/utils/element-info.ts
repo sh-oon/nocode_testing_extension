@@ -311,8 +311,11 @@ const SELECTOR_STRATEGIES: SelectorStrategy[] = [
     generate: (el) => {
       const role = el.getAttribute('role') || getImplicitRole(el);
       if (!role) return null;
-      const text = getTextContent(el);
-      return text ? `${el.tagName.toLowerCase()}[role="${role}"]:has-text("${text.slice(0, 50)}")` : null;
+      // Use role + tag for standard CSS compatibility (no :has-text pseudo)
+      const tag = el.tagName.toLowerCase();
+      const ariaLabel = el.getAttribute('aria-label');
+      if (ariaLabel) return `${tag}[role="${role}"][aria-label="${ariaLabel}"]`;
+      return `${tag}[role="${role}"]`;
     },
   },
   {
@@ -401,7 +404,7 @@ function collectSelectorCandidates(element: Element): SelectorCandidate[] {
         if (strategy.name === 'xpath') {
           // XPath uniqueness check
           isUnique = true; // Assume unique for XPath (can't easily querySelectorAll)
-        } else if (!selector.includes(':has-text')) {
+        } else {
           isUnique = document.querySelectorAll(selector).length === 1;
         }
       } catch {
