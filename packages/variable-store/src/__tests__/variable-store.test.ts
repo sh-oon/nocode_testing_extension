@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VariableStore } from '../variable-store';
-import type { Condition, CompoundCondition } from '../types';
+import type { Condition, CompoundCondition, FlowVariableValue } from '../types';
 
 describe('VariableStore - Basic Operations', () => {
   let store: VariableStore;
@@ -30,7 +30,7 @@ describe('VariableStore - Basic Operations', () => {
 
     it('should handle null and undefined values', () => {
       store.set('nullValue', null);
-      store.set('undefinedValue', undefined);
+      store.set('undefinedValue', undefined as unknown as FlowVariableValue);
 
       expect(store.get('nullValue')).toBe(null);
       // get() returns null for undefined values (see line 95: ?? null)
@@ -65,7 +65,7 @@ describe('VariableStore - Basic Operations', () => {
     });
 
     it('should return false for undefined values', () => {
-      store.set('undefinedValue', undefined);
+      store.set('undefinedValue', undefined as unknown as FlowVariableValue);
       expect(store.has('undefinedValue')).toBe(false);
     });
 

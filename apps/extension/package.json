@@ -17,6 +17,7 @@
     "@like-cake/diff-engine": "*",
     "@like-cake/dom-serializer": "*",
     "@like-cake/event-collector": "*",
+    "@like-cake/mbt-catalog": "*",
     "@like-cake/selector-engine": "*",
     "@like-cake/step-player": "*",
     "@xyflow/react": "^12.4.0",

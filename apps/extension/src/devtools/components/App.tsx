@@ -8,6 +8,7 @@ import { getSettings } from '../../shared/storage';
 import { DiffViewer } from './DiffViewer';
 import { EventList } from './EventList';
 import { FlowBuilder } from './FlowBuilder';
+import { ModelBuilder } from './ModelBuilder';
 import { PlaybackControls, PlaybackProgress } from './PlaybackControls';
 import { RecordingControls } from './RecordingControls';
 import { ScenarioSelector } from './ScenarioSelector';
@@ -15,7 +16,25 @@ import { ServerExecution } from './ServerExecution';
 import { SettingsPanel } from './SettingsPanel';
 import { StepList } from './StepList';
 
-type AppMode = 'record' | 'playback' | 'flow';
+/**
+ * Extract origin URL from events array.
+ * Looks for the first navigation event with an absolute URL and returns its origin.
+ */
+function extractOriginFromEvents(events: RawEvent[]): string {
+  for (const event of events) {
+    if (event.type === 'navigation' && event.toUrl) {
+      try {
+        const url = new URL(event.toUrl);
+        return url.origin;
+      } catch {
+        // toUrl might be a relative path, skip
+      }
+    }
+  }
+  return '';
+}
+
+type AppMode = 'record' | 'playback' | 'flow' | 'model';
 type ViewTab = 'events' | 'steps' | 'diff';
 
 interface RecordingState {
@@ -50,6 +69,7 @@ export function App() {
   });
   const [events, setEvents] = useState<RawEvent[]>([]);
   const [steps, setSteps] = useState<Step[]>([]);
+  const [sessionUrl, setSessionUrl] = useState<string>('');
 
   // Playback state
   const [playbackState, setPlaybackState] = useState<PlaybackState>({
@@ -90,6 +110,9 @@ export function App() {
       if (response) {
         setEvents(response.events || []);
         setSteps(response.steps || []);
+        if (response.url) {
+          setSessionUrl(response.url);
+        }
       }
     });
   }, []);
@@ -185,8 +208,7 @@ export function App() {
 
     try {
       const client = await getApiClient();
-      const firstNavEvent = events.find((e) => e.type === 'navigation');
-      const url = firstNavEvent?.toUrl || 'https://unknown.url';
+      const url = sessionUrl || extractOriginFromEvents(events) || '';
 
       const sessionRes = await client.createSession({
         url,
@@ -223,7 +245,7 @@ export function App() {
         error: error instanceof Error ? error.message : 'Upload failed',
       });
     }
-  }, [events]);
+  }, [events, sessionUrl]);
 
   // Recording handlers
   const handleStart = useCallback(async () => {
@@ -272,11 +294,15 @@ export function App() {
   }, []);
 
   const handleExport = useCallback(() => {
+    const baseUrl = sessionUrl
+      ? new URL(sessionUrl).origin
+      : extractOriginFromEvents(events);
+
     const scenario = {
       id: `scenario-${Date.now()}`,
       meta: {
         recordedAt: new Date().toISOString(),
-        url: window.location.href,
+        url: baseUrl,
         viewport: { width: 1440, height: 900 },
         astSchemaVersion: '1.0.0',
       },
@@ -292,7 +318,7 @@ export function App() {
     a.download = `scenario-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [steps]);
+  }, [steps, sessionUrl, events]);
 
   // Playback handlers
   const handleLoadScenario = useCallback(() => {
@@ -342,7 +368,7 @@ export function App() {
       const client = await getApiClient();
       const response = await client.createScenario({
         name: loadedScenario.name || `Scenario ${new Date().toLocaleString()}`,
-        url: loadedScenario.meta?.url || 'https://unknown.url',
+        url: loadedScenario.meta?.url || '',
         steps: loadedScenario.steps,
         viewport: loadedScenario.meta?.viewport,
       });
@@ -417,11 +443,17 @@ export function App() {
   const handleUseRecordedSteps = useCallback(() => {
     if (steps.length === 0) return;
 
+    // Derive the base URL: prefer the session URL from service worker,
+    // fall back to extracting origin from recorded navigation events
+    const baseUrl = sessionUrl
+      ? new URL(sessionUrl).origin
+      : extractOriginFromEvents(events);
+
     const scenario: Scenario = {
       id: `scenario-${Date.now()}`,
       meta: {
         recordedAt: new Date().toISOString(),
-        url: '',
+        url: baseUrl,
         viewport: { width: 1440, height: 900 },
         astSchemaVersion: '1.0.0',
       },
@@ -429,7 +461,7 @@ export function App() {
     };
     setLoadedScenario(scenario);
     setMode('playback');
-  }, [steps]);
+  }, [steps, sessionUrl, events]);
 
   // Step editing handler
   const handleStepUpdate = useCallback(
@@ -504,6 +536,17 @@ export function App() {
               >
                 Flow
               </button>
+              <button
+                type="button"
+                onClick={() => setMode('model')}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  mode === 'model'
+                    ? 'bg-orange-600 text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Model
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -512,7 +555,9 @@ export function App() {
                 ? `${events.length} events / ${steps.length} steps`
                 : mode === 'playback'
                   ? `${totalSteps} steps`
-                  : 'Flow Builder'}
+                  : mode === 'model'
+                    ? 'Model Builder'
+                    : 'Flow Builder'}
             </span>
             <button
               type="button"
@@ -529,6 +574,8 @@ export function App() {
       {/* Flow Builder Mode */}
       {mode === 'flow' ? (
         <FlowBuilder isConnected={isConnected} />
+      ) : mode === 'model' ? (
+        <ModelBuilder isConnected={isConnected} />
       ) : (
         <>
           {/* Mode-specific Controls */}
