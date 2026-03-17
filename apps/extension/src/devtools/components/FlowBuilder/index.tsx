@@ -306,7 +306,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     try {
       const client = await getApiClient();
       const response = await client.executeUserFlow(currentFlowId, {
-        headless: false,
+        headless: true,
       });
 
       if (response.success && response.data) {
