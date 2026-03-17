@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      # SQLite DB를 호스트에 영속화
+      - backend-data:/app/apps/backend/data
+    environment:
+      - PORT=4000
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+    # Puppeteer/Chromium에 필요한 보안 설정
+    security_opt:
+      - seccomp=unconfined
+    # Chromium 샌드박스 비활성화 (컨테이너 내부)
+    cap_add:
+      - SYS_ADMIN
+
+volumes:
+  backend-data:
