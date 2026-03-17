@@ -46,6 +46,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
   const [isFlowListOpen, setIsFlowListOpen] = useState(false);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
   const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
+  const [forceShowCanvas, setForceShowCanvas] = useState(false);
 
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -227,6 +228,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     }
     flowManager.forceCreateNewFlow();
     setExecutionSummary(null);
+    setForceShowCanvas(true);
     setTimeout(() => {
       addStartNode({ x: 250, y: 50 });
       addEndNode({ x: 250, y: 400 });
@@ -349,7 +351,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
   }, [isConnected, flowManager, resetNodeStatuses, updateNodeStatus]);
 
   // Show empty state when no flow is loaded and canvas only has start/end
-  const showEmptyState = !flowManager.flowId && !flowManager.flowName && nodes.length <= 2;
+  const showEmptyState = !forceShowCanvas && !flowManager.flowId && !flowManager.flowName && nodes.length <= 2;
 
   return (
     <div className="flex flex-col h-full">
