@@ -405,11 +405,28 @@ export class UserFlowService {
     let skippedSteps = 0;
     let hasFailure = false;
 
-    // Execute each scenario in order
+    // Execute each scenario in order (stop on first failure)
     for (const scenarioId of scenarioIds) {
       const scenario = scenarioService.getById(scenarioId);
+      const nodeId = this.findNodeIdByScenarioId(flow.nodes, scenarioId);
+
+      // Stop on failure: skip remaining nodes
+      if (hasFailure) {
+        nodeResults.push({
+          nodeId: nodeId || scenarioId,
+          nodeType: 'scenario',
+          status: 'skipped',
+          duration: 0,
+          error: { message: '이전 노드 실패로 건너뜀' },
+        });
+        if (scenario) {
+          skippedSteps += scenario.steps.length;
+          totalSteps += scenario.steps.length;
+        }
+        continue;
+      }
+
       if (!scenario) {
-        // Scenario not found - skip
         const nodeId = this.findNodeIdByScenarioId(flow.nodes, scenarioId);
         nodeResults.push({
           nodeId: nodeId || scenarioId,
@@ -421,7 +438,6 @@ export class UserFlowService {
         continue;
       }
 
-      const nodeId = this.findNodeIdByScenarioId(flow.nodes, scenarioId);
       const nodeStartTime = Date.now();
 
       try {

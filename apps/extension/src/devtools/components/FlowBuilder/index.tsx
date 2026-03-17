@@ -21,6 +21,16 @@ interface FlowBuilderProps {
   isConnected: boolean;
 }
 
+interface NodeExecutionLog {
+  nodeId: string;
+  status: 'passed' | 'failed' | 'skipped';
+  error?: string;
+  duration?: number;
+  stepCount?: number;
+  passedSteps?: number;
+  failedSteps?: number;
+}
+
 interface ExecutionSummary {
   status: 'passed' | 'failed' | 'skipped';
   totalNodes: number;
@@ -31,6 +41,7 @@ interface ExecutionSummary {
   failedSteps: number;
   duration: number;
   errors?: string[];
+  nodeLogs?: NodeExecutionLog[];
 }
 
 function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
@@ -312,11 +323,26 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
       if (response.success && response.data) {
         const result = response.data;
         const errors: string[] = [];
+        const nodeLogs: NodeExecutionLog[] = [];
+
         for (const nodeResult of result.nodeResults || []) {
           updateNodeStatus(nodeResult.nodeId, nodeResult.status);
+
+          const log: NodeExecutionLog = {
+            nodeId: nodeResult.nodeId,
+            status: nodeResult.status,
+            duration: nodeResult.duration,
+            stepCount: nodeResult.scenarioResult?.totalSteps,
+            passedSteps: nodeResult.scenarioResult?.passed,
+            failedSteps: nodeResult.scenarioResult?.failed,
+          };
+
           if (nodeResult.status === 'failed' && nodeResult.error?.message) {
-            errors.push(nodeResult.error.message);
+            log.error = nodeResult.error.message;
+            errors.push(`[${nodeResult.nodeId}] ${nodeResult.error.message}`);
           }
+
+          nodeLogs.push(log);
         }
 
         setExecutionSummary({
@@ -329,6 +355,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
           failedSteps: result.summary?.failedSteps || 0,
           duration: result.summary?.duration || 0,
           errors: errors.length > 0 ? errors : undefined,
+          nodeLogs,
         });
       } else if (!response.success) {
         setExecutionSummary({
@@ -397,14 +424,52 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
         </div>
       )}
 
-      {/* Error Details */}
-      {executionSummary?.errors && executionSummary.errors.length > 0 && (
-        <div className="px-4 py-2 bg-red-950/50 border-b border-red-900 text-xs font-mono text-red-300 max-h-32 overflow-y-auto">
-          {executionSummary.errors.map((err, i) => (
-            <div key={i} className="py-0.5">
-              {err}
-            </div>
-          ))}
+      {/* Execution Console Log */}
+      {executionSummary?.nodeLogs && executionSummary.nodeLogs.length > 0 && (
+        <div className="border-b border-gray-700 max-h-48 overflow-y-auto bg-gray-950">
+          <div className="px-3 py-1 bg-gray-900 border-b border-gray-800 flex items-center justify-between sticky top-0">
+            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Execution Log</span>
+            <button
+              type="button"
+              onClick={() => setExecutionSummary((prev) => prev ? { ...prev, nodeLogs: undefined } : prev)}
+              className="text-[10px] text-gray-500 hover:text-gray-300"
+            >
+              닫기
+            </button>
+          </div>
+          <div className="px-3 py-1 font-mono text-[11px] space-y-0.5">
+            {executionSummary.nodeLogs.map((log, i) => {
+              const statusIcon = log.status === 'passed' ? '✓' : log.status === 'failed' ? '✗' : '○';
+              const statusColor = log.status === 'passed' ? 'text-green-400' : log.status === 'failed' ? 'text-red-400' : 'text-gray-500';
+              return (
+                <div key={i}>
+                  <div className={`flex items-center gap-2 py-0.5 ${statusColor}`}>
+                    <span>{statusIcon}</span>
+                    <span className="text-gray-400">[{log.nodeId}]</span>
+                    <span>{log.status.toUpperCase()}</span>
+                    {log.stepCount !== undefined && (
+                      <span className="text-gray-600">
+                        steps: {log.passedSteps ?? 0}/{log.stepCount}
+                      </span>
+                    )}
+                    {log.duration !== undefined && (
+                      <span className="text-gray-600">{(log.duration / 1000).toFixed(1)}s</span>
+                    )}
+                  </div>
+                  {log.error && (
+                    <div className="pl-5 text-red-400/80 break-all">
+                      Error: {log.error}
+                    </div>
+                  )}
+                  {log.status === 'skipped' && (
+                    <div className="pl-5 text-gray-600">
+                      이전 노드 실패로 건너뜀
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -42,6 +42,20 @@ export function useScenarioWizard() {
   });
   const [backendScenarioId, setBackendScenarioId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  // Get current browser viewport
+  const getViewport = useCallback(async (): Promise<{ width: number; height: number }> => {
+    try {
+      const tabId = typeof chrome.devtools?.inspectedWindow?.tabId === 'number'
+        ? chrome.devtools.inspectedWindow.tabId
+        : undefined;
+      if (tabId) {
+        const tab = await chrome.tabs.get(tabId);
+        if (tab.width && tab.height) return { width: tab.width, height: tab.height };
+      }
+    } catch { /* fallback */ }
+    return { width: window.screen.availWidth || 1440, height: window.screen.availHeight || 900 };
+  }, []);
+
   // Resolve tab ID synchronously if possible (DevTools panel)
   const getTabId = useCallback(async (): Promise<number | undefined> => {
     if (typeof chrome.devtools?.inspectedWindow?.tabId === 'number') {
@@ -204,9 +218,10 @@ export function useScenarioWizard() {
     });
   }, []);
 
-  const playScenario = useCallback(() => {
+  const playScenario = useCallback(async () => {
     if (steps.length === 0) return;
 
+    const viewport = await getViewport();
     const firstNavigate = steps.find((s) => s.type === 'navigate');
     const scenario: Scenario = {
       id: `wizard-${Date.now()}`,
@@ -214,34 +229,34 @@ export function useScenarioWizard() {
       meta: {
         recordedAt: new Date().toISOString(),
         url: firstNavigate?.type === 'navigate' ? firstNavigate.url : '',
-        viewport: { width: 1440, height: 900 },
+        viewport,
         astSchemaVersion: '1.0.0',
       },
       steps,
     };
 
     setPlaybackState({ state: 'playing', currentStepIndex: -1, stepResults: [] });
-    getTabId().then((tabId) => {
-      chrome.runtime.sendMessage({
-        type: 'START_PLAYBACK',
-        tabId,
-        scenario,
-      });
+    const tabId = await getTabId();
+    chrome.runtime.sendMessage({
+      type: 'START_PLAYBACK',
+      tabId,
+      scenario,
     });
-  }, [steps, scenarioName, getTabId]);
+  }, [steps, scenarioName, getTabId, getViewport]);
 
   const saveToBackend = useCallback(async () => {
     if (steps.length === 0) return;
 
     setIsSaving(true);
     try {
+      const viewport = await getViewport();
       const client = await getApiClient();
       const firstNavigate = steps.find((s) => s.type === 'navigate');
       const response = await client.createScenario({
         name: scenarioName || `Wizard Scenario ${new Date().toLocaleString()}`,
         url: firstNavigate?.type === 'navigate' ? firstNavigate.url : '',
         steps,
-        viewport: { width: 1440, height: 900 },
+        viewport,
       });
 
       if (response.success && response.data) {
