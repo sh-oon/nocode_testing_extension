@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import type { EventCategory } from '@like-cake/mbt-catalog';
-import type { PendingStepDraft, SelectorCandidate } from './useScenarioWizard';
+import type { CatalogType, PendingStepDraft, SelectorCandidate } from './useScenarioWizard';
 import { CatalogParamForm } from '../shared/CatalogParamForm';
 
 interface StepConfigPanelProps {
   draft: PendingStepDraft;
   isInspecting: boolean;
-  onSelectAction: (eventId: string) => void;
+  onSelectAction: (catalogId: string, catalogType: CatalogType) => void;
   onSelectSelector: (selector: string) => void;
   onUpdateParams: (params: Record<string, unknown>) => void;
   onConfirm: () => void;
@@ -15,20 +14,57 @@ interface StepConfigPanelProps {
   onManualSelector: (selector: string) => void;
 }
 
-const ACTION_OPTIONS: Array<{ label: string; eventId: string; category: EventCategory }> = [
-  { label: '요소를 클릭한다', eventId: 'click', category: 'mouse' },
-  { label: '텍스트를 입력한다', eventId: 'type', category: 'keyboard' },
-  { label: '드롭다운을 선택한다', eventId: 'select', category: 'form' },
-  { label: '키를 누른다', eventId: 'keypress', category: 'keyboard' },
-  { label: '마우스를 올린다', eventId: 'hover', category: 'mouse' },
-  { label: '스크롤한다', eventId: 'scroll', category: 'mouse' },
-  { label: '페이지로 이동한다', eventId: 'navigate', category: 'navigation' },
-  { label: '대기한다', eventId: 'wait', category: 'timing' },
-  { label: '더블클릭한다', eventId: 'doubleClick', category: 'mouse' },
-  { label: '파일을 업로드한다', eventId: 'fileUpload', category: 'form' },
-  { label: '뒤로 간다', eventId: 'historyBack', category: 'navigation' },
-  { label: '앞으로 간다', eventId: 'historyForward', category: 'navigation' },
+interface CatalogOption {
+  label: string;
+  catalogId: string;
+  catalogType: CatalogType;
+  group: string;
+}
+
+const CATALOG_OPTIONS: CatalogOption[] = [
+  // ── 액션 ──
+  { label: '요소를 클릭한다', catalogId: 'click', catalogType: 'event', group: '액션' },
+  { label: '텍스트를 입력한다', catalogId: 'type', catalogType: 'event', group: '액션' },
+  { label: '드롭다운을 선택한다', catalogId: 'select', catalogType: 'event', group: '액션' },
+  { label: '키를 누른다', catalogId: 'keypress', catalogType: 'event', group: '액션' },
+  { label: '마우스를 올린다', catalogId: 'hover', catalogType: 'event', group: '액션' },
+  { label: '스크롤한다', catalogId: 'scroll', catalogType: 'event', group: '액션' },
+  { label: '더블클릭한다', catalogId: 'doubleClick', catalogType: 'event', group: '액션' },
+  { label: '파일을 업로드한다', catalogId: 'fileUpload', catalogType: 'event', group: '액션' },
+  // ── 네비게이션 ──
+  { label: '페이지로 이동한다', catalogId: 'navigate', catalogType: 'event', group: '네비게이션' },
+  { label: '뒤로 간다', catalogId: 'historyBack', catalogType: 'event', group: '네비게이션' },
+  { label: '앞으로 간다', catalogId: 'historyForward', catalogType: 'event', group: '네비게이션' },
+  { label: '대기한다', catalogId: 'wait', catalogType: 'event', group: '네비게이션' },
+  // ── 검증: 요소 ──
+  { label: '요소가 보이는지 확인한다', catalogId: 'visible', catalogType: 'verification', group: '검증 - 요소' },
+  { label: '요소가 안 보이는지 확인한다', catalogId: 'hidden', catalogType: 'verification', group: '검증 - 요소' },
+  { label: '요소가 있는지 확인한다', catalogId: 'exists', catalogType: 'verification', group: '검증 - 요소' },
+  { label: '요소가 없는지 확인한다', catalogId: 'notExists', catalogType: 'verification', group: '검증 - 요소' },
+  { label: '요소 개수를 확인한다', catalogId: 'count', catalogType: 'verification', group: '검증 - 요소' },
+  // ── 검증: 텍스트 ──
+  { label: '텍스트가 포함되어 있는지 확인한다', catalogId: 'textContains', catalogType: 'verification', group: '검증 - 텍스트' },
+  { label: '텍스트가 일치하는지 확인한다', catalogId: 'textEquals', catalogType: 'verification', group: '검증 - 텍스트' },
+  { label: '요소가 비어있는지 확인한다', catalogId: 'elementEmpty', catalogType: 'verification', group: '검증 - 텍스트' },
+  // ── 검증: 폼 ──
+  { label: '입력 값을 확인한다', catalogId: 'inputValue', catalogType: 'verification', group: '검증 - 폼' },
+  { label: '체크박스가 체크되었는지 확인한다', catalogId: 'checkboxChecked', catalogType: 'verification', group: '검증 - 폼' },
+  { label: '요소가 비활성화인지 확인한다', catalogId: 'inputDisabled', catalogType: 'verification', group: '검증 - 폼' },
+  { label: '요소가 활성화인지 확인한다', catalogId: 'inputEnabled', catalogType: 'verification', group: '검증 - 폼' },
+  // ── 검증: 페이지 ──
+  { label: 'URL을 확인한다', catalogId: 'currentUrl', catalogType: 'verification', group: '검증 - 페이지' },
+  { label: '페이지 제목을 확인한다', catalogId: 'pageTitle', catalogType: 'verification', group: '검증 - 페이지' },
+  { label: '페이지가 로딩되었는지 확인한다', catalogId: 'documentExists', catalogType: 'verification', group: '검증 - 페이지' },
+  // ── 검증: API ──
+  { label: 'API 응답을 확인한다', catalogId: 'apiResponse', catalogType: 'verification', group: '검증 - API' },
+  { label: 'API가 호출되었는지 확인한다', catalogId: 'apiCalled', catalogType: 'verification', group: '검증 - API' },
+  // ── 검증: 스타일 ──
+  { label: 'CSS 스타일을 확인한다', catalogId: 'cssStyle', catalogType: 'verification', group: '검증 - 스타일' },
+  { label: '속성 값을 확인한다', catalogId: 'attributeValue', catalogType: 'verification', group: '검증 - 스타일' },
+  { label: '클래스가 있는지 확인한다', catalogId: 'classNameExists', catalogType: 'verification', group: '검증 - 스타일' },
 ];
+
+const GROUPS = [...new Set(CATALOG_OPTIONS.map((o) => o.group))];
 
 type SelectorTab = 'pick' | 'manual' | 'regex';
 
@@ -56,14 +92,21 @@ export function StepConfigPanel({
       {/* ── Section: 무엇을? ── */}
       <Section title="무엇을?">
         <select
-          value={draft.eventId}
-          onChange={(e) => onSelectAction(e.target.value)}
+          value={`${draft.catalogType}:${draft.catalogId}`}
+          onChange={(e) => {
+            const [type, id] = e.target.value.split(':') as [CatalogType, string];
+            onSelectAction(id, type);
+          }}
           className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {ACTION_OPTIONS.map((opt) => (
-            <option key={opt.eventId} value={opt.eventId}>
-              {opt.label}
-            </option>
+          {GROUPS.map((group) => (
+            <optgroup key={group} label={group}>
+              {CATALOG_OPTIONS.filter((o) => o.group === group).map((opt) => (
+                <option key={`${opt.catalogType}:${opt.catalogId}`} value={`${opt.catalogType}:${opt.catalogId}`}>
+                  {opt.label}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </Section>

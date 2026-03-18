@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Scenario, Step, StepResult } from '@like-cake/ast-types';
-import type { EventCatalogEntry } from '@like-cake/mbt-catalog';
-import { getEventById, convertBoundEventToStep } from '@like-cake/mbt-catalog';
-import type { ElementBinding, BoundEvent } from '@like-cake/mbt-catalog';
+import type { EventCatalogEntry, VerificationCatalogEntry } from '@like-cake/mbt-catalog';
+import { getEventById, getVerificationById, convertBoundEventToStep, convertBoundVerificationToStep } from '@like-cake/mbt-catalog';
+import type { ElementBinding, BoundEvent, BoundVerification } from '@like-cake/mbt-catalog';
 import type { PlayerState } from '@like-cake/step-player';
 import { getApiClient } from '../../../shared/api';
 
@@ -15,9 +15,12 @@ export interface SelectorCandidate {
   confidence: number;
 }
 
+export type CatalogType = 'event' | 'verification';
+
 export interface PendingStepDraft {
-  eventId: string;
-  catalogEntry: EventCatalogEntry;
+  catalogType: CatalogType;
+  catalogId: string;
+  catalogEntry: EventCatalogEntry | VerificationCatalogEntry;
   params: Record<string, unknown>;
   selectorCandidates: SelectorCandidate[];
   selectedSelector: string | null;
@@ -111,8 +114,10 @@ export function useScenarioWizard() {
     return () => chrome.runtime.onMessage.removeListener(handler);
   }, []);
 
-  const startDraftFromCatalog = useCallback((eventId: string) => {
-    const entry = getEventById(eventId);
+  const startDraftFromCatalog = useCallback((catalogId: string, catalogType: CatalogType = 'event') => {
+    const entry = catalogType === 'event'
+      ? getEventById(catalogId)
+      : getVerificationById(catalogId);
     if (!entry) return;
 
     const defaultParams: Record<string, unknown> = {};
@@ -121,7 +126,8 @@ export function useScenarioWizard() {
     }
 
     const newDraft: PendingStepDraft = {
-      eventId,
+      catalogType,
+      catalogId,
       catalogEntry: entry,
       params: defaultParams,
       selectorCandidates: [],
@@ -140,8 +146,10 @@ export function useScenarioWizard() {
     }
   }, [getTabId]);
 
-  const switchAction = useCallback((eventId: string) => {
-    const entry = getEventById(eventId);
+  const switchAction = useCallback((catalogId: string, catalogType: CatalogType = 'event') => {
+    const entry = catalogType === 'event'
+      ? getEventById(catalogId)
+      : getVerificationById(catalogId);
     if (!entry) return;
 
     const defaultParams: Record<string, unknown> = {};
@@ -153,10 +161,10 @@ export function useScenarioWizard() {
       if (!prev) return prev;
       return {
         ...prev,
-        eventId,
+        catalogType,
+        catalogId,
         catalogEntry: entry,
         params: defaultParams,
-        // Keep existing element info if the new action also needs an element
         ...(entry.elementRequirement === 'none' ? { elementInfo: null, selectorCandidates: [], selectedSelector: null } : {}),
       };
     });
@@ -194,7 +202,9 @@ export function useScenarioWizard() {
   const confirmStep = useCallback(() => {
     if (!draft) return;
 
-    const step = buildStepFromDraft(draft);
+    const step = draft.catalogType === 'event'
+      ? buildEventStepFromDraft(draft)
+      : buildVerificationStepFromDraft(draft);
     if (!step) return;
 
     setSteps((prev) => [...prev, step]);
@@ -305,8 +315,8 @@ export function useScenarioWizard() {
   };
 }
 
-/** Build a Step from the wizard draft using existing convertBoundEventToStep */
-function buildStepFromDraft(draft: PendingStepDraft): Step | null {
+/** Build a Step from an event draft */
+function buildEventStepFromDraft(draft: PendingStepDraft): Step | null {
   const tempBindingId = '__wizard_temp__';
   const needsElement = draft.catalogEntry.elementRequirement !== 'none';
 
@@ -321,11 +331,37 @@ function buildStepFromDraft(draft: PendingStepDraft): Step | null {
   };
 
   const boundEvent: BoundEvent = {
-    eventId: draft.eventId,
+    eventId: draft.catalogId,
     elementBindingId: needsElement ? tempBindingId : null,
     params: draft.params,
   };
 
   const result = convertBoundEventToStep(boundEvent, needsElement ? [tempBinding] : []);
+  return result.ok ? result.step : null;
+}
+
+/** Build a Step from a verification draft */
+function buildVerificationStepFromDraft(draft: PendingStepDraft): Step | null {
+  const tempBindingId = '__wizard_temp__';
+  const needsElement = draft.catalogEntry.elementRequirement !== 'none';
+
+  const tempBinding: ElementBinding = {
+    id: tempBindingId,
+    label: 'wizard-element',
+    selector: draft.selectedSelector || '',
+    candidates: [],
+    selectionMethod: 'manual',
+    pageUrl: '',
+    createdAt: Date.now(),
+  };
+
+  const boundVerification: BoundVerification = {
+    verificationId: draft.catalogId,
+    elementBindingId: needsElement ? tempBindingId : null,
+    params: draft.params,
+    critical: true,
+  };
+
+  const result = convertBoundVerificationToStep(boundVerification, needsElement ? [tempBinding] : []);
   return result.ok ? result.step : null;
 }
