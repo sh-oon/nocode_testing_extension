@@ -90,6 +90,8 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
             onRemove={wizard.removeStep}
             onAddStep={handleAddStep}
             onInsertAt={wizard.insertStepAt}
+            onMove={wizard.moveStep}
+            onEditStep={wizard.editStep}
           />
         </div>
 
@@ -150,6 +152,24 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
           >
             저장
           </button>
+          {wizard.canExport && (
+            <>
+              <button
+                type="button"
+                onClick={wizard.exportJsonReport}
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                JSON 내보내기
+              </button>
+              <button
+                type="button"
+                onClick={wizard.exportHtmlReport}
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                HTML 리포트
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

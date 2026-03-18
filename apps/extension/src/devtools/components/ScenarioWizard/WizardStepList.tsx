@@ -1,3 +1,4 @@
+import { useCallback, useRef, useState } from 'react';
 import type { Step, StepResult } from '@like-cake/ast-types';
 
 interface WizardStepListProps {
@@ -8,6 +9,8 @@ interface WizardStepListProps {
   onRemove: (index: number) => void;
   onAddStep: () => void;
   onInsertAt: (index: number) => void;
+  onMove: (fromIndex: number, toIndex: number) => void;
+  onEditStep: (index: number) => void;
 }
 
 const STEP_ICONS: Record<string, string> = {
@@ -50,7 +53,38 @@ export function WizardStepList({
   onRemove,
   onAddStep,
   onInsertAt,
+  onMove,
+  onEditStep,
 }: WizardStepListProps) {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const dragItemRef = useRef<number | null>(null);
+
+  const handleDragStart = useCallback((idx: number) => {
+    dragItemRef.current = idx;
+    setDragIndex(idx);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    setDragOverIndex(idx);
+  }, []);
+
+  const handleDrop = useCallback((idx: number) => {
+    if (dragItemRef.current !== null && dragItemRef.current !== idx) {
+      onMove(dragItemRef.current, idx);
+    }
+    dragItemRef.current = null;
+    setDragIndex(null);
+    setDragOverIndex(null);
+  }, [onMove]);
+
+  const handleDragEnd = useCallback(() => {
+    dragItemRef.current = null;
+    setDragIndex(null);
+    setDragOverIndex(null);
+  }, []);
+
   return (
     <div className="flex-1 overflow-y-auto" data-test-id="wizard-step-list">
       {steps.length === 0 && !isRecording ? (
@@ -78,6 +112,8 @@ export function WizardStepList({
             const result = stepResults[idx];
             const isCurrent = idx === currentPlaybackIndex;
             const isAssert = ASSERT_TYPES.has(step.type);
+            const isDragging = dragIndex === idx;
+            const isDragOver = dragOverIndex === idx;
 
             const borderColor = result
               ? result.status === 'passed' ? 'border-green-200 bg-green-50/50'
@@ -104,8 +140,26 @@ export function WizardStepList({
                   </div>
                 )}
 
-                <div className={`mx-3 px-3 py-2 rounded-lg border ${borderColor} transition-colors group`}>
+                <div
+                  draggable={!isRecording}
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragOver={(e) => handleDragOver(e, idx)}
+                  onDrop={() => handleDrop(idx)}
+                  onDragEnd={handleDragEnd}
+                  className={`mx-3 px-3 py-2 rounded-lg border ${borderColor} transition-all group cursor-pointer
+                    ${isDragging ? 'opacity-40 scale-95' : ''}
+                    ${isDragOver ? 'border-blue-400 border-dashed' : ''}`}
+                  onClick={() => !isRecording && onEditStep(idx)}
+                  onKeyDown={(e) => e.key === 'Enter' && !isRecording && onEditStep(idx)}
+                  role="button"
+                  tabIndex={0}
+                >
                   <div className="flex items-center gap-2.5">
+                    {/* Drag handle */}
+                    {!isRecording && (
+                      <span className="text-gray-300 cursor-grab active:cursor-grabbing select-none" title="드래그로 순서 변경">⠿</span>
+                    )}
+
                     <span className="text-[10px] text-gray-400 font-mono w-4 shrink-0 text-right">{idx + 1}</span>
                     <span className="text-sm shrink-0">{STEP_ICONS[step.type] ?? '❓'}</span>
                     <div className="flex-1 min-w-0">
@@ -123,7 +177,7 @@ export function WizardStepList({
                     ) : !isRecording ? (
                       <button
                         type="button"
-                        onClick={() => onRemove(idx)}
+                        onClick={(e) => { e.stopPropagation(); onRemove(idx); }}
                         className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 transition-all"
                         aria-label="삭제"
                       >
@@ -141,7 +195,6 @@ export function WizardStepList({
             );
           })}
 
-          {/* Bottom add/insert button */}
           {!isRecording && (
             <div className="mx-3 mt-2">
               <button
