@@ -400,8 +400,8 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
         <div
           className={`px-4 py-2 flex items-center justify-between text-sm ${
             executionSummary.status === 'passed'
-              ? 'bg-green-900/50 border-b border-green-800 text-green-200'
-              : 'bg-red-900/50 border-b border-red-800 text-red-200'
+              ? 'bg-green-50 border-b border-green-200 text-green-700'
+              : 'bg-red-50 border-b border-red-200 text-red-700'
           }`}
         >
           <div className="flex items-center gap-4">
@@ -426,13 +426,13 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
 
       {/* Execution Console Log */}
       {executionSummary?.nodeLogs && executionSummary.nodeLogs.length > 0 && (
-        <div className="border-b border-gray-700 max-h-48 overflow-y-auto bg-gray-950">
-          <div className="px-3 py-1 bg-gray-900 border-b border-gray-800 flex items-center justify-between sticky top-0">
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Execution Log</span>
+        <div className="border-b border-gray-200 max-h-48 overflow-y-auto bg-gray-50">
+          <div className="px-3 py-1 bg-gray-100 border-b border-gray-200 flex items-center justify-between sticky top-0">
+            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Execution Log</span>
             <button
               type="button"
               onClick={() => setExecutionSummary((prev) => prev ? { ...prev, nodeLogs: undefined } : prev)}
-              className="text-[10px] text-gray-500 hover:text-gray-300"
+              className="text-[10px] text-gray-400 hover:text-gray-600"
             >
               닫기
             </button>
@@ -484,7 +484,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
         <FlowToolbox />
 
         {showEmptyState ? (
-          <div className="flex-1 flex items-center justify-center bg-gray-900">
+          <div className="flex-1 flex items-center justify-center bg-gray-50">
             <FlowEmptyState
               onOpenList={handleOpenList}
               onCreateNew={handleCreateNew}
@@ -505,7 +505,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
       </div>
 
       {!isConnected && (
-        <div className="absolute inset-0 bg-gray-900/80 flex items-center justify-center">
+        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
           <div className="text-center">
             <div className="text-gray-400 mb-2">Backend not connected</div>
             <div className="text-sm text-gray-500">

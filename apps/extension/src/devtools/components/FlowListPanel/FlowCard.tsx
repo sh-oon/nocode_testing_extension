@@ -138,8 +138,8 @@ export function FlowCard({
         border-l-2 group
         ${
           isActive
-            ? 'bg-blue-900/20 border-l-blue-500 hover:bg-blue-900/30'
-            : 'border-l-transparent hover:bg-gray-700/50'
+            ? 'bg-blue-50 border-l-blue-500 hover:bg-blue-100'
+            : 'border-l-transparent hover:bg-gray-50'
         }
       `}
       data-test-id={`flow-card-${flow.id}`}
@@ -160,12 +160,12 @@ export function FlowCard({
                 onChange={(e) => setRenameValue(e.target.value)}
                 onBlur={handleRenameSubmit}
                 onKeyDown={handleRenameKeyDown}
-                className="w-full px-1.5 py-0.5 bg-gray-900 border border-blue-500 rounded text-sm text-white focus:outline-none"
+                className="w-full px-1.5 py-0.5 bg-white border border-blue-500 rounded text-sm text-gray-900 focus:outline-none"
                 data-test-id={`flow-rename-input-${flow.id}`}
               />
             </div>
           ) : (
-            <h3 className="text-sm font-medium text-gray-100 truncate">
+            <h3 className="text-sm font-medium text-gray-800 truncate">
               {flow.name}
             </h3>
           )}
@@ -192,7 +192,7 @@ export function FlowCard({
           <button
             type="button"
             onClick={handleMenuToggle}
-            className="p-1 text-gray-500 hover:text-gray-300 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity rounded hover:bg-gray-600"
+            className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity rounded hover:bg-gray-100"
             aria-label="플로우 메뉴"
             data-test-id={`flow-menu-button-${flow.id}`}
           >
@@ -201,14 +201,14 @@ export function FlowCard({
 
           {/* Dropdown menu */}
           {isMenuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-36 bg-gray-700 border border-gray-600 rounded-md shadow-lg z-10 py-1">
+            <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-10 py-1">
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRenameStart();
                 }}
-                className="w-full px-3 py-1.5 text-left text-sm text-gray-200 hover:bg-gray-600 transition-colors"
+                className="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 data-test-id={`flow-rename-action-${flow.id}`}
               >
                 이름 변경
@@ -216,16 +216,16 @@ export function FlowCard({
               <button
                 type="button"
                 onClick={handleDuplicate}
-                className="w-full px-3 py-1.5 text-left text-sm text-gray-200 hover:bg-gray-600 transition-colors"
+                className="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 data-test-id={`flow-duplicate-action-${flow.id}`}
               >
                 복제
               </button>
-              <div className="border-t border-gray-600 my-1" />
+              <div className="border-t border-gray-200 my-1" />
               <button
                 type="button"
                 onClick={handleDelete}
-                className="w-full px-3 py-1.5 text-left text-sm text-red-400 hover:bg-red-900/30 transition-colors"
+                className="w-full px-3 py-1.5 text-left text-sm text-red-500 hover:bg-red-50 transition-colors"
                 data-test-id={`flow-delete-action-${flow.id}`}
               >
                 삭제

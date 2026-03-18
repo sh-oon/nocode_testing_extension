@@ -32,14 +32,14 @@ export function ScenarioSidebar({
   };
 
   return (
-    <div className="w-56 bg-gray-800 border-r border-gray-700 flex flex-col">
-      <div className="px-3 py-2 border-b border-gray-700 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-300">Scenarios</h3>
+    <div className="w-56 bg-white border-r border-gray-200 flex flex-col">
+      <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between">
+        <h3 className="text-sm font-medium text-gray-700">Scenarios</h3>
         <button
           type="button"
           onClick={onRefresh}
           disabled={isLoading}
-          className="p-1 text-gray-400 hover:text-white disabled:opacity-50 transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-900 disabled:opacity-50 transition-colors"
           aria-label="Refresh scenarios"
         >
           <RefreshIcon spinning={isLoading} />
@@ -61,21 +61,21 @@ export function ScenarioSidebar({
               key={scenario.id}
               draggable
               onDragStart={(e) => onDragStart(e, scenario)}
-              className="group p-3 bg-gray-700 rounded-lg border border-gray-600 cursor-grab hover:bg-gray-600 hover:border-gray-500 transition-colors active:cursor-grabbing"
+              className="group p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-grab hover:bg-gray-100 hover:border-gray-300 transition-colors active:cursor-grabbing"
             >
               <div className="flex items-start gap-2">
                 <ScenarioIcon />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-white font-medium truncate">
+                  <div className="text-sm text-gray-800 font-medium truncate">
                     {scenario.name || 'Unnamed'}
                   </div>
-                  <div className="text-xs text-gray-400 mt-0.5">{scenario.stepCount} steps</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{scenario.stepCount} steps</div>
                 </div>
                 {onScenarioEdit && (
                   <button
                     type="button"
                     onClick={(e) => handleEditClick(e, scenario.id)}
-                    className="p-1 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    className="p-1 text-gray-400 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                     aria-label="Edit scenario"
                     title="Edit scenario"
                   >
@@ -88,7 +88,7 @@ export function ScenarioSidebar({
         )}
       </div>
 
-      <div className="px-3 py-2 border-t border-gray-700 text-xs text-gray-500">
+      <div className="px-3 py-2 border-t border-gray-200 text-xs text-gray-400">
         Drag to canvas / Click edit to rename
       </div>
     </div>

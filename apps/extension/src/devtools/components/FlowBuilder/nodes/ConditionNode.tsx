@@ -22,11 +22,11 @@ const operatorLabels: Record<ConditionOperator, string> = {
 
 export function ConditionNode({ data, selected }: ConditionNodeProps) {
   const statusColors = {
-    pending: 'border-gray-500 bg-gray-800',
-    running: 'border-blue-500 bg-blue-900/50 animate-pulse',
-    passed: 'border-green-500 bg-green-900/50',
-    failed: 'border-red-500 bg-red-900/50',
-    skipped: 'border-yellow-500 bg-yellow-900/50',
+    pending: 'border-gray-200 bg-white',
+    running: 'border-blue-400 bg-blue-50 animate-pulse',
+    passed: 'border-green-400 bg-green-50',
+    failed: 'border-red-400 bg-red-50',
+    skipped: 'border-yellow-400 bg-yellow-50',
   };
 
   const statusIcons = {
@@ -47,9 +47,9 @@ export function ConditionNode({ data, selected }: ConditionNodeProps) {
     <div className="relative">
       {/* Diamond shape container */}
       <div
-        className={`w-[140px] h-[140px] rotate-45 rounded-lg shadow-lg border-2 transition-all ${
+        className={`w-[140px] h-[140px] rotate-45 rounded-lg shadow-md border-2 transition-all ${
           statusColors[status]
-        } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-gray-900' : ''}`}
+        } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white' : ''}`}
       >
         {/* Content (counter-rotated to be upright) */}
         <div className="-rotate-45 absolute inset-0 flex flex-col items-center justify-center p-2">
@@ -59,10 +59,10 @@ export function ConditionNode({ data, selected }: ConditionNodeProps) {
               <span className="ml-1">{statusIcons[status]}</span>
             )}
           </div>
-          <div className="text-white text-xs font-medium text-center truncate max-w-[100px]">
+          <div className="text-gray-800 text-xs font-medium text-center truncate max-w-[100px]">
             {data.label || 'Condition'}
           </div>
-          <div className="text-gray-400 text-[10px] text-center mt-1 max-w-[110px] truncate" title={conditionPreview}>
+          <div className="text-gray-500 text-[10px] text-center mt-1 max-w-[110px] truncate" title={conditionPreview}>
             {conditionPreview}
           </div>
           {lastResult !== undefined && (

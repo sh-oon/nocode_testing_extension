@@ -131,12 +131,12 @@ export function FlowCanvas({
           style: { strokeWidth: 2, stroke: '#6b7280' },
           type: 'smoothstep',
         }}
-        className="bg-gray-900"
+        className="bg-gray-50"
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
-        <Controls className="!bg-gray-800 !border-gray-700 !rounded-lg [&>button]:!bg-gray-700 [&>button]:!border-gray-600 [&>button]:!text-gray-300 [&>button:hover]:!bg-gray-600" />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e5e7eb" />
+        <Controls className="!bg-white !border-gray-200 !rounded-lg [&>button]:!bg-white [&>button]:!border-gray-200 [&>button]:!text-gray-600 [&>button:hover]:!bg-gray-100" />
         <MiniMap
-          className="!bg-gray-800 !border-gray-700 !rounded-lg"
+          className="!bg-white !border-gray-200 !rounded-lg"
           nodeColor={(node) => {
             switch (node.type) {
               case 'start':

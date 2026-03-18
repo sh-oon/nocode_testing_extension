@@ -7,11 +7,11 @@ type SetVariableNodeProps = NodeProps & {
 
 export function SetVariableNode({ data, selected }: SetVariableNodeProps) {
   const statusColors = {
-    pending: 'border-gray-500 bg-gray-800',
-    running: 'border-blue-500 bg-blue-900/50 animate-pulse',
-    passed: 'border-green-500 bg-green-900/50',
-    failed: 'border-red-500 bg-red-900/50',
-    skipped: 'border-yellow-500 bg-yellow-900/50',
+    pending: 'border-gray-200 bg-white',
+    running: 'border-blue-400 bg-blue-50 animate-pulse',
+    passed: 'border-green-400 bg-green-50',
+    failed: 'border-red-400 bg-red-50',
+    skipped: 'border-yellow-400 bg-yellow-50',
   };
 
   const statusIcons = {
@@ -27,9 +27,9 @@ export function SetVariableNode({ data, selected }: SetVariableNodeProps) {
 
   return (
     <div
-      className={`px-4 py-3 rounded-lg shadow-lg border-2 min-w-[160px] transition-all ${
+      className={`px-4 py-3 rounded-lg shadow-md border-2 min-w-[160px] transition-all ${
         statusColors[status]
-      } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-gray-900' : ''}`}
+      } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white' : ''}`}
     >
       <Handle
         type="target"
@@ -42,17 +42,17 @@ export function SetVariableNode({ data, selected }: SetVariableNodeProps) {
           <SetVariableIcon />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-white text-sm font-medium truncate">
+          <div className="text-gray-800 text-sm font-medium truncate">
             {data.label || 'Set Variables'}
           </div>
-          <div className="text-gray-400 text-xs mt-1">
+          <div className="text-gray-500 text-xs mt-1">
             {variableCount} variable{variableCount !== 1 ? 's' : ''}
           </div>
           {/* Preview first variable */}
           {data.variables && data.variables.length > 0 && (
             <div className="text-purple-400 text-[10px] mt-1 truncate max-w-[120px]" title={`${data.variables[0].name} = ${data.variables[0].value}`}>
               {data.variables[0].name} = {truncate(data.variables[0].value, 10)}
-              {variableCount > 1 && <span className="text-gray-500"> +{variableCount - 1}</span>}
+              {variableCount > 1 && <span className="text-gray-400"> +{variableCount - 1}</span>}
             </div>
           )}
         </div>

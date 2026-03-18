@@ -65,7 +65,7 @@ export function FlowToolbar({
 
   return (
     <nav
-      className="px-3 py-2 bg-gray-800 border-b border-gray-700 flex items-center gap-2"
+      className="px-3 py-2 bg-white border-b border-gray-200 flex items-center gap-2"
       aria-label="Flow toolbar"
       data-test-id="flow-toolbar"
     >
@@ -73,7 +73,7 @@ export function FlowToolbar({
       <button
         type="button"
         onClick={onOpenList}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
         aria-label="플로우 목록 열기"
         data-test-id="flow-toolbar-open-list"
       >
@@ -82,7 +82,7 @@ export function FlowToolbar({
       </button>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-700" aria-hidden="true" />
+      <div className="w-px h-5 bg-gray-200" aria-hidden="true" />
 
       {/* Flow name with modification indicator */}
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -104,10 +104,10 @@ export function FlowToolbar({
           aria-label="플로우 이름"
           className={`
             flex-1 min-w-0 px-2.5 py-1.5 text-sm rounded-md transition-colors
-            bg-transparent text-gray-100 placeholder-gray-500
+            bg-transparent text-gray-800 placeholder-gray-400
             ${isEditingName
-              ? 'bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500'
-              : 'border border-transparent hover:bg-gray-700/50 cursor-text'
+              ? 'bg-white border border-gray-300 focus:outline-none focus:border-blue-500'
+              : 'border border-transparent hover:bg-gray-50 cursor-text'
             }
           `}
           data-test-id="flow-toolbar-name-input"
@@ -125,13 +125,13 @@ export function FlowToolbar({
       </div>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-700" aria-hidden="true" />
+      <div className="w-px h-5 bg-gray-200" aria-hidden="true" />
 
       {/* Create new button */}
       <button
         type="button"
         onClick={onCreateNew}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
         aria-label="새 플로우 만들기"
         data-test-id="flow-toolbar-create-new"
       >
@@ -140,7 +140,7 @@ export function FlowToolbar({
       </button>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-700" aria-hidden="true" />
+      <div className="w-px h-5 bg-gray-200" aria-hidden="true" />
 
       {/* Run button */}
       <button
@@ -150,8 +150,8 @@ export function FlowToolbar({
         className={`
           flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors
           ${runDisabled
-            ? 'bg-gray-700 text-gray-500 opacity-50 cursor-not-allowed'
-            : 'bg-green-600 hover:bg-green-700 text-white'
+            ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed'
+            : 'bg-green-500 hover:bg-green-600 text-white'
           }
         `}
         aria-label="플로우 실행"
@@ -169,8 +169,8 @@ export function FlowToolbar({
         className={`
           flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors
           ${saveDisabled
-            ? 'bg-gray-700 text-gray-500 opacity-50 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
+            ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed'
+            : 'bg-blue-500 hover:bg-blue-600 text-white'
           }
         `}
         aria-label="플로우 저장"

@@ -23,11 +23,11 @@ const sourceColors: Record<ExtractionSource, string> = {
 
 export function ExtractVariableNode({ data, selected }: ExtractVariableNodeProps) {
   const statusColors = {
-    pending: 'border-gray-500 bg-gray-800',
-    running: 'border-blue-500 bg-blue-900/50 animate-pulse',
-    passed: 'border-green-500 bg-green-900/50',
-    failed: 'border-red-500 bg-red-900/50',
-    skipped: 'border-yellow-500 bg-yellow-900/50',
+    pending: 'border-gray-200 bg-white',
+    running: 'border-blue-400 bg-blue-50 animate-pulse',
+    passed: 'border-green-400 bg-green-50',
+    failed: 'border-red-400 bg-red-50',
+    skipped: 'border-yellow-400 bg-yellow-50',
   };
 
   const statusIcons = {
@@ -48,9 +48,9 @@ export function ExtractVariableNode({ data, selected }: ExtractVariableNodeProps
 
   return (
     <div
-      className={`px-4 py-3 rounded-lg shadow-lg border-2 min-w-[160px] transition-all ${
+      className={`px-4 py-3 rounded-lg shadow-md border-2 min-w-[160px] transition-all ${
         statusColors[status]
-      } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-gray-900' : ''}`}
+      } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white' : ''}`}
     >
       <Handle
         type="target"
@@ -63,10 +63,10 @@ export function ExtractVariableNode({ data, selected }: ExtractVariableNodeProps
           <ExtractVariableIcon />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-white text-sm font-medium truncate">
+          <div className="text-gray-800 text-sm font-medium truncate">
             {data.label || 'Extract Variables'}
           </div>
-          <div className="text-gray-400 text-xs mt-1">
+          <div className="text-gray-500 text-xs mt-1">
             {extractionCount} extraction{extractionCount !== 1 ? 's' : ''}
           </div>
           {/* Source badges */}
@@ -75,13 +75,13 @@ export function ExtractVariableNode({ data, selected }: ExtractVariableNodeProps
               {sources.slice(0, 3).map((source) => (
                 <span
                   key={source}
-                  className={`text-[9px] px-1.5 py-0.5 rounded bg-gray-700 ${sourceColors[source]}`}
+                  className={`text-[9px] px-1.5 py-0.5 rounded bg-gray-100 ${sourceColors[source]}`}
                 >
                   {sourceLabels[source]}
                 </span>
               ))}
               {sources.length > 3 && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
                   +{sources.length - 3}
                 </span>
               )}
@@ -95,7 +95,7 @@ export function ExtractVariableNode({ data, selected }: ExtractVariableNodeProps
             >
               {data.extractions[0].variableName}
               {data.extractions[0].jsonPath && (
-                <span className="text-gray-500"> ({truncate(data.extractions[0].jsonPath, 15)})</span>
+                <span className="text-gray-400"> ({truncate(data.extractions[0].jsonPath, 15)})</span>
               )}
             </div>
           )}

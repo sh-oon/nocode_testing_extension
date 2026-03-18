@@ -7,11 +7,11 @@ type ScenarioNodeProps = NodeProps & {
 
 export function ScenarioNode({ data, selected }: ScenarioNodeProps) {
   const statusColors = {
-    pending: 'border-gray-500 bg-gray-800',
-    running: 'border-blue-500 bg-blue-900/50 animate-pulse',
-    passed: 'border-green-500 bg-green-900/50',
-    failed: 'border-red-500 bg-red-900/50',
-    skipped: 'border-yellow-500 bg-yellow-900/50',
+    pending: 'border-gray-200 bg-white',
+    running: 'border-blue-400 bg-blue-50 animate-pulse',
+    passed: 'border-green-400 bg-green-50',
+    failed: 'border-red-400 bg-red-50',
+    skipped: 'border-yellow-400 bg-yellow-50',
   };
 
   const statusIcons = {
@@ -26,9 +26,9 @@ export function ScenarioNode({ data, selected }: ScenarioNodeProps) {
 
   return (
     <div
-      className={`px-4 py-3 rounded-lg shadow-lg border-2 min-w-[160px] transition-all ${
+      className={`px-4 py-3 rounded-lg shadow-md border-2 min-w-[160px] transition-all ${
         statusColors[status]
-      } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-gray-900' : ''}`}
+      } ${selected ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white' : ''}`}
     >
       <Handle
         type="target"
@@ -41,8 +41,8 @@ export function ScenarioNode({ data, selected }: ScenarioNodeProps) {
           <ScenarioIcon />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-white text-sm font-medium truncate">{data.scenarioName}</div>
-          <div className="text-gray-400 text-xs mt-1">{data.stepCount} steps</div>
+          <div className="text-gray-800 text-sm font-medium truncate">{data.scenarioName}</div>
+          <div className="text-gray-500 text-xs mt-1">{data.stepCount} steps</div>
         </div>
         {statusIcons[status] && (
           <div className="flex-shrink-0">{statusIcons[status]}</div>

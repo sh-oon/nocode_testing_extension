@@ -145,14 +145,14 @@ export function ScenarioDetailPanel({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-white">Scenario Details</h2>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Scenario Details</h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-900 transition-colors"
             aria-label="Close"
           >
             <CloseIcon />
@@ -161,14 +161,14 @@ export function ScenarioDetailPanel({
 
         {/* Tabs */}
         {scenario && (
-          <div className="flex border-b border-gray-700">
+          <div className="flex border-b border-gray-200">
             <button
               type="button"
               onClick={() => setActiveTab('steps')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === 'steps'
                   ? 'text-primary-400 border-b-2 border-primary-400'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-gray-400 hover:text-gray-900'
               }`}
             >
               Steps ({steps.length})
@@ -179,7 +179,7 @@ export function ScenarioDetailPanel({
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === 'info'
                   ? 'text-primary-400 border-b-2 border-primary-400'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-gray-400 hover:text-gray-900'
               }`}
             >
               Info
@@ -195,7 +195,7 @@ export function ScenarioDetailPanel({
               <span className="ml-2 text-gray-400">Loading...</span>
             </div>
           ) : error ? (
-            <div className="m-4 bg-red-900/50 border border-red-800 rounded-md p-3 text-red-200 text-sm">
+            <div className="m-4 bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
               {error}
             </div>
           ) : scenario ? (
@@ -222,8 +222,8 @@ export function ScenarioDetailPanel({
                 <div className="p-4 space-y-4">
                   {/* ID (read-only) */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">ID</label>
-                    <div className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-gray-300 text-sm font-mono">
+                    <label className="block text-sm font-medium text-gray-500 mb-1">ID</label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-600 text-sm font-mono">
                       {scenario.id}
                     </div>
                   </div>
@@ -239,7 +239,7 @@ export function ScenarioDetailPanel({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Enter scenario name"
-                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -254,7 +254,7 @@ export function ScenarioDetailPanel({
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Enter description"
                       rows={3}
-                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500 resize-none"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 resize-none"
                     />
                   </div>
 
@@ -269,38 +269,38 @@ export function ScenarioDetailPanel({
                       value={tags}
                       onChange={(e) => setTags(e.target.value)}
                       placeholder="tag1, tag2, tag3"
-                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary-500"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500"
                     />
                     <p className="mt-1 text-xs text-gray-500">Separate tags with commas</p>
                   </div>
 
                   {/* Meta info */}
-                  <div className="pt-4 border-t border-gray-700 space-y-2">
+                  <div className="pt-4 border-t border-gray-200 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">URL:</span>
+                      <span className="text-gray-500">URL:</span>
                       <span className="text-gray-300 truncate max-w-[250px]" title={scenario.url}>
                         {scenario.url}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Steps:</span>
-                      <span className="text-gray-300">{steps.length}</span>
+                      <span className="text-gray-500">Steps:</span>
+                      <span className="text-gray-700">{steps.length}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Viewport:</span>
-                      <span className="text-gray-300">
+                      <span className="text-gray-500">Viewport:</span>
+                      <span className="text-gray-700">
                         {scenario.viewport?.width} x {scenario.viewport?.height}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Created:</span>
-                      <span className="text-gray-300">
+                      <span className="text-gray-500">Created:</span>
+                      <span className="text-gray-700">
                         {new Date(scenario.createdAt).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Updated:</span>
-                      <span className="text-gray-300">
+                      <span className="text-gray-500">Updated:</span>
+                      <span className="text-gray-700">
                         {new Date(scenario.updatedAt).toLocaleString()}
                       </span>
                     </div>
@@ -312,12 +312,12 @@ export function ScenarioDetailPanel({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
           <button
             type="button"
             onClick={handleDelete}
             disabled={isLoading || isSaving}
-            className="px-3 py-1.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-md transition-colors disabled:opacity-50"
+            className="px-3 py-1.5 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
           >
             Delete
           </button>
@@ -325,7 +325,7 @@ export function ScenarioDetailPanel({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors"
+              className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
             >
               Cancel
             </button>
@@ -333,7 +333,7 @@ export function ScenarioDetailPanel({
               type="button"
               onClick={handleSave}
               disabled={isLoading || isSaving}
-              className="px-4 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-600 text-white text-sm rounded-md transition-colors disabled:opacity-50"
+              className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white text-sm rounded-md transition-colors disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save'}
             </button>

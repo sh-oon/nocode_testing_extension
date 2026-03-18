@@ -115,14 +115,14 @@ export function ExtractionEditor({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="extraction-editor-title">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-[640px] max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-[640px] max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
-          <h3 id="extraction-editor-title" className="text-lg font-semibold text-white">Edit Extractions</h3>
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <h3 id="extraction-editor-title" className="text-lg font-semibold text-gray-900">Edit Extractions</h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-gray-900 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -134,14 +134,14 @@ export function ExtractionEditor({
         <div className="p-4 space-y-4 overflow-y-auto max-h-[75vh]">
           {/* Label */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
               Node Label
             </label>
             <input
               type="text"
               value={nodeLabel}
               onChange={(e) => setNodeLabel(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Extract Variables"
             />
           </div>
@@ -149,7 +149,7 @@ export function ExtractionEditor({
           {/* Extractions List */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-300">
+              <label className="text-sm font-medium text-gray-600">
                 Extractions
               </label>
               <button
@@ -165,9 +165,9 @@ export function ExtractionEditor({
             </div>
 
             {extractions.map((extraction, index) => (
-              <div key={index} className="p-3 bg-gray-900 rounded-md space-y-3">
+              <div key={index} className="p-3 bg-gray-50 rounded-md space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-400">Extraction #{index + 1}</span>
+                  <span className="text-xs font-medium text-gray-500">Extraction #{index + 1}</span>
                   <button
                     type="button"
                     onClick={() => removeExtraction(index)}
@@ -182,23 +182,23 @@ export function ExtractionEditor({
 
                 {/* Variable Name */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Variable Name</label>
+                  <label className="block text-xs text-gray-500 mb-1">Variable Name</label>
                   <input
                     type="text"
                     value={extraction.variableName}
                     onChange={(e) => updateExtraction(index, { variableName: e.target.value })}
-                    className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="userId"
                   />
                 </div>
 
                 {/* Source */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Source</label>
+                  <label className="block text-xs text-gray-500 mb-1">Source</label>
                   <select
                     value={extraction.source}
                     onChange={(e) => updateExtraction(index, { source: e.target.value as ExtractionSource })}
-                    className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {sourceOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -213,15 +213,15 @@ export function ExtractionEditor({
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <div className="flex-1">
-                        <label className="block text-xs text-gray-400 mb-1">
+                        <label className="block text-xs text-gray-500 mb-1">
                           JSONPath
-                          <span className="text-gray-500 ml-1">(e.g., $.data.user.id)</span>
+                          <span className="text-gray-400 ml-1">(e.g., $.data.user.id)</span>
                         </label>
                         <input
                           type="text"
                           value={extraction.jsonPath || ''}
                           onChange={(e) => updateExtraction(index, { jsonPath: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="$.data.user.id"
                         />
                       </div>
@@ -233,8 +233,8 @@ export function ExtractionEditor({
                           }
                           className={`px-2 py-1.5 text-xs rounded transition-colors ${
                             activeTreeIndex === index
-                              ? 'bg-primary-600 text-white'
-                              : 'bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200'
                           }`}
                           title="Pick from tree"
                         >
@@ -245,7 +245,7 @@ export function ExtractionEditor({
                         <button
                           type="button"
                           onClick={() => handleTestPath(index)}
-                          className="px-2 py-1.5 text-xs bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600 rounded transition-colors"
+                          className="px-2 py-1.5 text-xs bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
                           title="Test path"
                         >
                           Test
@@ -255,8 +255,8 @@ export function ExtractionEditor({
 
                     {/* Test result */}
                     {testResult && testResult.index === index && (
-                      <div className="px-2 py-1.5 bg-gray-800 rounded text-xs">
-                        <span className="text-gray-500">Result: </span>
+                      <div className="px-2 py-1.5 bg-gray-50 rounded text-xs">
+                        <span className="text-gray-400">Result: </span>
                         <span className="text-green-400 font-mono">{testResult.value}</span>
                       </div>
                     )}
@@ -276,25 +276,25 @@ export function ExtractionEditor({
                 {extraction.source === 'element' && (
                   <>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">CSS Selector</label>
+                      <label className="block text-xs text-gray-500 mb-1">CSS Selector</label>
                       <input
                         type="text"
                         value={extraction.selector || ''}
                         onChange={(e) => updateExtraction(index, { selector: e.target.value })}
-                        className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="#userId"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">
+                      <label className="block text-xs text-gray-500 mb-1">
                         Attribute
-                        <span className="text-gray-500 ml-1">(default: textContent)</span>
+                        <span className="text-gray-400 ml-1">(default: textContent)</span>
                       </label>
                       <input
                         type="text"
                         value={extraction.attribute || ''}
                         onChange={(e) => updateExtraction(index, { attribute: e.target.value })}
-                        className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="data-value"
                       />
                     </div>
@@ -303,15 +303,15 @@ export function ExtractionEditor({
 
                 {extraction.source === 'url' && (
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">
+                    <label className="block text-xs text-gray-500 mb-1">
                       Regex Pattern
-                      <span className="text-gray-500 ml-1">(with capture group)</span>
+                      <span className="text-gray-400 ml-1">(with capture group)</span>
                     </label>
                     <input
                       type="text"
                       value={extraction.pattern || ''}
                       onChange={(e) => updateExtraction(index, { pattern: e.target.value })}
-                      className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="/users/(\d+)"
                     />
                   </div>
@@ -319,15 +319,15 @@ export function ExtractionEditor({
 
                 {/* Default Value */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">
+                  <label className="block text-xs text-gray-500 mb-1">
                     Default Value
-                    <span className="text-gray-500 ml-1">(if extraction fails)</span>
+                    <span className="text-gray-400 ml-1">(if extraction fails)</span>
                   </label>
                   <input
                     type="text"
                     value={String(extraction.defaultValue ?? '')}
                     onChange={(e) => updateExtraction(index, { defaultValue: e.target.value || undefined })}
-                    className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="(optional)"
                   />
                 </div>
@@ -337,18 +337,18 @@ export function ExtractionEditor({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-700 flex justify-end gap-2">
+        <div className="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-md transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-md transition-colors"
           >
             Save
           </button>

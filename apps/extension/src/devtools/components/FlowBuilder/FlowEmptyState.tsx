@@ -18,17 +18,17 @@ export function FlowEmptyState({ onOpenList, onCreateNew }: FlowEmptyStateProps)
       data-test-id="flow-empty-state"
     >
       {/* Icon */}
-      <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-700/60 mb-6">
+      <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-100 mb-6">
         <FlowIcon />
       </div>
 
       {/* Heading */}
-      <h2 className="text-xl font-semibold text-gray-100 mb-2">
+      <h2 className="text-xl font-semibold text-gray-800 mb-2">
         테스트 플로우 빌더
       </h2>
 
       {/* Description */}
-      <p className="text-sm text-gray-400 mb-8 max-w-xs text-center leading-relaxed">
+      <p className="text-sm text-gray-500 mb-8 max-w-xs text-center leading-relaxed">
         시나리오를 연결하여 E2E 테스트 플로우를 구성하세요.
         조건 분기와 변수를 활용할 수 있습니다.
       </p>
@@ -38,7 +38,7 @@ export function FlowEmptyState({ onOpenList, onCreateNew }: FlowEmptyStateProps)
         <button
           type="button"
           onClick={onOpenList}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
           data-test-id="flow-empty-open-list"
         >
           <FolderOpenIcon />
@@ -48,7 +48,7 @@ export function FlowEmptyState({ onOpenList, onCreateNew }: FlowEmptyStateProps)
         <button
           type="button"
           onClick={onCreateNew}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           data-test-id="flow-empty-create-new"
         >
           <PlusIcon />
@@ -66,7 +66,7 @@ export function FlowEmptyState({ onOpenList, onCreateNew }: FlowEmptyStateProps)
 function FlowIcon() {
   return (
     <svg
-      className="w-8 h-8 text-gray-400"
+      className="w-8 h-8 text-gray-500"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

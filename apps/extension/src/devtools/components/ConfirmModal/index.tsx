@@ -97,13 +97,13 @@ export function ConfirmModal({
       aria-describedby="confirm-modal-message"
       data-test-id="confirm-modal-backdrop"
     >
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
         {/* Body */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-start gap-4">
             {/* Icon */}
             <div
-              className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-gray-700 ${ICON_COLORS[variant]}`}
+              className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 ${ICON_COLORS[variant]}`}
             >
               <VariantIcon variant={variant} />
             </div>
@@ -111,13 +111,13 @@ export function ConfirmModal({
             <div className="flex-1 min-w-0">
               <h3
                 id="confirm-modal-title"
-                className="text-lg font-semibold text-gray-100 leading-tight"
+                className="text-lg font-semibold text-gray-900 leading-tight"
               >
                 {title}
               </h3>
               <p
                 id="confirm-modal-message"
-                className="mt-2 text-sm text-gray-400 leading-relaxed"
+                className="mt-2 text-sm text-gray-500 leading-relaxed"
               >
                 {message}
               </p>
@@ -126,13 +126,13 @@ export function ConfirmModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-700">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-200">
           {/* Extra action (left-aligned when present) */}
           {extraAction && (
             <button
               type="button"
               onClick={extraAction.onClick}
-              className="mr-auto px-4 py-2 text-sm text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-md transition-colors"
+              className="mr-auto px-4 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               data-test-id="confirm-modal-extra-action"
             >
               {extraAction.label}
@@ -144,7 +144,7 @@ export function ConfirmModal({
             ref={cancelButtonRef}
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
             data-test-id="confirm-modal-cancel"
           >
             {cancelLabel}

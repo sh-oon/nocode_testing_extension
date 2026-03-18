@@ -7,8 +7,8 @@ type StartNodeProps = NodeProps & {
 
 export function StartNode({ data }: StartNodeProps) {
   return (
-    <div className="px-4 py-2 bg-green-600 rounded-full shadow-lg border-2 border-green-400 min-w-[80px] text-center">
-      <div className="text-white text-sm font-semibold">{data.label || 'Start'}</div>
+    <div className="px-4 py-2 bg-green-50 rounded-full shadow-md border-2 border-green-400 min-w-[80px] text-center">
+      <div className="text-green-700 text-sm font-semibold">{data.label || 'Start'}</div>
       <Handle
         type="source"
         position={Position.Bottom}

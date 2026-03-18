@@ -49,14 +49,14 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-[560px] max-h-[80vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-[560px] max-h-[80vh] overflow-hidden">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">Edit Variables</h3>
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Edit Variables</h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-gray-900 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -68,14 +68,14 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
         <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh]">
           {/* Label */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
               Node Label
             </label>
             <input
               type="text"
               value={nodeLabel}
               onChange={(e) => setNodeLabel(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Set Variables"
             />
           </div>
@@ -83,7 +83,7 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
           {/* Variables List */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-300">
+              <label className="text-sm font-medium text-gray-600">
                 Variables
               </label>
               <button
@@ -99,20 +99,20 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
             </div>
 
             {variables.map((variable, index) => (
-              <div key={index} className="flex gap-2 items-start p-3 bg-gray-900 rounded-md">
+              <div key={index} className="flex gap-2 items-start p-3 bg-gray-50 rounded-md">
                 <div className="flex-1 space-y-2">
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={variable.name}
                       onChange={(e) => updateVariable(index, 'name', e.target.value)}
-                      className="flex-1 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="flex-1 px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="variableName"
                     />
                     <select
                       value={variable.type}
                       onChange={(e) => updateVariable(index, 'type', e.target.value)}
-                      className="w-24 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-24 px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       {typeOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -125,7 +125,7 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
                     type="text"
                     value={variable.value}
                     onChange={(e) => updateVariable(index, 'value', e.target.value)}
-                    className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder={variable.type === 'json' ? '{"key": "value"}' : 'Value or {{otherVar}}'}
                   />
                 </div>
@@ -144,24 +144,24 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
           </div>
 
           {/* Help text */}
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-400">
             Use {"{{variableName}}"} syntax to reference other variables in values.
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-700 flex justify-end gap-2">
+        <div className="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-md transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-md transition-colors"
           >
             Save
           </button>

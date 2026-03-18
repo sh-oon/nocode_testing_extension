@@ -30,7 +30,7 @@ export function FlowSearchBar({
   };
 
   return (
-    <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-700">
+    <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
       {/* Search input */}
       <div className="relative flex-1">
         <div className="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none">
@@ -45,7 +45,7 @@ export function FlowSearchBar({
           value={query}
           onChange={handleQueryChange}
           placeholder="플로우 검색..."
-          className="w-full pl-8 pr-3 py-1.5 bg-gray-900 border border-gray-700 rounded-md text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+          className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
           data-test-id="flow-search-input"
         />
       </div>
@@ -58,7 +58,7 @@ export function FlowSearchBar({
         id="flow-sort-select"
         value={sortBy}
         onChange={handleSortChange}
-        className="px-2 py-1.5 bg-gray-900 border border-gray-700 rounded-md text-sm text-gray-300 focus:outline-none focus:border-blue-500 cursor-pointer"
+        className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer"
         data-test-id="flow-sort-select"
       >
         {(Object.entries(sortLabels) as Array<[SortOption, string]>).map(

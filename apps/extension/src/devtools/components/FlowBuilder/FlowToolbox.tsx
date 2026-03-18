@@ -47,8 +47,8 @@ export function FlowToolbox({ onNodeDragStart }: FlowToolboxProps) {
   };
 
   return (
-    <div className="w-48 bg-gray-800 border-r border-gray-700 p-3 flex flex-col gap-2">
-      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+    <div className="w-48 bg-white border-r border-gray-200 p-3 flex flex-col gap-2">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
         Control Nodes
       </div>
 
@@ -59,23 +59,23 @@ export function FlowToolbox({ onNodeDragStart }: FlowToolboxProps) {
           onDragStart={(e) => handleDragStart(e, item.type)}
           className={`
             p-3 rounded-lg cursor-grab active:cursor-grabbing
-            bg-gray-700 hover:bg-gray-600 transition-colors
-            border border-gray-600 hover:border-${item.color}-500/50
+            bg-gray-50 hover:bg-gray-100 transition-colors
+            border border-gray-200 hover:border-${item.color}-500/50
             group
           `}
         >
           <div className="flex items-center gap-2">
             <div className={`text-${item.color}-400`}>{item.icon}</div>
             <div>
-              <div className="text-sm font-medium text-white">{item.label}</div>
-              <div className="text-[10px] text-gray-400">{item.description}</div>
+              <div className="text-sm font-medium text-gray-800">{item.label}</div>
+              <div className="text-[10px] text-gray-500">{item.description}</div>
             </div>
           </div>
         </div>
       ))}
 
-      <div className="mt-4 pt-3 border-t border-gray-700">
-        <div className="text-[10px] text-gray-500 leading-relaxed">
+      <div className="mt-4 pt-3 border-t border-gray-200">
+        <div className="text-[10px] text-gray-400 leading-relaxed">
           Drag nodes to the canvas to add them to your flow. Connect nodes by dragging from handles.
         </div>
       </div>

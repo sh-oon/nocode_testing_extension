@@ -169,18 +169,18 @@ export function FlowListPanel({
 
       {/* Slide-in panel */}
       <aside
-        className="relative w-80 max-w-[85vw] bg-gray-800 border-r border-gray-700 shadow-2xl flex flex-col h-full animate-slide-in-left"
+        className="relative w-80 max-w-[85vw] bg-white border-r border-gray-200 shadow-2xl flex flex-col h-full animate-slide-in-left"
         role="dialog"
         aria-label="플로우 목록"
       >
         {/* Header */}
-        <header className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-          <h2 className="text-base font-semibold text-white">플로우 목록</h2>
+        <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <h2 className="text-base font-semibold text-gray-900">플로우 목록</h2>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleCreateNew}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors"
+              className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-md transition-colors"
               data-test-id="flow-create-new-button"
             >
               + 새 플로우
@@ -188,7 +188,7 @@ export function FlowListPanel({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 text-gray-400 hover:text-white transition-colors"
+              className="p-1 text-gray-400 hover:text-gray-900 transition-colors"
               aria-label="패널 닫기"
               data-test-id="flow-list-close-button"
             >
@@ -217,14 +217,14 @@ export function FlowListPanel({
             </div>
           ) : error ? (
             <div
-              className="m-4 p-3 bg-red-900/50 border border-red-800 rounded-md text-sm text-red-200"
+              className="m-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700"
               data-test-id="flow-list-error"
             >
               <p>{error}</p>
               <button
                 type="button"
                 onClick={loadFlows}
-                className="mt-2 text-xs text-red-300 hover:text-red-100 underline"
+                className="mt-2 text-xs text-red-500 hover:text-red-700 underline"
               >
                 다시 시도
               </button>
@@ -250,7 +250,7 @@ export function FlowListPanel({
                   <button
                     type="button"
                     onClick={handleCreateNew}
-                    className="mt-3 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
+                    className="mt-3 px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
                     data-test-id="flow-create-empty-button"
                   >
                     첫 플로우 만들기
@@ -260,7 +260,7 @@ export function FlowListPanel({
             </div>
           ) : (
             <nav aria-label="플로우 목록">
-              <div className="divide-y divide-gray-700/50">
+              <div className="divide-y divide-gray-100">
                 {flows.map((flow) => (
                   <FlowCard
                     key={flow.id}
@@ -285,7 +285,7 @@ export function FlowListPanel({
 
         {/* Footer with count */}
         {!isLoading && !error && flows.length > 0 && (
-          <footer className="px-4 py-2 border-t border-gray-700 text-xs text-gray-500">
+          <footer className="px-4 py-2 border-t border-gray-200 text-xs text-gray-400">
             {`총 ${flows.length}개 플로우`}
           </footer>
         )}
