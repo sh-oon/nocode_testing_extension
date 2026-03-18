@@ -2,6 +2,7 @@ import type { CapturedApiCall } from '@like-cake/api-interceptor';
 import type { Selector, SelectorInput } from '@like-cake/ast-types';
 import type { DomSnapshot, ScreenshotResult } from '@like-cake/dom-serializer';
 import { ACTION_CHECKS, ACTIONABILITY_POLL_FN } from '../actionability';
+import { ASSERT_ELEMENT_EVAL_SCRIPT } from '../assert-element-logic';
 import type {
   ClickOptions,
   FoundElement,
@@ -805,115 +806,7 @@ export class PuppeteerAdapter implements PlaybackAdapter {
     }
   ): Promise<{ passed: boolean; message: string }> {
     const sel = await this.getSelector(selector);
-
-    const result = await this.page.evaluate(
-      `(function() {
-        const s = arguments[0];
-        const a = arguments[1];
-        const elements = document.querySelectorAll(s);
-        const element = elements[0];
-
-        const isVisible = (el) => {
-          if (!el || !(el instanceof HTMLElement)) return false;
-          const style = window.getComputedStyle(el);
-          const rect = el.getBoundingClientRect();
-          return (
-            style.display !== 'none' &&
-            style.visibility !== 'hidden' &&
-            style.opacity !== '0' &&
-            rect.width > 0 &&
-            rect.height > 0
-          );
-        };
-
-        switch (a.type) {
-          case 'visible':
-            return {
-              passed: !!element && isVisible(element),
-              message: element && isVisible(element) ? 'Element is visible' : 'Element is not visible',
-            };
-          case 'hidden':
-            return {
-              passed: !element || !isVisible(element),
-              message: !element || !isVisible(element) ? 'Element is hidden' : 'Element is visible',
-            };
-          case 'exists':
-            return { passed: !!element, message: element ? 'Element exists' : 'Element does not exist' };
-          case 'notExists':
-            return { passed: !element, message: !element ? 'Element does not exist' : 'Element exists' };
-          case 'text': {
-            const text = element?.textContent ?? '';
-            const expected = String(a.value ?? '');
-            if (a.contains) {
-              return {
-                passed: text.includes(expected),
-                message: text.includes(expected)
-                  ? 'Text contains "' + expected + '"'
-                  : 'Text does not contain "' + expected + '"',
-              };
-            }
-            return {
-              passed: text.trim() === expected.trim(),
-              message:
-                text.trim() === expected.trim() ? 'Text matches' : 'Text does not match: "' + text + '" vs "' + expected + '"',
-            };
-          }
-          case 'attribute': {
-            const attrVal = element?.getAttribute(a.name ?? '');
-            if (a.value === undefined) {
-              return { passed: attrVal !== null, message: attrVal !== null ? 'Attribute exists' : 'Attribute missing' };
-            }
-            return { passed: attrVal === a.value, message: attrVal === a.value ? 'Attribute matches' : 'Attr mismatch' };
-          }
-          case 'count': {
-            const count = elements.length;
-            const expected = Number(a.value ?? 0);
-            const op = a.operator ?? 'eq';
-            let passed = false;
-            switch (op) {
-              case 'eq':
-                passed = count === expected;
-                break;
-              case 'gt':
-                passed = count > expected;
-                break;
-              case 'gte':
-                passed = count >= expected;
-                break;
-              case 'lt':
-                passed = count < expected;
-                break;
-              case 'lte':
-                passed = count <= expected;
-                break;
-            }
-            return { passed, message: 'Count: ' + count + ' ' + op + ' ' + expected + ' = ' + passed };
-          }
-          case 'enabled': {
-            const isDisabled = element?.hasAttribute('disabled') ?? true;
-            return {
-              passed: !isDisabled,
-              message: !isDisabled ? 'Element is enabled' : 'Element is disabled',
-            };
-          }
-          case 'value': {
-            var currentValue = element?.value ?? '';
-            var expectedValue = String(a.value ?? '');
-            return {
-              passed: currentValue === expectedValue,
-              message: currentValue === expectedValue
-                ? 'Value matches'
-                : 'Value mismatch: "' + currentValue + '" vs "' + expectedValue + '"',
-            };
-          }
-          default:
-            return { passed: false, message: 'Unknown assertion: ' + a.type };
-        }
-      })()`,
-      sel,
-      assertion
-    );
-
+    const result = await this.page.evaluate(ASSERT_ELEMENT_EVAL_SCRIPT, sel, assertion);
     return result as { passed: boolean; message: string };
   }
 }

@@ -1,5 +1,6 @@
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
 import type { Selector, SelectorInput } from '@like-cake/ast-types';
+import { runElementAssertion } from '../assert-element-logic';
 import {
   captureSnapshot as captureDomSnapshot,
   captureScreenshot as captureDomScreenshot,
@@ -725,128 +726,6 @@ export class ExtensionAdapter implements PlaybackAdapter {
     }
   ): Promise<{ passed: boolean; message: string }> {
     const elements = findAllElements(selector);
-    const element = elements[0];
-
-    switch (assertion.type) {
-      case 'visible':
-        if (element && isElementVisible(element)) {
-          return { passed: true, message: 'Element is visible' };
-        }
-        return { passed: false, message: 'Element is not visible' };
-
-      case 'hidden':
-        if (!element || !isElementVisible(element)) {
-          return { passed: true, message: 'Element is hidden' };
-        }
-        return { passed: false, message: 'Element is visible but expected hidden' };
-
-      case 'exists':
-        if (element) {
-          return { passed: true, message: 'Element exists' };
-        }
-        return { passed: false, message: 'Element does not exist' };
-
-      case 'notExists':
-        if (!element) {
-          return { passed: true, message: 'Element does not exist as expected' };
-        }
-        return { passed: false, message: 'Element exists but expected not to' };
-
-      case 'text': {
-        const textContent = element?.textContent ?? '';
-        const expectedText = String(assertion.value ?? '');
-
-        if (assertion.contains) {
-          if (textContent.includes(expectedText)) {
-            return { passed: true, message: `Text contains "${expectedText}"` };
-          }
-          return {
-            passed: false,
-            message: `Text does not contain "${expectedText}", actual: "${textContent}"`,
-          };
-        }
-        if (textContent.trim() === expectedText.trim()) {
-          return { passed: true, message: `Text matches "${expectedText}"` };
-        }
-        return {
-          passed: false,
-          message: `Text does not match, expected: "${expectedText}", actual: "${textContent}"`,
-        };
-      }
-
-      case 'attribute': {
-        const attrName = assertion.name ?? '';
-        const attrValue = element?.getAttribute(attrName);
-
-        if (assertion.value === undefined) {
-          // Just check attribute exists
-          if (attrValue !== null) {
-            return { passed: true, message: `Attribute "${attrName}" exists` };
-          }
-          return { passed: false, message: `Attribute "${attrName}" does not exist` };
-        }
-        if (attrValue === assertion.value) {
-          return { passed: true, message: `Attribute "${attrName}" equals "${assertion.value}"` };
-        }
-        return {
-          passed: false,
-          message: `Attribute "${attrName}" does not match, expected: "${assertion.value}", actual: "${attrValue}"`,
-        };
-      }
-
-      case 'count': {
-        const count = elements.length;
-        const expected = Number(assertion.value ?? 0);
-        const op = assertion.operator ?? 'eq';
-
-        let passed = false;
-        switch (op) {
-          case 'eq':
-            passed = count === expected;
-            break;
-          case 'gt':
-            passed = count > expected;
-            break;
-          case 'gte':
-            passed = count >= expected;
-            break;
-          case 'lt':
-            passed = count < expected;
-            break;
-          case 'lte':
-            passed = count <= expected;
-            break;
-        }
-
-        if (passed) {
-          return { passed: true, message: `Element count ${count} ${op} ${expected}` };
-        }
-        return { passed: false, message: `Element count ${count} is not ${op} ${expected}` };
-      }
-
-      case 'enabled': {
-        const isDisabled = element?.hasAttribute('disabled') ?? true;
-        if (!isDisabled) {
-          return { passed: true, message: 'Element is enabled' };
-        }
-        return { passed: false, message: 'Element is disabled but expected enabled' };
-      }
-
-      case 'value': {
-        const inputEl = element as HTMLInputElement | HTMLTextAreaElement | null;
-        const currentValue = inputEl?.value ?? '';
-        const expectedValue = String(assertion.value ?? '');
-        if (currentValue === expectedValue) {
-          return { passed: true, message: `Value matches "${expectedValue}"` };
-        }
-        return {
-          passed: false,
-          message: `Value does not match, expected: "${expectedValue}", actual: "${currentValue}"`,
-        };
-      }
-
-      default:
-        return { passed: false, message: `Unknown assertion type: ${assertion.type}` };
-    }
+    return runElementAssertion(elements, assertion);
   }
 }
