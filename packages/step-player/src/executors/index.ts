@@ -13,7 +13,7 @@ import {
   executeHistoryBack,
   executeHistoryForward,
   executeMouseOut,
-} from './new-actions';
+} from './extended-actions';
 import {
   executeClick,
   executeHover,
@@ -31,7 +31,7 @@ export {
   executeHistoryBack,
   executeHistoryForward,
   executeMouseOut,
-} from './new-actions';
+} from './extended-actions';
 export {
   executeClick,
   executeHover,
