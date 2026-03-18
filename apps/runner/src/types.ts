@@ -1,4 +1,5 @@
 import type { ExecutionSummary, StepResult } from '@like-cake/ast-types';
+import type { DomSnapshot, ScreenshotResult } from '@like-cake/dom-serializer';
 
 // Re-export StepResult for use in other modules
 export type { StepResult };
@@ -58,35 +59,13 @@ export interface ObservedApiCall {
 }
 
 /**
- * API observer interface
+ * Labeled DOM snapshot captured during scenario execution.
+ * Uses the canonical DomSnapshot from @like-cake/dom-serializer.
  */
-export interface ApiObserver {
-  /** Start observing API calls */
-  start(): void;
-  /** Stop observing and return collected calls */
-  stop(): ObservedApiCall[];
-  /** Find matching API calls */
-  findMatching(urlPattern: string, method?: string): ObservedApiCall[];
-  /** Wait for a matching API call */
-  waitFor(urlPattern: string, method?: string, timeout?: number): Promise<ObservedApiCall>;
-  /** Clear collected calls */
-  clear(): void;
-}
-
-/**
- * DOM snapshot data
- */
-export interface DomSnapshot {
-  /** Snapshot label */
+export interface LabeledSnapshot {
   label: string;
-  /** Captured documents */
-  documents: unknown[];
-  /** Captured strings */
-  strings: string[];
-  /** Timestamp */
-  timestamp: number;
-  /** Screenshot path if captured */
-  screenshotPath?: string;
+  snapshot: DomSnapshot;
+  screenshot?: ScreenshotResult;
 }
 
 /**
@@ -100,8 +79,8 @@ export interface ScenarioExecutionResult {
   stepResults: StepResult[];
   /** Execution summary */
   summary: ExecutionSummary;
-  /** Captured DOM snapshots */
-  snapshots: DomSnapshot[];
+  /** Captured DOM snapshots (canonical DomSnapshot from @like-cake/dom-serializer) */
+  snapshots: LabeledSnapshot[];
   /** Observed API calls */
   apiCalls: ObservedApiCall[];
   /** Execution start time */

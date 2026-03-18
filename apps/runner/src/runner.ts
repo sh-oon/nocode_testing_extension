@@ -10,7 +10,7 @@ import {
   StepPlayer,
 } from '@like-cake/step-player';
 import puppeteer, { type Browser, type Page } from 'puppeteer';
-import type { ObservedApiCall, RunnerOptions, ScenarioExecutionResult } from './types';
+import type { LabeledSnapshot, ObservedApiCall, RunnerOptions, ScenarioExecutionResult } from './types';
 
 /**
  * Default runner options
@@ -239,13 +239,8 @@ function convertPlaybackResult(
       : undefined,
   }));
 
-  // Convert snapshots
-  const snapshots = playback.snapshots.map((s) => ({
-    label: s.label,
-    documents: (s.snapshot as unknown as { documents?: unknown[] }).documents ?? [],
-    strings: (s.snapshot as unknown as { strings?: string[] }).strings ?? [],
-    timestamp: Date.now(),
-  }));
+  // Pass through snapshots directly — they already use the canonical DomSnapshot type
+  const snapshots: LabeledSnapshot[] = playback.snapshots;
 
   return {
     scenarioId: playback.scenarioId,

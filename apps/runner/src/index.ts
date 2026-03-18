@@ -26,12 +26,13 @@ export {
 export { type RunnerEventListener, runScenario, ScenarioRunner } from './runner';
 // Types
 export type {
-  ApiObserver,
   ApiRequestData,
   ApiResponseData,
   CliRunOptions,
-  DomSnapshot,
+  LabeledSnapshot,
   ObservedApiCall,
   RunnerOptions,
   ScenarioExecutionResult,
 } from './types';
+// Re-export canonical DomSnapshot from dom-serializer for downstream consumers
+export type { DomSnapshot } from '@like-cake/dom-serializer';
