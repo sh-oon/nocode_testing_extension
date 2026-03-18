@@ -38,8 +38,18 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
         </div>
       )}
       {wizard.playbackState.state === 'error' && (
-        <div className="px-4 py-2 bg-red-50 border-b border-red-200 text-sm text-red-700">
-          실행 실패 — 스텝을 수정한 후 다시 재생하세요
+        <div className="px-4 py-2 bg-red-50 border-b border-red-200 text-sm text-red-700 space-y-1">
+          <div className="font-medium">
+            실행 실패
+            {wizard.playbackState.failedStepIndex !== undefined && (
+              <span> — Step {wizard.playbackState.failedStepIndex + 1}에서 중단</span>
+            )}
+          </div>
+          {wizard.playbackState.errorMessage && (
+            <div className="text-xs font-mono text-red-600 bg-red-100 px-2 py-1 rounded">
+              {wizard.playbackState.errorMessage}
+            </div>
+          )}
         </div>
       )}
       {wizard.backendScenarioId && (

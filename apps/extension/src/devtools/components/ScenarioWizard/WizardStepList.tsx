@@ -101,38 +101,45 @@ export function WizardStepList({
                 : 'border-gray-200';
 
             return (
-              <div
-                key={idx}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-md border ${statusColor} group transition-colors`}
-              >
-                {/* Step number */}
-                <span className="text-[10px] text-gray-500 font-mono w-5 shrink-0">{idx + 1}</span>
+              <div key={idx}>
+                <div
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-md border ${statusColor} group transition-colors`}
+                >
+                  {/* Step number */}
+                  <span className="text-[10px] text-gray-500 font-mono w-5 shrink-0">{idx + 1}</span>
 
-                {/* Icon */}
-                <span className="text-sm shrink-0">{STEP_ICONS[step.type] ?? '❓'}</span>
+                  {/* Icon */}
+                  <span className="text-sm shrink-0">{STEP_ICONS[step.type] ?? '❓'}</span>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-800">{STEP_LABELS[step.type] ?? step.type}</div>
-                  <div className="text-[10px] text-gray-400 font-mono truncate">
-                    {getStepSummary(step)}
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-gray-800">{STEP_LABELS[step.type] ?? step.type}</div>
+                    <div className="text-[10px] text-gray-400 font-mono truncate">
+                      {getStepSummary(step)}
+                    </div>
                   </div>
-                </div>
 
-                {/* Status / delete */}
-                {result ? (
-                  <StatusBadge status={result.status} />
-                ) : isCurrent ? (
-                  <span className="text-[10px] text-blue-500 animate-pulse">실행 중</span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => onRemove(idx)}
-                    className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all"
-                    aria-label="스텝 삭제"
-                  >
-                    <TrashIcon />
-                  </button>
+                  {/* Status / delete */}
+                  {result ? (
+                    <StatusBadge status={result.status} />
+                  ) : isCurrent ? (
+                    <span className="text-[10px] text-blue-500 animate-pulse">실행 중</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onRemove(idx)}
+                      className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all"
+                      aria-label="스텝 삭제"
+                    >
+                      <TrashIcon />
+                    </button>
+                  )}
+                </div>
+                {/* Error detail for failed steps */}
+                {result?.status === 'failed' && result.error && (
+                  <div className="ml-8 mr-3 mb-1 px-2 py-1 bg-red-50 border border-red-200 rounded text-[10px] text-red-600 font-mono break-all">
+                    {result.error.message}
+                  </div>
                 )}
               </div>
             );

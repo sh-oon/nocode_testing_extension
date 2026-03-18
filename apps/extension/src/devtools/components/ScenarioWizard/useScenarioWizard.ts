@@ -31,6 +31,8 @@ export interface WizardPlaybackState {
   state: PlayerState;
   currentStepIndex: number;
   stepResults: StepResult[];
+  errorMessage?: string;
+  failedStepIndex?: number;
 }
 
 export function useScenarioWizard() {
@@ -93,20 +95,38 @@ export function useScenarioWizard() {
             setPlaybackState((prev) => ({ ...prev, currentStepIndex: message.stepIndex as number }));
           }
           break;
-        case 'PLAYBACK_STEP_COMPLETE':
+        case 'PLAYBACK_STEP_COMPLETE': {
           if (message.result) {
-            setPlaybackState((prev) => ({
-              ...prev,
-              stepResults: [...prev.stepResults, message.result as StepResult],
-            }));
+            const result = message.result as StepResult;
+            setPlaybackState((prev) => {
+              const newResults = [...prev.stepResults, result];
+              // If step failed, mark error state immediately
+              if (result.status === 'failed') {
+                return {
+                  ...prev,
+                  stepResults: newResults,
+                  state: 'error',
+                  failedStepIndex: result.index ?? prev.stepResults.length,
+                  errorMessage: result.error?.message || `Step ${(result.index ?? prev.stepResults.length) + 1} 실패`,
+                };
+              }
+              return { ...prev, stepResults: newResults };
+            });
           }
           break;
+        }
         case 'PLAYBACK_COMPLETED':
           setPlaybackState((prev) => ({ ...prev, state: 'completed' }));
           break;
-        case 'PLAYBACK_ERROR':
-          setPlaybackState((prev) => ({ ...prev, state: 'error' }));
+        case 'PLAYBACK_ERROR': {
+          const errMsg = (message.error as string) || '재생 중 오류 발생';
+          setPlaybackState((prev) => ({
+            ...prev,
+            state: 'error',
+            errorMessage: errMsg,
+          }));
           break;
+        }
       }
     };
 
