@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { validateBindingAccessibility, type AccessibilityWarning } from '@like-cake/mbt-catalog';
+import type { ElementBinding } from '@like-cake/mbt-catalog';
 import type { CatalogType, PendingStepDraft, SelectorCandidate } from './useScenarioWizard';
 import { CatalogParamForm } from '../shared/CatalogParamForm';
 
@@ -86,6 +88,35 @@ export function StepConfigPanel({
   const needsElement = draft.catalogEntry.elementRequirement !== 'none';
   const canConfirm = !isInspecting && (!needsElement || draft.selectedSelector);
   const parentInfo = draft.elementInfo?.parent as Record<string, unknown> | undefined;
+
+  // Accessibility validation
+  const a11yWarnings = useMemo<AccessibilityWarning[]>(() => {
+    if (!draft.elementInfo || !draft.selectedSelector) return [];
+    const tempBinding: ElementBinding = {
+      id: '__a11y_check__',
+      label: 'check',
+      selector: draft.selectedSelector,
+      candidates: [],
+      selectionMethod: 'manual',
+      pageUrl: '',
+      createdAt: Date.now(),
+      accessibility: {
+        role: (draft.elementInfo.role as string) || undefined,
+        name: (draft.elementInfo.ariaLabel as string) || undefined,
+        focusable: true,
+        keyboardAccessible: true,
+        ariaAttributes: {},
+        violations: [],
+      },
+    };
+    const context = draft.catalogType === 'event'
+      ? (['click', 'doubleClick'].includes(draft.catalogId) ? 'click' as const
+        : ['type', 'select', 'fileUpload', 'clear'].includes(draft.catalogId) ? 'type' as const
+        : ['hover', 'mouseout'].includes(draft.catalogId) ? 'hover' as const
+        : 'other' as const)
+      : 'assert' as const;
+    return validateBindingAccessibility(tempBinding, context);
+  }, [draft.elementInfo, draft.selectedSelector, draft.catalogType, draft.catalogId]);
 
   return (
     <div className="flex-1 overflow-y-auto" data-test-id="wizard-step-config">
@@ -184,7 +215,7 @@ export function StepConfigPanel({
                   </FieldGroup>
 
                   {/* 접근성 */}
-                  <FieldGroup title="접근성">
+                  <FieldGroup title={`접근성${a11yWarnings.length > 0 ? ` (${a11yWarnings.length})` : ''}`}>
                     <div className="space-y-1.5 text-sm">
                       {Boolean(draft.elementInfo.role) && (
                         <LabelValue label="접근성 역할" value={String(draft.elementInfo.role)} />
@@ -197,6 +228,15 @@ export function StepConfigPanel({
                       )}
                       {!draft.elementInfo.role && !draft.elementInfo.ariaLabel && (
                         <div className="text-xs text-yellow-600">접근성 속성이 없습니다</div>
+                      )}
+
+                      {/* 접근성 경고 */}
+                      {a11yWarnings.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {a11yWarnings.map((w, i) => (
+                            <A11yWarningItem key={i} warning={w} />
+                          ))}
+                        </div>
                       )}
                     </div>
                   </FieldGroup>
@@ -365,6 +405,27 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
     >
       {children}
     </button>
+  );
+}
+
+const IMPACT_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  critical: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  serious: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  moderate: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
+  minor: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
+};
+
+function A11yWarningItem({ warning }: { warning: AccessibilityWarning }) {
+  const style = IMPACT_STYLES[warning.impact] ?? IMPACT_STYLES.minor;
+  return (
+    <div className={`px-2.5 py-1.5 rounded-md border ${style.bg} ${style.border}`}>
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs">⚠️</span>
+        <span className={`text-[10px] font-medium ${style.text}`}>{warning.impact}</span>
+        <span className="text-[10px] text-gray-400 font-mono">{warning.rule}</span>
+      </div>
+      <div className={`text-xs mt-0.5 ${style.text}`}>{warning.message}</div>
+    </div>
   );
 }
 
