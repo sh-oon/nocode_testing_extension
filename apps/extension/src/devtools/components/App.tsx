@@ -3,9 +3,7 @@ import { checkBackendConnection } from '../../shared/api';
 import { FlowBuilder } from './FlowBuilder';
 import { ScenarioWizard } from './ScenarioWizard';
 import { SettingsPanel } from './SettingsPanel';
-import { ConnectionDot } from './shared/ConnectionDot';
-import { SettingsIcon } from './shared/Icons';
-import { TabToggle } from './shared/TabToggle';
+import { ConnectionDot, SettingsIcon, TabToggle } from '@like-cake/ui-components';
 
 type AppMode = 'scenario' | 'flow';
 

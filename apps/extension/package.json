@@ -20,6 +20,7 @@
     "@like-cake/mbt-catalog": "*",
     "@like-cake/selector-engine": "*",
     "@like-cake/step-player": "*",
+    "@like-cake/ui-components": "*",
     "@xyflow/react": "^12.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
