@@ -1,7 +1,6 @@
 import { StepConfigPanel } from './StepConfigPanel';
 import { useScenarioWizard } from './useScenarioWizard';
 import { WizardStepList } from './WizardStepList';
-import { WizardToolbar } from './WizardToolbar';
 
 interface ScenarioWizardProps {
   isConnected: boolean;
@@ -11,70 +10,90 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
   const wizard = useScenarioWizard();
 
   const handleAddStep = () => {
-    // Start a draft with default action (click)
-    wizard.startDraftFromCatalog('click');
+    wizard.startDraftFromCatalog('click', 'event');
   };
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <WizardToolbar
-        scenarioName={wizard.scenarioName}
-        onNameChange={wizard.setScenarioName}
-        onPlay={wizard.playScenario}
-        onSave={wizard.saveToBackend}
-        onReset={wizard.reset}
-        canPlay={wizard.canPlay}
-        canSave={wizard.canSave && isConnected}
-        isSaving={wizard.isSaving}
-        playbackState={wizard.playbackState.state}
-        stepCount={wizard.steps.length}
-        backendScenarioId={wizard.backendScenarioId}
-      />
+      {/* Top bar */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+        <input
+          type="text"
+          value={wizard.scenarioName}
+          onChange={(e) => wizard.setScenarioName(e.target.value)}
+          placeholder="시나리오 이름을 입력하세요."
+          className="flex-1 text-sm text-gray-800 placeholder-gray-400 bg-transparent border-none outline-none"
+        />
+        {wizard.backendScenarioId && (
+          <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full">저장됨</span>
+        )}
+      </div>
 
-      {/* Playback banners */}
+      {/* Recording control */}
+      <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
+        {wizard.isRecording ? (
+          <button
+            type="button"
+            onClick={wizard.stopRecording}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+          >
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            녹화 중지
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={wizard.startRecording}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <div className="w-2 h-2 rounded-full bg-red-400" />
+            녹화하기
+          </button>
+        )}
+        <span className="text-xs text-gray-400">{wizard.steps.length} steps</span>
+      </div>
+
+      {/* Status banners */}
       {wizard.playbackState.state === 'completed' && (
-        <div className="px-4 py-2 bg-green-50 border-b border-green-200 text-sm text-green-700">
-          시나리오 실행 성공{isConnected ? ' — 저장 버튼을 눌러 DB에 저장하세요' : ''}
+        <div className="px-4 py-2 bg-green-50 border-b border-green-100 text-sm text-green-700">
+          <span className="font-medium">실행 성공</span>
+          {isConnected && !wizard.backendScenarioId && (
+            <span className="text-green-600"> — 저장 버튼을 눌러주세요</span>
+          )}
         </div>
       )}
       {wizard.playbackState.state === 'error' && (
-        <div className="px-4 py-2 bg-red-50 border-b border-red-200 text-sm text-red-700 space-y-1">
+        <div className="px-4 py-2 bg-red-50 border-b border-red-100 text-sm text-red-700 space-y-1">
           <div className="font-medium">
             실행 실패
             {wizard.playbackState.failedStepIndex !== undefined && (
-              <span> — Step {wizard.playbackState.failedStepIndex + 1}에서 중단</span>
+              <span className="font-normal"> — Step {wizard.playbackState.failedStepIndex + 1}에서 중단</span>
             )}
           </div>
           {wizard.playbackState.errorMessage && (
-            <div className="text-xs font-mono text-red-600 bg-red-100 px-2 py-1 rounded">
+            <div className="text-xs font-mono text-red-500 bg-red-100/50 px-2 py-1 rounded">
               {wizard.playbackState.errorMessage}
             </div>
           )}
         </div>
       )}
-      {wizard.backendScenarioId && (
-        <div className="px-4 py-1.5 bg-blue-50 border-b border-blue-200 text-xs text-blue-600">
-          저장 완료 (ID: {wizard.backendScenarioId})
-        </div>
-      )}
 
-      {/* Main content: step list + config panel side by side or stacked */}
+      {/* Main content */}
       <div className="flex-1 overflow-hidden flex">
-        {/* Left: Step list (always visible) */}
-        <div className="w-64 border-r border-gray-200 flex flex-col shrink-0">
-          <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">재생 목록</h3>
-          </div>
+        {/* Left: Step list */}
+        <div className="w-72 border-r border-gray-100 flex flex-col shrink-0">
           <WizardStepList
             steps={wizard.steps}
             currentPlaybackIndex={wizard.playbackState.currentStepIndex}
             stepResults={wizard.playbackState.stepResults}
+            isRecording={wizard.isRecording}
             onRemove={wizard.removeStep}
             onAddStep={handleAddStep}
+            onInsertAt={wizard.insertStepAt}
           />
         </div>
 
-        {/* Right: Config panel or empty */}
+        {/* Right: Config panel */}
         {wizard.draft ? (
           <StepConfigPanel
             draft={wizard.draft}
@@ -88,27 +107,38 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
             onManualSelector={wizard.manualSelector}
           />
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-            스텝을 추가하거나 선택하세요
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <p className="text-sm">스텝을 추가하거나</p>
+              <p className="text-sm">목록 사이에 검증을 삽입하세요</p>
+            </div>
           </div>
         )}
       </div>
 
       {/* Bottom bar */}
-      <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+      <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
         <button
           type="button"
           onClick={handleAddStep}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          disabled={wizard.isRecording}
+          className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:text-gray-300 disabled:cursor-not-allowed"
         >
           + 단계추가
         </button>
         <div className="flex gap-2">
           <button
             type="button"
+            onClick={wizard.reset}
+            className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            초기화
+          </button>
+          <button
+            type="button"
             onClick={wizard.playScenario}
             disabled={!wizard.canPlay}
-            className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1.5 text-xs font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             ▶ 전체 재생
           </button>
@@ -116,7 +146,7 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
             type="button"
             onClick={wizard.saveToBackend}
             disabled={!(wizard.canSave && isConnected)}
-            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1.5 text-xs font-medium bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             저장
           </button>

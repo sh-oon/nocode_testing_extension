@@ -25,6 +25,7 @@ export interface PendingStepDraft {
   selectorCandidates: SelectorCandidate[];
   selectedSelector: string | null;
   elementInfo: Record<string, unknown> | null;
+  insertAtIndex?: number; // undefined = append, number = insert at position
 }
 
 export interface WizardPlaybackState {
@@ -39,6 +40,7 @@ export function useScenarioWizard() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [scenarioName, setScenarioName] = useState('');
   const [isInspecting, setIsInspecting] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [draft, setDraft] = useState<PendingStepDraft | null>(null);
   const [playbackState, setPlaybackState] = useState<WizardPlaybackState>({
     state: 'idle',
@@ -47,6 +49,7 @@ export function useScenarioWizard() {
   });
   const [backendScenarioId, setBackendScenarioId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
   // Get current browser viewport
   const getViewport = useCallback(async (): Promise<{ width: number; height: number }> => {
     try {
@@ -61,7 +64,6 @@ export function useScenarioWizard() {
     return { width: window.screen.availWidth || 1440, height: window.screen.availHeight || 900 };
   }, []);
 
-  // Resolve tab ID synchronously if possible (DevTools panel)
   const getTabId = useCallback(async (): Promise<number | undefined> => {
     if (typeof chrome.devtools?.inspectedWindow?.tabId === 'number') {
       return chrome.devtools.inspectedWindow.tabId;
@@ -86,7 +88,7 @@ export function useScenarioWizard() {
         case 'ELEMENT_INSPECTED': {
           setIsInspecting(false);
           const info = message.elementInfo as PendingStepDraft['elementInfo'];
-          if (!info) break; // ESC pressed
+          if (!info) break;
 
           setDraft((prev) => {
             if (!prev) return prev;
@@ -99,6 +101,27 @@ export function useScenarioWizard() {
           });
           break;
         }
+
+        // Recording: receive steps from service worker
+        case 'EVENTS_DATA': {
+          if (isRecording && message.steps) {
+            setSteps(message.steps as Step[]);
+          }
+          break;
+        }
+        case 'EVENT_CAPTURED': {
+          if (isRecording) {
+            // Request updated steps
+            chrome.runtime.sendMessage({ type: 'GET_EVENTS' }, (response) => {
+              if (response?.steps) {
+                setSteps(response.steps as Step[]);
+              }
+            });
+          }
+          break;
+        }
+
+        // Playback messages
         case 'PLAYBACK_STEP_START':
           if (message.stepIndex !== undefined) {
             setPlaybackState((prev) => ({ ...prev, currentStepIndex: message.stepIndex as number }));
@@ -109,7 +132,6 @@ export function useScenarioWizard() {
             const result = message.result as StepResult;
             setPlaybackState((prev) => {
               const newResults = [...prev.stepResults, result];
-              // If step failed, mark error state immediately
               if (result.status === 'failed') {
                 return {
                   ...prev,
@@ -129,21 +151,43 @@ export function useScenarioWizard() {
           break;
         case 'PLAYBACK_ERROR': {
           const errMsg = (message.error as string) || '재생 중 오류 발생';
-          setPlaybackState((prev) => ({
-            ...prev,
-            state: 'error',
-            errorMessage: errMsg,
-          }));
+          setPlaybackState((prev) => ({ ...prev, state: 'error', errorMessage: errMsg }));
           break;
         }
+
+        case 'RECORDING_STARTED':
+          setIsRecording(true);
+          break;
+        case 'RECORDING_STOPPED':
+          setIsRecording(false);
+          break;
       }
     };
 
     chrome.runtime.onMessage.addListener(handler);
     return () => chrome.runtime.onMessage.removeListener(handler);
+  }, [isRecording]);
+
+  // ── Recording ──
+
+  const startRecording = useCallback(async () => {
+    const tabId = await getTabId();
+    if (tabId) {
+      chrome.runtime.sendMessage({ type: 'START_RECORDING', tabId });
+      setIsRecording(true);
+      setPlaybackState({ state: 'idle', currentStepIndex: -1, stepResults: [] });
+      setBackendScenarioId(null);
+    }
+  }, [getTabId]);
+
+  const stopRecording = useCallback(() => {
+    chrome.runtime.sendMessage({ type: 'STOP_RECORDING' });
+    setIsRecording(false);
   }, []);
 
-  const startDraftFromCatalog = useCallback((catalogId: string, catalogType: CatalogType = 'event') => {
+  // ── Draft management ──
+
+  const startDraftFromCatalog = useCallback((catalogId: string, catalogType: CatalogType = 'event', insertAtIndex?: number) => {
     const entry = catalogType === 'event'
       ? getEventById(catalogId)
       : getVerificationById(catalogId);
@@ -162,11 +206,11 @@ export function useScenarioWizard() {
       selectorCandidates: [],
       selectedSelector: null,
       elementInfo: null,
+      insertAtIndex,
     };
 
     setDraft(newDraft);
 
-    // If element required, start inspect mode
     if (entry.elementRequirement !== 'none') {
       setIsInspecting(true);
       getTabId().then((tabId) => {
@@ -236,11 +280,20 @@ export function useScenarioWizard() {
       : buildVerificationStepFromDraft(draft);
     if (!step) return;
 
-    setSteps((prev) => [...prev, step]);
+    setSteps((prev) => {
+      if (draft.insertAtIndex !== undefined) {
+        const next = [...prev];
+        next.splice(draft.insertAtIndex, 0, step);
+        return next;
+      }
+      return [...prev, step];
+    });
     setDraft(null);
     setPlaybackState({ state: 'idle', currentStepIndex: -1, stepResults: [] });
     setBackendScenarioId(null);
   }, [draft]);
+
+  // ── Step management ──
 
   const removeStep = useCallback((index: number) => {
     setSteps((prev) => prev.filter((_, i) => i !== index));
@@ -256,6 +309,13 @@ export function useScenarioWizard() {
       return next;
     });
   }, []);
+
+  const insertStepAt = useCallback((index: number) => {
+    // Open draft with insert position — default to verification (most common for insert)
+    startDraftFromCatalog('visible', 'verification', index);
+  }, [startDraftFromCatalog]);
+
+  // ── Playback ──
 
   const playScenario = useCallback(async () => {
     if (steps.length === 0) return;
@@ -276,12 +336,10 @@ export function useScenarioWizard() {
 
     setPlaybackState({ state: 'playing', currentStepIndex: -1, stepResults: [] });
     const tabId = await getTabId();
-    chrome.runtime.sendMessage({
-      type: 'START_PLAYBACK',
-      tabId,
-      scenario,
-    });
+    chrome.runtime.sendMessage({ type: 'START_PLAYBACK', tabId, scenario });
   }, [steps, scenarioName, getTabId, getViewport]);
+
+  // ── Save ──
 
   const saveToBackend = useCallback(async () => {
     if (steps.length === 0) return;
@@ -292,7 +350,7 @@ export function useScenarioWizard() {
       const client = await getApiClient();
       const firstNavigate = steps.find((s) => s.type === 'navigate');
       const response = await client.createScenario({
-        name: scenarioName || `Wizard Scenario ${new Date().toLocaleString()}`,
+        name: scenarioName || `Scenario ${new Date().toLocaleString()}`,
         url: firstNavigate?.type === 'navigate' ? firstNavigate.url : '',
         steps,
         viewport,
@@ -304,16 +362,17 @@ export function useScenarioWizard() {
     } finally {
       setIsSaving(false);
     }
-  }, [steps, scenarioName]);
+  }, [steps, scenarioName, getViewport]);
 
   const reset = useCallback(() => {
     cancelDraft();
+    if (isRecording) stopRecording();
     setSteps([]);
     setPlaybackState({ state: 'idle', currentStepIndex: -1, stepResults: [] });
     setBackendScenarioId(null);
-  }, [cancelDraft]);
+  }, [cancelDraft, isRecording, stopRecording]);
 
-  const canPlay = steps.length > 0 && playbackState.state !== 'playing';
+  const canPlay = steps.length > 0 && playbackState.state !== 'playing' && !isRecording;
   const canSave = playbackState.state === 'completed' && !backendScenarioId;
 
   return {
@@ -321,6 +380,7 @@ export function useScenarioWizard() {
     scenarioName,
     setScenarioName,
     isInspecting,
+    isRecording,
     draft,
     playbackState,
     backendScenarioId,
@@ -328,6 +388,8 @@ export function useScenarioWizard() {
     canPlay,
     canSave,
 
+    startRecording,
+    stopRecording,
     startDraftFromCatalog,
     switchAction,
     cancelDraft,
@@ -338,59 +400,42 @@ export function useScenarioWizard() {
     confirmStep,
     removeStep,
     moveStep,
+    insertStepAt,
     playScenario,
     saveToBackend,
     reset,
   };
 }
 
-/** Build a Step from an event draft */
 function buildEventStepFromDraft(draft: PendingStepDraft): Step | null {
   const tempBindingId = '__wizard_temp__';
   const needsElement = draft.catalogEntry.elementRequirement !== 'none';
-
   const tempBinding: ElementBinding = {
-    id: tempBindingId,
-    label: 'wizard-element',
-    selector: draft.selectedSelector || '',
-    candidates: [],
-    selectionMethod: 'manual',
-    pageUrl: '',
-    createdAt: Date.now(),
+    id: tempBindingId, label: 'wizard-element', selector: draft.selectedSelector || '',
+    candidates: [], selectionMethod: 'manual', pageUrl: '', createdAt: Date.now(),
   };
-
   const boundEvent: BoundEvent = {
     eventId: draft.catalogId,
     elementBindingId: needsElement ? tempBindingId : null,
     params: draft.params,
   };
-
   const result = convertBoundEventToStep(boundEvent, needsElement ? [tempBinding] : []);
   return result.ok ? result.step : null;
 }
 
-/** Build a Step from a verification draft */
 function buildVerificationStepFromDraft(draft: PendingStepDraft): Step | null {
   const tempBindingId = '__wizard_temp__';
   const needsElement = draft.catalogEntry.elementRequirement !== 'none';
-
   const tempBinding: ElementBinding = {
-    id: tempBindingId,
-    label: 'wizard-element',
-    selector: draft.selectedSelector || '',
-    candidates: [],
-    selectionMethod: 'manual',
-    pageUrl: '',
-    createdAt: Date.now(),
+    id: tempBindingId, label: 'wizard-element', selector: draft.selectedSelector || '',
+    candidates: [], selectionMethod: 'manual', pageUrl: '', createdAt: Date.now(),
   };
-
   const boundVerification: BoundVerification = {
     verificationId: draft.catalogId,
     elementBindingId: needsElement ? tempBindingId : null,
     params: draft.params,
     critical: true,
   };
-
   const result = convertBoundVerificationToStep(boundVerification, needsElement ? [tempBinding] : []);
   return result.ok ? result.step : null;
 }
