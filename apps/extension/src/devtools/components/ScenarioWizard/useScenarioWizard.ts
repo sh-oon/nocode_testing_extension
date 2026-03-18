@@ -70,6 +70,15 @@ export function useScenarioWizard() {
     return tab?.id;
   }, []);
 
+  // Cleanup inspect mode on unmount
+  useEffect(() => {
+    return () => {
+      getTabId().then((tabId) => {
+        chrome.runtime.sendMessage({ type: 'STOP_ELEMENT_INSPECT', tabId }).catch(() => {});
+      });
+    };
+  }, [getTabId]);
+
   // Listen for messages
   useEffect(() => {
     const handler = (message: { type: string; [key: string]: unknown }) => {
