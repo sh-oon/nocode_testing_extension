@@ -1,7 +1,7 @@
 {
-  "name": "bomb-boilerplate",
+  "name": "like-cake",
   "version": "1.0.0",
-  "description": "Yarn Berry workspace based monorepo boilerplate with TypeScript, Biome, and Turbo",
+  "description": "Chrome Extension E2E test automation tool with scenario wizard and flow builder",
   "keywords": [
     "monorepo",
     "yarn-workspace",
