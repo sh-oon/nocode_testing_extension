@@ -1501,17 +1501,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@like-cake/utils@workspace:packages/utils":
-  version: 0.0.0-use.local
-  resolution: "@like-cake/utils@workspace:packages/utils"
-  dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
-    "@like-cake/tsconfig": "npm:*"
-    tsup: "npm:~8.5.0"
-    typescript: "npm:~5.9.2"
-  languageName: unknown
-  linkType: soft
-
 "@like-cake/variable-store@npm:*, @like-cake/variable-store@workspace:packages/variable-store":
   version: 0.0.0-use.local
   resolution: "@like-cake/variable-store@workspace:packages/variable-store"
