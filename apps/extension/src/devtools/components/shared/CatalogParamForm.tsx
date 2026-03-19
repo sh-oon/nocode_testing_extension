@@ -22,9 +22,9 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
 
         return (
           <div key={param.name}>
-            <label className="block text-xs font-medium text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-gray-600 mb-1">
               {param.label}
-              {param.required && <span className="text-red-400 ml-0.5">*</span>}
+              {param.required && <span className="text-red-500 ml-0.5">*</span>}
             </label>
 
             {param.type === 'string' && (
@@ -33,7 +33,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                 value={String(currentValue)}
                 onChange={(e) => handleChange(param.name, e.target.value)}
                 placeholder={param.placeholder}
-                className="w-full px-2.5 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500"
               />
             )}
 
@@ -43,7 +43,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                 value={currentValue === '' ? '' : Number(currentValue)}
                 onChange={(e) => handleChange(param.name, e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder={param.placeholder}
-                className="w-full px-2.5 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500"
               />
             )}
 
@@ -53,9 +53,9 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                   type="checkbox"
                   checked={Boolean(currentValue)}
                   onChange={(e) => handleChange(param.name, e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-orange-500 focus:ring-orange-500 focus:ring-offset-gray-800"
+                  className="w-4 h-4 rounded border-gray-300 bg-white text-orange-500 focus:ring-orange-500 focus:ring-offset-white"
                 />
-                <span className="text-sm text-gray-300">
+                <span className="text-sm text-gray-600">
                   {Boolean(currentValue) ? '활성화' : '비활성화'}
                 </span>
               </label>
@@ -65,7 +65,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
               <select
                 value={String(currentValue)}
                 onChange={(e) => handleChange(param.name, e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:border-orange-500"
+                className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:border-orange-500"
               >
                 {!param.required && <option value="">선택 안 함</option>}
                 {param.options?.map((opt) => (
@@ -82,7 +82,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                 value={String(currentValue)}
                 onChange={(e) => handleChange(param.name, e.target.value)}
                 placeholder={param.placeholder || 'Enter, Escape, Tab...'}
-                className="w-full px-2.5 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-md text-white font-mono placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 font-mono placeholder-gray-500 focus:outline-none focus:border-orange-500"
               />
             )}
 
@@ -92,7 +92,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                 value={String(currentValue)}
                 onChange={(e) => handleChange(param.name, e.target.value)}
                 placeholder={param.placeholder || '파일 경로'}
-                className="w-full px-2.5 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-md text-white font-mono placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 font-mono placeholder-gray-500 focus:outline-none focus:border-orange-500"
               />
             )}
 
@@ -107,7 +107,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                       const current = typeof currentValue === 'object' && currentValue !== null ? currentValue as Record<string, number> : { x: 0, y: 0 };
                       handleChange(param.name, { ...current, x: Number(e.target.value) });
                     }}
-                    className="w-full px-2.5 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:border-orange-500"
+                    className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <div className="flex-1">
@@ -119,7 +119,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                       const current = typeof currentValue === 'object' && currentValue !== null ? currentValue as Record<string, number> : { x: 0, y: 0 };
                       handleChange(param.name, { ...current, y: Number(e.target.value) });
                     }}
-                    className="w-full px-2.5 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:border-orange-500"
+                    className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>

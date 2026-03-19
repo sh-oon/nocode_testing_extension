@@ -28,7 +28,7 @@ export function StepList({ steps, currentStepIndex, stepResults, editable, onSte
 
   return (
     <>
-      <div className="divide-y divide-gray-800">
+      <div className="divide-y divide-gray-200">
         {steps.map((step, index) => {
           const result = stepResults?.[index];
           const isCurrent = currentStepIndex === index;
@@ -79,23 +79,23 @@ function StepItem({ step, index, isCurrent, result, editable, onEdit }: StepItem
 
   // Determine background based on state
   // Result takes precedence over "current" state
-  let bgClass = 'hover:bg-gray-800/50';
+  let bgClass = 'hover:bg-gray-50';
   let borderClass = '';
   if (result) {
     // Show result state (passed/failed/skipped)
     if (result.status === 'passed') {
-      bgClass = 'bg-green-900/20';
+      bgClass = 'bg-green-50';
       borderClass = 'border-l-4 border-l-green-500';
     } else if (result.status === 'failed') {
-      bgClass = 'bg-red-900/20';
+      bgClass = 'bg-red-50';
       borderClass = 'border-l-4 border-l-red-500';
     } else if (result.status === 'skipped') {
-      bgClass = 'bg-yellow-900/20';
+      bgClass = 'bg-yellow-50';
       borderClass = 'border-l-4 border-l-yellow-500';
     }
   } else if (isCurrent) {
     // Only show "running" style if no result yet
-    bgClass = 'bg-blue-900/30';
+    bgClass = 'bg-blue-50';
     borderClass = 'border-l-4 border-l-blue-500';
   }
 
@@ -111,7 +111,7 @@ function StepItem({ step, index, isCurrent, result, editable, onEdit }: StepItem
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm">{label}</span>
           {isRunning && (
-            <span className="flex items-center gap-1 text-xs text-blue-400">
+            <span className="flex items-center gap-1 text-xs text-blue-600">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
@@ -128,7 +128,7 @@ function StepItem({ step, index, isCurrent, result, editable, onEdit }: StepItem
         </div>
         <div className="text-xs text-gray-500 truncate mt-0.5">{getStepDetails(step)}</div>
         {result?.error && (
-          <div className="mt-1 text-xs text-red-400 bg-red-900/20 px-2 py-1 rounded">
+          <div className="mt-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
             {result.error.message}
           </div>
         )}
@@ -137,7 +137,7 @@ function StepItem({ step, index, isCurrent, result, editable, onEdit }: StepItem
         <button
           type="button"
           onClick={onEdit}
-          className="flex-shrink-0 p-1.5 text-gray-500 hover:text-primary-400 transition-colors"
+          className="flex-shrink-0 p-1.5 text-gray-500 hover:text-blue-600 transition-colors"
           title="Edit step"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,9 +151,9 @@ function StepItem({ step, index, isCurrent, result, editable, onEdit }: StepItem
 
 function StepResultBadge({ status, duration }: { status: string; duration?: number }) {
   const colors = {
-    passed: 'bg-green-900/50 text-green-300',
-    failed: 'bg-red-900/50 text-red-300',
-    skipped: 'bg-yellow-900/50 text-yellow-300',
+    passed: 'bg-green-100 text-green-700',
+    failed: 'bg-red-100 text-red-700',
+    skipped: 'bg-yellow-100 text-yellow-700',
   };
 
   const icons = {
@@ -164,11 +164,11 @@ function StepResultBadge({ status, duration }: { status: string; duration?: numb
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded ${colors[status as keyof typeof colors] || 'bg-gray-700 text-gray-400'}`}
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded ${colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-500'}`}
     >
       <span>{icons[status as keyof typeof icons] || '?'}</span>
       <span className="capitalize">{status}</span>
-      {duration !== undefined && <span className="text-gray-400 ml-1">{duration}ms</span>}
+      {duration !== undefined && <span className="text-gray-500 ml-1">{duration}ms</span>}
     </span>
   );
 }
@@ -182,73 +182,73 @@ function getStepDisplay(step: Step): {
     case 'navigate':
       return {
         icon: '🔗',
-        color: 'bg-blue-900/50',
+        color: 'bg-blue-100',
         label: 'Navigate',
       };
     case 'click':
       return {
         icon: '👆',
-        color: 'bg-green-900/50',
+        color: 'bg-green-100',
         label: 'Click',
       };
     case 'type':
       return {
         icon: '⌨️',
-        color: 'bg-purple-900/50',
+        color: 'bg-purple-100',
         label: 'Type',
       };
     case 'keypress':
       return {
         icon: '🔤',
-        color: 'bg-yellow-900/50',
+        color: 'bg-yellow-100',
         label: `Press ${step.key}`,
       };
     case 'scroll':
       return {
         icon: '📜',
-        color: 'bg-cyan-900/50',
+        color: 'bg-cyan-100',
         label: 'Scroll',
       };
     case 'hover':
       return {
         icon: '🎯',
-        color: 'bg-orange-900/50',
+        color: 'bg-orange-100',
         label: 'Hover',
       };
     case 'select':
       return {
         icon: '📋',
-        color: 'bg-indigo-900/50',
+        color: 'bg-indigo-100',
         label: 'Select',
       };
     case 'wait':
       return {
         icon: '⏳',
-        color: 'bg-gray-700',
+        color: 'bg-gray-100',
         label: 'Wait',
       };
     case 'assertApi':
       return {
         icon: '🔍',
-        color: 'bg-pink-900/50',
+        color: 'bg-pink-100',
         label: 'Assert API',
       };
     case 'assertElement':
       return {
         icon: '✅',
-        color: 'bg-teal-900/50',
+        color: 'bg-teal-100',
         label: 'Assert Element',
       };
     case 'snapshotDom':
       return {
         icon: '📸',
-        color: 'bg-red-900/50',
+        color: 'bg-red-100',
         label: 'Snapshot',
       };
     default:
       return {
         icon: '❓',
-        color: 'bg-gray-700',
+        color: 'bg-gray-100',
         label: 'Unknown',
       };
   }

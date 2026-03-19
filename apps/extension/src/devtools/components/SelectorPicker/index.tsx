@@ -65,14 +65,14 @@ export function SelectorPicker({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="selector-picker-title">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-[560px] max-h-[85vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-[560px] max-h-[85vh] overflow-hidden">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
-          <h3 id="selector-picker-title" className="text-lg font-semibold text-white">Select a Selector</h3>
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <h3 id="selector-picker-title" className="text-lg font-semibold text-gray-900">Select a Selector</h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-500 hover:text-gray-900 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -85,10 +85,10 @@ export function SelectorPicker({
           {/* Target Element Preview */}
           {elementHtml && (
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">
                 Target Element:
               </label>
-              <pre className="p-2 bg-gray-900 rounded text-xs text-gray-400 font-mono overflow-x-auto whitespace-pre-wrap break-all">
+              <pre className="p-2 bg-gray-50 rounded text-xs text-gray-500 font-mono overflow-x-auto whitespace-pre-wrap break-all">
                 {elementHtml}
               </pre>
             </div>
@@ -96,7 +96,7 @@ export function SelectorPicker({
 
           {/* Selector Options */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
+            <label className="block text-sm font-medium text-gray-600">
               Choose a Selector:
             </label>
 
@@ -118,8 +118,8 @@ export function SelectorPicker({
             <div
               className={`p-3 rounded-md cursor-pointer transition-colors border ${
                 isCustom
-                  ? 'bg-primary-900/30 border-primary-500/50'
-                  : 'bg-gray-800 border-gray-700 hover:border-gray-600'
+                  ? 'bg-blue-50 border-blue-300'
+                  : 'bg-white border-gray-200 hover:border-gray-300'
               }`}
               role="radio"
               aria-checked={isCustom}
@@ -135,12 +135,12 @@ export function SelectorPicker({
               <div className="flex items-center gap-2">
                 <div
                   className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                    isCustom ? 'border-primary-500' : 'border-gray-600'
+                    isCustom ? 'border-blue-500' : 'border-gray-300'
                   }`}
                 >
-                  {isCustom && <div className="w-2 h-2 rounded-full bg-primary-500" />}
+                  {isCustom && <div className="w-2 h-2 rounded-full bg-blue-500" />}
                 </div>
-                <span className="text-xs text-gray-400">Custom...</span>
+                <span className="text-xs text-gray-500">Custom...</span>
               </div>
               {isCustom && (
                 <div className="mt-2 ml-6">
@@ -148,7 +148,7 @@ export function SelectorPicker({
                     type="text"
                     value={customSelector}
                     onChange={(e) => setCustomSelector(e.target.value)}
-                    className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter custom CSS selector..."
                     onClick={(e) => e.stopPropagation()}
                   />
@@ -166,13 +166,13 @@ export function SelectorPicker({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-700 flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
           <div className="flex gap-2">
             {onHighlight && (
               <button
                 type="button"
                 onClick={handleHighlight}
-                className="px-3 py-1.5 text-xs font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
                 Highlight in Page
               </button>
@@ -181,7 +181,7 @@ export function SelectorPicker({
               <button
                 type="button"
                 onClick={handleTest}
-                className="px-3 py-1.5 text-xs font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
                 Test Selector
               </button>
@@ -191,14 +191,14 @@ export function SelectorPicker({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-md transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-md transition-colors"
             >
               Save
             </button>

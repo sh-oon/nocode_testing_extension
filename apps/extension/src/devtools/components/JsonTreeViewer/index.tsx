@@ -29,7 +29,7 @@ export function JsonTreeViewer({
 }: JsonTreeViewerProps) {
   if (data === null || data === undefined) {
     return (
-      <div className="p-3 bg-gray-900 rounded-md text-sm text-gray-500 text-center">
+      <div className="p-3 bg-gray-50 rounded-md text-sm text-gray-500 text-center">
         No data available. Run the scenario first to see API responses.
       </div>
     );
@@ -38,9 +38,9 @@ export function JsonTreeViewer({
   const isExpandable = typeof data === 'object';
 
   return (
-    <div className="bg-gray-900 rounded-md border border-gray-700 overflow-hidden">
-      <div className="px-3 py-1.5 bg-gray-800/50 border-b border-gray-700 flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-400">Response Preview</span>
+    <div className="bg-gray-50 rounded-md border border-gray-200 overflow-hidden">
+      <div className="px-3 py-1.5 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+        <span className="text-xs font-medium text-gray-500">Response Preview</span>
         <span className="text-[10px] text-gray-600">Click a value to select its path</span>
       </div>
       <div
@@ -74,7 +74,7 @@ export function JsonTreeViewer({
             ))
           )
         ) : (
-          <div className="px-2 py-1 text-xs text-gray-400 font-mono">
+          <div className="px-2 py-1 text-xs text-gray-500 font-mono">
             {getValuePreview(data)}
           </div>
         )}

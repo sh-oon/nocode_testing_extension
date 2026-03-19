@@ -17,9 +17,9 @@ interface TreeNodeProps {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  string: 'text-green-400',
-  number: 'text-blue-400',
-  boolean: 'text-amber-400',
+  string: 'text-green-600',
+  number: 'text-blue-600',
+  boolean: 'text-amber-600',
   null: 'text-gray-500',
 };
 
@@ -57,8 +57,8 @@ export function TreeNode({
   return (
     <div className="select-none">
       <div
-        className={`flex items-center gap-1 py-0.5 px-1 rounded cursor-pointer group hover:bg-gray-700/50 ${
-          isSelected ? 'bg-primary-900/30 ring-1 ring-primary-500/50' : ''
+        className={`flex items-center gap-1 py-0.5 px-1 rounded cursor-pointer group hover:bg-gray-100 ${
+          isSelected ? 'bg-blue-50 ring-1 ring-blue-300' : ''
         }`}
         style={{ paddingLeft: `${depth * 16}px` }}
         tabIndex={0}
@@ -83,7 +83,7 @@ export function TreeNode({
           <button
             type="button"
             onClick={handleToggle}
-            className="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-300 flex-shrink-0"
+            className="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-700 flex-shrink-0"
           >
             <svg
               className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
@@ -100,7 +100,7 @@ export function TreeNode({
         )}
 
         {/* Key name */}
-        <span className="text-purple-300 text-xs font-mono">
+        <span className="text-purple-600 text-xs font-mono">
           {typeof nodeKey === 'number' ? `[${nodeKey}]` : nodeKey}
         </span>
 
@@ -114,7 +114,7 @@ export function TreeNode({
               : `{${Object.keys(value as object).length}}`}
           </span>
         ) : (
-          <span className={`text-xs font-mono truncate ${TYPE_COLORS[valueType] || 'text-white'}`}>
+          <span className={`text-xs font-mono truncate ${TYPE_COLORS[valueType] || 'text-gray-800'}`}>
             {getValuePreview(value)}
           </span>
         )}

@@ -55,7 +55,9 @@ yarn docker:logs         # View backend logs
 yarn docker:restart      # Rebuild and restart
 
 # Testing
-yarn workspace @like-cake/mbt-catalog test   # MBT catalog tests (159)
+yarn workspace @like-cake/mbt-catalog test   # MBT catalog tests (177)
+yarn workspace @like-cake/step-player test   # Step player tests (122)
+yarn workspace @like-cake/backend test       # Backend tests (66)
 ```
 
 ## Workspace Structure
@@ -76,6 +78,9 @@ yarn workspace @like-cake/mbt-catalog test   # MBT catalog tests (159)
 - **packages/step-player**: Step 실행 엔진 (PlaybackAdapter 패턴)
 - **packages/mbt-catalog**: MBT 카탈로그 (이벤트 15개, 검증 22개), 컨버터, 그래프 경로 생성, 유효성 검사
 
+### Shared UI
+- **packages/ui** (`@like-cake/ui-components`): 순수 UI 컴포넌트 (Button, TabToggle, StatusBadge, ConnectionDot, Icons)
+
 ### Infrastructure
 - **packages/tsconfig**: 공유 TypeScript 설정 (base.json, react-library.json)
 
@@ -88,10 +93,12 @@ devtools/components/
     useScenarioWizard.ts      — 스텝 CRUD + 녹화 + 재생 + 저장
     StepConfigPanel.tsx       — 인라인 스텝 설정 (무엇을?/어떤 요소를?)
     WizardStepList.tsx        — 스텝 목록 + 검증 삽입
+    ExecutionHistoryPanel.tsx  — 실행 이력 + 결과 리포트 내보내기 (JSON/HTML)
   FlowBuilder/                — React Flow 캔버스 기반 플로우 빌더
     FlowCanvas.tsx + nodes/   — 캔버스 + 커스텀 노드
     editors/                  — 속성 에디터 (조건/변수/추출)
-  shared/                     — 공유 컴포넌트 (TabToggle, Icons, StatusBadge 등)
+    ScenarioSidebar.tsx       — 시나리오 목록 + 드래그
+  shared/                     — 공유 컴포넌트 (CatalogParamForm, EventCatalogPicker)
 ```
 
 ## Service Worker Structure
@@ -107,6 +114,14 @@ background/
     inspect-handler.ts        — 요소 인스펙트 (위자드용)
     baseline-handler.ts       — 베이스라인 CRUD
 ```
+
+## UI Design
+
+- Toss-style 라이트 테마 (bg-white, gray-100 borders, blue-600 accents)
+- 2탭 구조: 시나리오(ScenarioWizard) + 플로우(FlowBuilder)
+- 뷰포트 동기화, stop-on-failure, 키보드 단축키 지원
+- 실행 리포트 내보내기 (JSON/HTML) — Wizard, FlowBuilder 양쪽 지원
+- 실행 이력 패널 (ExecutionHistoryPanel)
 
 ## Build System
 

@@ -51,27 +51,27 @@ export function EventCatalogPicker({ onSelect, onClose }: EventCatalogPickerProp
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-[420px] max-h-[70vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl w-[420px] max-h-[70vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">이벤트 선택</h3>
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">이벤트 선택</h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-500 hover:text-gray-900 transition-colors"
           >
             <CloseIcon />
           </button>
         </div>
 
         {/* Search */}
-        <div className="px-4 py-2 border-b border-gray-700">
+        <div className="px-4 py-2 border-b border-gray-200">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="이벤트 검색..."
-            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+            className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500"
             autoFocus
           />
         </div>
@@ -84,7 +84,7 @@ export function EventCatalogPicker({ onSelect, onClose }: EventCatalogPickerProp
 
           {[...grouped.entries()].map(([category, items]) => (
             <div key={category} className="mb-3">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide px-2 py-1">
+              <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide px-2 py-1">
                 {CATEGORY_LABELS[category]}
               </div>
               {items.map((entry) => (
@@ -92,10 +92,10 @@ export function EventCatalogPicker({ onSelect, onClose }: EventCatalogPickerProp
                   key={entry.id}
                   type="button"
                   onClick={() => onSelect(entry.id)}
-                  className="w-full px-3 py-2 text-left rounded-md hover:bg-gray-700 transition-colors group"
+                  className="w-full px-3 py-2 text-left rounded-md hover:bg-gray-50 transition-colors group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white group-hover:text-orange-300">
+                    <span className="text-sm font-medium text-gray-800 group-hover:text-orange-500">
                       {entry.label}
                     </span>
                     {entry.elementRequirement !== 'none' && (
@@ -104,7 +104,7 @@ export function EventCatalogPicker({ onSelect, onClose }: EventCatalogPickerProp
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-gray-400 mt-0.5">{entry.description}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{entry.description}</div>
                 </button>
               ))}
             </div>

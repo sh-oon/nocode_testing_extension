@@ -30,8 +30,8 @@ export function SelectorOption({
     <div
       className={`p-3 rounded-md cursor-pointer transition-colors border ${
         isSelected
-          ? 'bg-primary-900/30 border-primary-500/50'
-          : 'bg-gray-800 border-gray-700 hover:border-gray-600'
+          ? 'bg-blue-50 border-blue-300'
+          : 'bg-white border-gray-200 hover:border-gray-300'
       }`}
       role="radio"
       aria-checked={isSelected}
@@ -48,20 +48,20 @@ export function SelectorOption({
         {/* Radio indicator */}
         <div
           className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-            isSelected ? 'border-primary-500' : 'border-gray-600'
+            isSelected ? 'border-blue-500' : 'border-gray-300'
           }`}
         >
-          {isSelected && <div className="w-2 h-2 rounded-full bg-primary-500" />}
+          {isSelected && <div className="w-2 h-2 rounded-full bg-blue-500" />}
         </div>
 
         {/* Selector text */}
-        <code className="text-xs text-gray-300 font-mono truncate flex-1">
+        <code className="text-xs text-gray-600 font-mono truncate flex-1">
           {candidate.selector}
         </code>
 
         {/* Recommended badge */}
         {isRecommended && (
-          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-900/50 text-green-400 rounded flex-shrink-0">
+          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded flex-shrink-0">
             Recommended
           </span>
         )}
@@ -74,7 +74,7 @@ export function SelectorOption({
           <span className="text-[10px] text-gray-500 w-[52px]">
             Stability:
           </span>
-          <div className="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full ${barColor}`}
               style={{ width: `${stabilityScore}%` }}
@@ -86,26 +86,26 @@ export function SelectorOption({
         </div>
 
         {/* Divider */}
-        <span className="text-gray-700">|</span>
+        <span className="text-gray-300">|</span>
 
         {/* Unique indicator */}
         <span className="text-[10px] text-gray-500">
           Unique: {candidate.isUnique ? (
-            <span className="text-green-400">Yes</span>
+            <span className="text-green-600">Yes</span>
           ) : (
-            <span className="text-red-400">No</span>
+            <span className="text-red-500">No</span>
           )}
         </span>
 
         {/* Divider */}
-        <span className="text-gray-700">|</span>
+        <span className="text-gray-300">|</span>
 
         {/* Readable indicator */}
         <span className="text-[10px] text-gray-500">
           Readable: {candidate.isReadable ? (
-            <span className="text-green-400">Yes</span>
+            <span className="text-green-600">Yes</span>
           ) : (
-            <span className="text-gray-400">-</span>
+            <span className="text-gray-500">-</span>
           )}
         </span>
       </div>

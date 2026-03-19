@@ -27,7 +27,7 @@ export function WizardToolbar({
 }: WizardToolbarProps) {
   return (
     <nav
-      className="px-3 py-2 bg-gray-800 border-b border-gray-700 flex items-center gap-2"
+      className="px-3 py-2 bg-white border-b border-gray-200 flex items-center gap-2"
       aria-label="Wizard toolbar"
       data-test-id="wizard-toolbar"
     >
@@ -38,14 +38,14 @@ export function WizardToolbar({
         onChange={(e) => onNameChange(e.target.value)}
         placeholder="시나리오 이름..."
         aria-label="시나리오 이름"
-        className="flex-1 min-w-0 px-2.5 py-1.5 text-sm rounded-md bg-transparent text-gray-100 placeholder-gray-500 border border-transparent hover:bg-gray-700/50 focus:bg-gray-700 focus:border-gray-600 focus:outline-none cursor-text"
+        className="flex-1 min-w-0 px-2.5 py-1.5 text-sm rounded-md bg-transparent text-gray-800 placeholder-gray-500 border border-transparent hover:bg-gray-50 focus:bg-white focus:border-gray-300 focus:outline-none cursor-text"
         data-test-id="wizard-toolbar-name"
       />
 
       {/* Step count */}
       <span className="text-xs text-gray-500 shrink-0">{stepCount} steps</span>
 
-      <div className="w-px h-5 bg-gray-700" aria-hidden="true" />
+      <div className="w-px h-5 bg-gray-200" aria-hidden="true" />
 
       {/* Play */}
       <button
@@ -54,8 +54,8 @@ export function WizardToolbar({
         disabled={!canPlay}
         className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
           canPlay
-            ? 'bg-green-600 hover:bg-green-700 text-white'
-            : 'bg-gray-700 text-gray-500 opacity-50 cursor-not-allowed'
+            ? 'bg-green-500 hover:bg-green-600 text-white'
+            : 'bg-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
         }`}
         data-test-id="wizard-toolbar-play"
       >
@@ -76,8 +76,8 @@ export function WizardToolbar({
         disabled={!canSave || isSaving}
         className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
           canSave && !isSaving
-            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-            : 'bg-gray-700 text-gray-500 opacity-50 cursor-not-allowed'
+            ? 'bg-blue-500 hover:bg-blue-600 text-white'
+            : 'bg-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
         }`}
         data-test-id="wizard-toolbar-save"
       >
@@ -91,7 +91,7 @@ export function WizardToolbar({
       <button
         type="button"
         onClick={onReset}
-        className="px-2 py-1.5 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
+        className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
         aria-label="초기화"
         data-test-id="wizard-toolbar-reset"
       >
