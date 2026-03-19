@@ -127,7 +127,7 @@ export function handleIdleDetectedMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   const idleMsg = message as IdleDetectedMessage;
   handleIdleDetected(idleMsg.idleStartedAt, idleMsg.idleDuration, idleMsg.lastEventType);
   sendResponse({ success: true });
@@ -137,7 +137,7 @@ export function handleDomMutationsStableMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   const domMsg = message as DomMutationsStableMessage;
   handleDomMutationsStable(domMsg.mutations);
   sendResponse({ success: true });

@@ -8,7 +8,7 @@ export function handleStartElementInspect(
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
   tabId?: number
-): boolean | undefined {
+): boolean | void {
   const inspectTabId = tabId ?? sender.tab?.id ?? activeTabId;
   const sendInspect = async (targetTabId: number) => {
     await ensureContentScriptInjected(targetTabId);
@@ -38,7 +38,7 @@ export function handleStopElementInspect(
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
   tabId?: number
-): boolean | undefined {
+): boolean | void {
   const stopInspectTabId = tabId ?? sender.tab?.id ?? activeTabId;
   if (stopInspectTabId) {
     chrome.tabs.sendMessage(stopInspectTabId, { type: 'STOP_ELEMENT_INSPECT' }).catch(() => {});
@@ -50,7 +50,7 @@ export function handleElementInspected(
   message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   notifyPanels(message);
   sendResponse({ success: true });
 }

@@ -235,7 +235,7 @@ export function handleStartPlayback(
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
   tabId?: number
-): boolean | undefined {
+): boolean | void {
   const msg = message as StartPlaybackMessage;
   const playTabId = tabId ?? sender.tab?.id ?? activeTabId;
   if (playTabId && msg.scenario) {
@@ -261,7 +261,7 @@ export function handlePausePlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   pausePlayback();
   sendResponse({ success: true });
 }
@@ -270,7 +270,7 @@ export function handleResumePlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   resumePlayback();
   sendResponse({ success: true });
 }
@@ -279,7 +279,7 @@ export function handleStopPlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   stopPlayback();
   sendResponse({ success: true });
 }
@@ -288,7 +288,7 @@ export function handleStepPlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   stepPlayback();
   sendResponse({ success: true });
 }
@@ -297,7 +297,7 @@ export function handleGetPlaybackState(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   sendResponse(getPlaybackState());
 }
 
@@ -305,7 +305,7 @@ export function handlePlaybackStepStartMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   const msg = message as { stepIndex: number; step: Step };
   handlePlaybackStepStart(msg.stepIndex, msg.step);
   sendResponse({ success: true });
@@ -315,7 +315,7 @@ export function handlePlaybackStepCompleteMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   const msg = message as {
     stepIndex: number;
     result: {
@@ -332,7 +332,7 @@ export function handlePlaybackErrorMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void
-): boolean | undefined {
+): boolean | void {
   const msg = message as { error: string; stepIndex?: number };
   handlePlaybackError(msg.error, msg.stepIndex);
   sendResponse({ success: true });

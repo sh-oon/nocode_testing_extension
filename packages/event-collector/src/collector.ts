@@ -25,6 +25,7 @@ export class EventCollector {
   private events: RawEvent[] = [];
   private cleanupFunctions: Array<() => void> = [];
   private externalHandlers: Set<EventHandler> = new Set();
+  private eventHandler: EventHandler;
 
   constructor(config: Partial<CollectorConfig> = {}) {
     this.config = { ...DEFAULT_COLLECTOR_CONFIG, ...config };
