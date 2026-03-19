@@ -86,19 +86,6 @@
       }
     },
     {
-      "includes": ["packages/utils/**/*.ts"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noUnusedVariables": "error"
-          },
-          "suspicious": {
-            "noExplicitAny": "error"
-          }
-        }
-      }
-    },
-    {
       "includes": ["packages/ast-types/**/*.ts"],
       "linter": {
         "rules": {

@@ -32,13 +32,17 @@
     "format": "biome format --write .",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
-    "test:e2e": "tsx scripts/e2e-flow-test.ts",
+    "test:e2e": "npx vitest run --config e2e/vitest.config.ts",
+    "test:e2e:flow": "tsx scripts/e2e-flow-test.ts",
     "test:e2e:runner": "tsx scripts/e2e-runner-test.ts",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f backend",
-    "docker:restart": "docker compose down && docker compose up --build -d"
+    "docker:restart": "docker compose down && docker compose up --build -d",
+    "version:patch": "node scripts/bump-version.mjs patch",
+    "version:minor": "node scripts/bump-version.mjs minor",
+    "version:major": "node scripts/bump-version.mjs major"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",

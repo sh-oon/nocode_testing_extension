@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Like Cake Test Page</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 360px; }
+    h1 { font-size: 1.25rem; margin-bottom: 1.5rem; color: #333; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: #555; }
+    input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.875rem; }
+    input:focus { outline: none; border-color: #4a90d9; }
+    button { width: 100%; padding: 0.625rem; border: none; border-radius: 4px; background: #4a90d9; color: #fff; font-size: 0.875rem; cursor: pointer; }
+    button:hover { background: #357abd; }
+    .success-message { display: none; padding: 1rem; margin-top: 1rem; background: #d4edda; color: #155724; border-radius: 4px; text-align: center; }
+    .success-message.visible { display: block; }
+    .nav-link { display: inline-block; margin-top: 1rem; color: #4a90d9; text-decoration: none; font-size: 0.875rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .section { display: none; }
+    .section.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Section -->
+    <div id="login-section" class="section active" data-testid="login-section">
+      <h1 data-testid="page-title">Login</h1>
+      <form data-testid="login-form" id="login-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" data-testid="email-input" placeholder="Enter your email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" data-testid="password-input" placeholder="Enter your password" />
+        </div>
+        <button type="submit" data-testid="submit-button">Sign In</button>
+      </form>
+      <div class="success-message" id="success-message" data-testid="success-message">
+        Login successful! Welcome back.
+      </div>
+      <a href="#dashboard" class="nav-link" data-testid="nav-dashboard" id="nav-dashboard">Go to Dashboard</a>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="section" data-testid="dashboard-section">
+      <h1 data-testid="dashboard-title">Dashboard</h1>
+      <p data-testid="dashboard-content">Welcome to your dashboard.</p>
+      <a href="#login" class="nav-link" data-testid="nav-login" id="nav-login">Back to Login</a>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const successMessage = document.getElementById('success-message');
+    const loginSection = document.getElementById('login-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      successMessage.classList.add('visible');
+    });
+
+    function navigateToSection(hash) {
+      const sections = { '#login': loginSection, '#dashboard': dashboardSection };
+      for (const section of Object.values(sections)) {
+        section.classList.remove('active');
+      }
+      const target = sections[hash];
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    document.getElementById('nav-dashboard').addEventListener('click', function(e) {
+      e.preventDefault();
+      navigateToSection('#dashboard');
+      history.pushState(null, '', '#dashboard');
+    });
+
+    document.getElementById('nav-login').addEventListener('click', function(e) {
+      e.preventDefault();
+      navigateToSection('#login');
+      history.pushState(null, '', '#login');
+    });
+
+    window.addEventListener('popstate', function() {
+      navigateToSection(location.hash || '#login');
+    });
+  </script>
+</body>
+</html>
