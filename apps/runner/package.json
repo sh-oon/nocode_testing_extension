@@ -37,7 +37,7 @@
     "puppeteer": "^24.9.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.4.8",
     "@like-cake/tsconfig": "*",
     "@types/node": "^24",
     "tsup": "~8.5.0",

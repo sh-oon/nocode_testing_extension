@@ -229,18 +229,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/biome@npm:^2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/biome@npm:2.2.5"
+"@biomejs/biome@npm:^2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/biome@npm:2.4.8"
   dependencies:
-    "@biomejs/cli-darwin-arm64": "npm:2.2.5"
-    "@biomejs/cli-darwin-x64": "npm:2.2.5"
-    "@biomejs/cli-linux-arm64": "npm:2.2.5"
-    "@biomejs/cli-linux-arm64-musl": "npm:2.2.5"
-    "@biomejs/cli-linux-x64": "npm:2.2.5"
-    "@biomejs/cli-linux-x64-musl": "npm:2.2.5"
-    "@biomejs/cli-win32-arm64": "npm:2.2.5"
-    "@biomejs/cli-win32-x64": "npm:2.2.5"
+    "@biomejs/cli-darwin-arm64": "npm:2.4.8"
+    "@biomejs/cli-darwin-x64": "npm:2.4.8"
+    "@biomejs/cli-linux-arm64": "npm:2.4.8"
+    "@biomejs/cli-linux-arm64-musl": "npm:2.4.8"
+    "@biomejs/cli-linux-x64": "npm:2.4.8"
+    "@biomejs/cli-linux-x64-musl": "npm:2.4.8"
+    "@biomejs/cli-win32-arm64": "npm:2.4.8"
+    "@biomejs/cli-win32-x64": "npm:2.4.8"
   dependenciesMeta:
     "@biomejs/cli-darwin-arm64":
       optional: true
@@ -260,62 +260,62 @@ __metadata:
       optional: true
   bin:
     biome: bin/biome
-  checksum: 10c0/d9baff2b9d35f820e3e746fd4222ba1295d7648e04ececc4e1f25ed0c09dd4fd30505a7183731fc75252ea925728c276858c9f09751b7e1fd1c8378b05208de6
+  checksum: 10c0/aa77037ee9e49d3ee8d3efcbe11750a84a3536f9ef05457c77ce34dfb5f06da23630cd701ef98b06abf7c691b64ebebcde9fbfb32abadf6b55bdc825ee600662
   languageName: node
   linkType: hard
 
-"@biomejs/cli-darwin-arm64@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-darwin-arm64@npm:2.2.5"
+"@biomejs/cli-darwin-arm64@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-darwin-arm64@npm:2.4.8"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-darwin-x64@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-darwin-x64@npm:2.2.5"
+"@biomejs/cli-darwin-x64@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-darwin-x64@npm:2.4.8"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-arm64-musl@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-linux-arm64-musl@npm:2.2.5"
+"@biomejs/cli-linux-arm64-musl@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-linux-arm64-musl@npm:2.4.8"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-arm64@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-linux-arm64@npm:2.2.5"
+"@biomejs/cli-linux-arm64@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-linux-arm64@npm:2.4.8"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-x64-musl@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-linux-x64-musl@npm:2.2.5"
+"@biomejs/cli-linux-x64-musl@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-linux-x64-musl@npm:2.4.8"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-x64@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-linux-x64@npm:2.2.5"
+"@biomejs/cli-linux-x64@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-linux-x64@npm:2.4.8"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@biomejs/cli-win32-arm64@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-win32-arm64@npm:2.2.5"
+"@biomejs/cli-win32-arm64@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-win32-arm64@npm:2.4.8"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-win32-x64@npm:2.2.5":
-  version: 2.2.5
-  resolution: "@biomejs/cli-win32-x64@npm:2.2.5"
+"@biomejs/cli-win32-x64@npm:2.4.8":
+  version: 2.4.8
+  resolution: "@biomejs/cli-win32-x64@npm:2.4.8"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -1275,7 +1275,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/api-interceptor@workspace:packages/api-interceptor"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/tsconfig": "npm:*"
     jsdom: "npm:^26.1.0"
     tsup: "npm:~8.5.0"
@@ -1288,7 +1288,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/ast-types@workspace:packages/ast-types"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/tsconfig": "npm:*"
     tsup: "npm:~8.5.0"
     typescript: "npm:~5.9.2"
@@ -1306,7 +1306,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/backend@workspace:apps/backend"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@hono/node-server": "npm:^1.14.4"
     "@hono/zod-validator": "npm:^0.5.0"
     "@like-cake/ast-types": "npm:*"
@@ -1333,7 +1333,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/diff-engine@workspace:packages/diff-engine"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/api-interceptor": "npm:*"
     "@like-cake/dom-serializer": "npm:*"
     "@like-cake/tsconfig": "npm:*"
@@ -1354,7 +1354,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/dom-serializer@workspace:packages/dom-serializer"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/tsconfig": "npm:*"
     html2canvas: "npm:^1.4.1"
     jsdom: "npm:^26.1.0"
@@ -1368,7 +1368,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/event-collector@workspace:packages/event-collector"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/api-interceptor": "npm:*"
     "@like-cake/ast-types": "npm:*"
     "@like-cake/selector-engine": "npm:*"
@@ -1384,7 +1384,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/extension@workspace:apps/extension"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@crxjs/vite-plugin": "npm:^2.0.0-beta.28"
     "@like-cake/api-interceptor": "npm:*"
     "@like-cake/ast-types": "npm:*"
@@ -1416,7 +1416,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/mbt-catalog@workspace:packages/mbt-catalog"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/ast-types": "npm:*"
     "@like-cake/tsconfig": "npm:*"
     tsup: "npm:~8.5.0"
@@ -1430,7 +1430,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/runner@workspace:apps/runner"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/api-interceptor": "npm:*"
     "@like-cake/ast-types": "npm:*"
     "@like-cake/diff-engine": "npm:*"
@@ -1453,7 +1453,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/selector-engine@workspace:packages/selector-engine"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/ast-types": "npm:*"
     "@like-cake/tsconfig": "npm:*"
     tsup: "npm:~8.5.0"
@@ -1466,7 +1466,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/step-player@workspace:packages/step-player"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/api-interceptor": "npm:*"
     "@like-cake/ast-types": "npm:*"
     "@like-cake/diff-engine": "npm:*"
@@ -1489,7 +1489,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/ui-components@workspace:packages/ui"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/tsconfig": "npm:*"
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.1"
@@ -1505,7 +1505,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@like-cake/variable-store@workspace:packages/variable-store"
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/ast-types": "npm:*"
     "@like-cake/tsconfig": "npm:*"
     jsonpath-plus: "npm:^10.0.0"
@@ -1917,6 +1917,48 @@ __metadata:
   version: 0.23.0
   resolution: "@tootallnate/quickjs-emscripten@npm:0.23.0"
   checksum: 10c0/2a939b781826fb5fd3edd0f2ec3b321d259d760464cf20611c9877205aaca3ccc0b7304dea68416baa0d568e82cd86b17d29548d1e5139fa3155a4a86a2b4b49
+  languageName: node
+  linkType: hard
+
+"@turbo/darwin-64@npm:2.8.19":
+  version: 2.8.19
+  resolution: "@turbo/darwin-64@npm:2.8.19"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@turbo/darwin-arm64@npm:2.8.19":
+  version: 2.8.19
+  resolution: "@turbo/darwin-arm64@npm:2.8.19"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@turbo/linux-64@npm:2.8.19":
+  version: 2.8.19
+  resolution: "@turbo/linux-64@npm:2.8.19"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@turbo/linux-arm64@npm:2.8.19":
+  version: 2.8.19
+  resolution: "@turbo/linux-arm64@npm:2.8.19"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@turbo/windows-64@npm:2.8.19":
+  version: 2.8.19
+  resolution: "@turbo/windows-64@npm:2.8.19"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@turbo/windows-arm64@npm:2.8.19":
+  version: 2.8.19
+  resolution: "@turbo/windows-arm64@npm:2.8.19"
+  conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
@@ -4271,12 +4313,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "like-cake@workspace:."
   dependencies:
-    "@biomejs/biome": "npm:^2.2.5"
+    "@biomejs/biome": "npm:^2.4.8"
     "@like-cake/tsconfig": "npm:*"
     glob: "npm:^11.0.0"
     puppeteer: "npm:^24.34.0"
     tsx: "npm:^4.19.4"
-    turbo: "npm:^2.5.8"
+    turbo: "npm:^2.8.19"
     typescript: "npm:~5.9.2"
   languageName: unknown
   linkType: soft
@@ -6144,74 +6186,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo-darwin-64@npm:2.5.8":
-  version: 2.5.8
-  resolution: "turbo-darwin-64@npm:2.5.8"
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"turbo-darwin-arm64@npm:2.5.8":
-  version: 2.5.8
-  resolution: "turbo-darwin-arm64@npm:2.5.8"
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"turbo-linux-64@npm:2.5.8":
-  version: 2.5.8
-  resolution: "turbo-linux-64@npm:2.5.8"
-  conditions: os=linux & cpu=x64
-  languageName: node
-  linkType: hard
-
-"turbo-linux-arm64@npm:2.5.8":
-  version: 2.5.8
-  resolution: "turbo-linux-arm64@npm:2.5.8"
-  conditions: os=linux & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"turbo-windows-64@npm:2.5.8":
-  version: 2.5.8
-  resolution: "turbo-windows-64@npm:2.5.8"
-  conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"turbo-windows-arm64@npm:2.5.8":
-  version: 2.5.8
-  resolution: "turbo-windows-arm64@npm:2.5.8"
-  conditions: os=win32 & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"turbo@npm:^2.5.8":
-  version: 2.5.8
-  resolution: "turbo@npm:2.5.8"
+"turbo@npm:^2.8.19":
+  version: 2.8.19
+  resolution: "turbo@npm:2.8.19"
   dependencies:
-    turbo-darwin-64: "npm:2.5.8"
-    turbo-darwin-arm64: "npm:2.5.8"
-    turbo-linux-64: "npm:2.5.8"
-    turbo-linux-arm64: "npm:2.5.8"
-    turbo-windows-64: "npm:2.5.8"
-    turbo-windows-arm64: "npm:2.5.8"
+    "@turbo/darwin-64": "npm:2.8.19"
+    "@turbo/darwin-arm64": "npm:2.8.19"
+    "@turbo/linux-64": "npm:2.8.19"
+    "@turbo/linux-arm64": "npm:2.8.19"
+    "@turbo/windows-64": "npm:2.8.19"
+    "@turbo/windows-arm64": "npm:2.8.19"
   dependenciesMeta:
-    turbo-darwin-64:
+    "@turbo/darwin-64":
       optional: true
-    turbo-darwin-arm64:
+    "@turbo/darwin-arm64":
       optional: true
-    turbo-linux-64:
+    "@turbo/linux-64":
       optional: true
-    turbo-linux-arm64:
+    "@turbo/linux-arm64":
       optional: true
-    turbo-windows-64:
+    "@turbo/windows-64":
       optional: true
-    turbo-windows-arm64:
+    "@turbo/windows-arm64":
       optional: true
   bin:
     turbo: bin/turbo
-  checksum: 10c0/34e8dc87fc2c5d63c3cd5aede9068c1123509d88f9bb99283ffec1687de6ad6df7ebfb83a5d348580afb3fdac53af479456e36938a1b6ed80fc1c3416c6dc3f3
+  checksum: 10c0/6242fb6a8a1e0a594078499d089ebf003d7748ec45d27fb17e0085710a762dc3fa9dacfeafcffd7e0e2b1ee2420a09be8ebf58e3cbc72976a3aa679b09a44f50
   languageName: node
   linkType: hard
 

@@ -27,7 +27,7 @@
     "@like-cake/selector-engine": "*"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.4.8",
     "@like-cake/tsconfig": "*",
     "jsdom": "^26.1.0",
     "tsup": "~8.5.0",

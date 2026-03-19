@@ -26,7 +26,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.4.8",
     "@crxjs/vite-plugin": "^2.0.0-beta.28",
     "@like-cake/tsconfig": "*",
     "@types/chrome": "^0.0.287",
