@@ -84,6 +84,36 @@ export class ScenarioRunner {
    * Run a scenario using StepPlayer for execution
    */
   async run(scenario: Scenario): Promise<ScenarioExecutionResult> {
+    const maxRetries = this.options.maxRetries ?? 0;
+    const retryDelay = this.options.retryDelay ?? 1000;
+    const globalTimeout = this.options.globalTimeout ?? 120000;
+
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      if (attempt > 0) {
+        console.log(`[Like Cake] Retry attempt ${attempt}/${maxRetries}`);
+        await new Promise((r) => setTimeout(r, retryDelay));
+      }
+
+      try {
+        const result = await Promise.race([
+          this.runOnce(scenario),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Scenario timed out after ${globalTimeout}ms`)), globalTimeout)
+          ),
+        ]);
+        return result;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (attempt < maxRetries) continue;
+      }
+    }
+
+    throw lastError ?? new Error('Execution failed');
+  }
+
+  private async runOnce(scenario: Scenario): Promise<ScenarioExecutionResult> {
     await this.init();
 
     if (!this.browser) {

@@ -28,6 +28,12 @@ export interface RunnerOptions {
   continueOnFailure?: boolean;
   /** Custom user agent */
   userAgent?: string;
+  /** Global timeout per scenario (ms). Default: 120000 (2 min) */
+  globalTimeout?: number;
+  /** Number of retry attempts on failure. Default: 0 */
+  maxRetries?: number;
+  /** Delay between retries (ms). Default: 1000 */
+  retryDelay?: number;
 }
 
 /**

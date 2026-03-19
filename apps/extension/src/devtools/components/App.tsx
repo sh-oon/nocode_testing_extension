@@ -3,7 +3,7 @@ import { checkBackendConnection } from '../../shared/api';
 import { FlowBuilder } from './FlowBuilder';
 import { ScenarioWizard } from './ScenarioWizard';
 import { SettingsPanel } from './SettingsPanel';
-import { ConnectionDot, SettingsIcon, TabToggle } from '@like-cake/ui-components';
+import { ConnectionDot, ErrorBoundary, SettingsIcon, TabToggle } from '@like-cake/ui-components';
 
 type AppMode = 'scenario' | 'flow';
 
@@ -24,6 +24,7 @@ export function App() {
   }, []);
 
   return (
+    <ErrorBoundary>
     <div className="flex flex-col h-screen bg-white">
       {/* Header */}
       <header className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
@@ -59,5 +60,6 @@ export function App() {
         onConnectionChange={(connected: boolean) => setIsConnected(connected)}
       />
     </div>
+    </ErrorBoundary>
   );
 }

@@ -64,16 +64,20 @@ export function createApp() {
     );
   });
 
-  // Error handler
+  // Error handler with typed error support
   app.onError((err, c) => {
     console.error('[Like Cake] Error:', err);
+
+    const statusCode = 'statusCode' in err ? (err as { statusCode: number }).statusCode : 500;
+    const code = 'code' in err ? (err as { code: string }).code : 'INTERNAL_ERROR';
 
     return c.json(
       {
         success: false,
         error: err.message || 'Internal Server Error',
+        code,
       },
-      500
+      statusCode as 500
     );
   });
 

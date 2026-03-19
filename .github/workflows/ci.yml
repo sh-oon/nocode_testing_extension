@@ -1,107 +1,108 @@
-name: CI/CD
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint:
+  lint-and-typecheck:
     name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --immutable
+      - run: yarn install --immutable
 
       - name: Lint
         run: yarn lint
 
-      - name: Type check
+      - name: Type Check
         run: yarn type-check
 
-  build:
-    name: Build Packages
+  test:
+    name: Unit Tests
     runs-on: ubuntu-latest
-    needs: lint
+    needs: lint-and-typecheck
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --immutable
+      - run: yarn install --immutable
 
-      - name: Build create-bomb-boilerplate
-        run: yarn workspace create-bomb-boilerplate build
+      - name: Build packages
+        run: yarn build
 
-      - name: Upload build artifacts
+      - name: Run tests
+        run: yarn test
+
+  build-extension:
+    name: Build Extension
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - run: yarn install --immutable
+
+      - name: Build all packages
+        run: yarn build
+
+      - name: Build extension
+        run: yarn workspace @like-cake/extension build
+
+      - name: Package extension
+        run: cd apps/extension/dist && zip -r ../../../extension.zip .
+
+      - name: Upload extension artifact
         uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
-          name: create-bomb-boilerplate-dist
-          path: packages/create-bomb-boilerplate/dist
-          retention-days: 1
+          name: like-cake-extension
+          path: extension.zip
+          retention-days: 30
 
-  publish:
-    name: Publish to NPM
+  build-docker:
+    name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: read
-      id-token: write
+    needs: [test, build-extension]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Build Docker image
+        run: docker build -t like-cake-backend .
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: create-bomb-boilerplate-dist
-          path: packages/create-bomb-boilerplate/dist
-
-      - name: Publish to NPM
+      - name: Test Docker image
         run: |
-          cd packages/create-bomb-boilerplate
-          npm publish --provenance --access public --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
+          docker run -d --name test-backend -p 4000:4000 like-cake-backend
+          sleep 5
+          curl -f http://localhost:4000/api/health || exit 1
+          docker stop test-backend

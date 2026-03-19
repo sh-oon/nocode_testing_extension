@@ -56,6 +56,7 @@ initializeCache();
  * Each case delegates to a domain-specific handler module.
  */
 chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) => {
+  try {
   // Extract tabId from message (for Side Panel / DevTools)
   const messageTabId = 'tabId' in message ? message.tabId : undefined;
 
@@ -143,6 +144,11 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
   }
 
   return true; // Keep channel open for async
+  } catch (error) {
+    console.error('[Like Cake] Message handler error:', error);
+    sendResponse({ error: error instanceof Error ? error.message : 'Internal error' });
+    return false;
+  }
 });
 
 // Handle tab close - stop recording if active tab is closed
