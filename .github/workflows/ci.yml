@@ -31,6 +31,9 @@ jobs:
         run: npx biome format --check .
         continue-on-error: true
 
+      - name: Build packages
+        run: yarn build
+
       - name: Type Check
         run: yarn type-check
 
