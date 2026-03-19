@@ -30,12 +30,12 @@ describe('serializeSelector', () => {
   });
 
   it('serializes role strategy with accessible name as "role:roleName:accessibleName"', () => {
-    const selector: SelectorInput = { strategy: 'role', role: 'button', name: 'Submit' };
+    const selector: SelectorInput = { strategy: 'role', value: 'button', role: 'button', name: 'Submit' };
     expect(serializeSelector(selector)).toBe('role:button:Submit');
   });
 
   it('serializes role strategy without accessible name as "role:roleName:"', () => {
-    const selector: SelectorInput = { strategy: 'role', role: 'textbox' };
+    const selector: SelectorInput = { strategy: 'role', value: 'textbox', role: 'textbox' };
     expect(serializeSelector(selector)).toBe('role:textbox:');
   });
 });
@@ -132,7 +132,7 @@ describe('ElementBindingRegistry', () => {
 
   it('getAll length matches unique selector count even with duplicates', () => {
     const registry = new ElementBindingRegistry();
-    const selector: SelectorInput = { strategy: 'role', role: 'button', name: 'OK' };
+    const selector: SelectorInput = { strategy: 'role', value: 'button', role: 'button', name: 'OK' };
     registry.getOrCreate(selector, 'OK Button', 'https://example.com');
     registry.getOrCreate(selector, 'OK Button duplicate', 'https://example.com');
     registry.getOrCreate({ strategy: 'css', value: '.cancel' }, 'Cancel', 'https://example.com');

@@ -12,13 +12,16 @@ vi.mock('@like-cake/runner', () => ({
   })),
 }));
 
-const makeScenario = (overrides: Partial<Scenario> & { id: string }): Scenario => ({
-  id: overrides.id,
-  name: overrides.name ?? `Scenario ${overrides.id}`,
-  meta: { url: 'https://example.com', viewport: { width: 1280, height: 720 } },
-  steps: overrides.steps ?? [{ type: 'navigate', url: 'https://example.com' }],
-  ...overrides,
-});
+const makeScenario = (overrides: Partial<Scenario> & { id: string }): Scenario => {
+  const { id, name, steps, ...rest } = overrides;
+  return {
+    id,
+    name: name ?? `Scenario ${id}`,
+    meta: { url: 'https://example.com', viewport: { width: 1280, height: 720 }, recordedAt: new Date().toISOString(), astSchemaVersion: '1.0.0' },
+    steps: steps ?? [{ type: 'navigate', url: 'https://example.com' }],
+    ...rest,
+  };
+};
 
 const makeExecutionResult = (
   overrides: Partial<ScenarioExecutionResult> = {},
@@ -40,15 +43,6 @@ const makeExecutionResult = (
   endedAt: Date.now() + 100,
   ...overrides,
 });
-
-const getScenarioRunner = async () => {
-  const { ScenarioRunner } = await import('@like-cake/runner');
-  return vi.mocked(ScenarioRunner).mock.results.at(-1)?.value as {
-    init: ReturnType<typeof vi.fn>;
-    close: ReturnType<typeof vi.fn>;
-    run: ReturnType<typeof vi.fn>;
-  };
-};
 
 describe('ModelExecutionService', () => {
   let service: ModelExecutionService;
@@ -94,7 +88,7 @@ describe('ModelExecutionService', () => {
         name: 'Login',
         steps: [
           { type: 'navigate', url: 'https://example.com' },
-          { type: 'click', selector: { css: 'button' } },
+          { type: 'click', selector: 'button' },
         ],
       });
 
@@ -103,7 +97,8 @@ describe('ModelExecutionService', () => {
       });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(executionResult),
@@ -129,7 +124,8 @@ describe('ModelExecutionService', () => {
       });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(executionResult),
@@ -157,7 +153,8 @@ describe('ModelExecutionService', () => {
       });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(executionResult),
@@ -177,7 +174,7 @@ describe('ModelExecutionService', () => {
     it('skips remaining scenarios after the first failure', async () => {
       const scenarios = [
         makeScenario({ id: 's1', steps: [{ type: 'navigate', url: 'https://example.com' }] }),
-        makeScenario({ id: 's2', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: { css: 'a' } }] }),
+        makeScenario({ id: 's2', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: 'a' }] }),
         makeScenario({ id: 's3', steps: [{ type: 'navigate', url: 'https://example.com' }] }),
       ];
 
@@ -186,7 +183,8 @@ describe('ModelExecutionService', () => {
       });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(failingResult),
@@ -213,7 +211,8 @@ describe('ModelExecutionService', () => {
 
       const runMock = vi.fn().mockResolvedValue(failingResult);
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: runMock,
@@ -232,8 +231,8 @@ describe('ModelExecutionService', () => {
           id: 's2',
           steps: [
             { type: 'navigate', url: 'https://example.com' },
-            { type: 'click', selector: { css: 'button' } },
-            { type: 'click', selector: { css: 'a' } },
+            { type: 'click', selector: 'button' },
+            { type: 'click', selector: 'a' },
           ],
         }),
       ];
@@ -243,7 +242,8 @@ describe('ModelExecutionService', () => {
       });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(failingResult),
@@ -281,7 +281,8 @@ describe('ModelExecutionService', () => {
         .mockResolvedValueOnce(passingResult);
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: runMock,
@@ -318,7 +319,8 @@ describe('ModelExecutionService', () => {
         .mockResolvedValueOnce(passingResult);
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: runMock,
@@ -338,7 +340,8 @@ describe('ModelExecutionService', () => {
       const scenario = makeScenario({ id: 's1' });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockRejectedValue(new Error('Browser crashed')),
@@ -357,7 +360,8 @@ describe('ModelExecutionService', () => {
       const closeMock = vi.fn().mockResolvedValue(undefined);
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: closeMock,
         run: vi.fn().mockRejectedValue(new Error('Browser crashed')),
@@ -374,13 +378,14 @@ describe('ModelExecutionService', () => {
         id: 's1',
         steps: [
           { type: 'navigate', url: 'https://example.com' },
-          { type: 'click', selector: { css: 'button' } },
-          { type: 'click', selector: { css: 'a' } },
+          { type: 'click', selector: 'button' },
+          { type: 'click', selector: 'a' },
         ],
       });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockRejectedValue(new Error('Timeout')),
@@ -399,8 +404,8 @@ describe('ModelExecutionService', () => {
   describe('execute — summary aggregation across scenarios', () => {
     it('sums totalSteps, passedSteps, failedSteps, and skippedSteps across all scenarios', async () => {
       const scenarios = [
-        makeScenario({ id: 's1', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: { css: 'a' } }] }),
-        makeScenario({ id: 's2', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: { css: 'b' } }, { type: 'click', selector: { css: 'c' } }] }),
+        makeScenario({ id: 's1', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: 'a' }] }),
+        makeScenario({ id: 's2', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: 'b' }, { type: 'click', selector: 'c' }] }),
         makeScenario({ id: 's3', steps: [{ type: 'navigate', url: 'https://example.com' }] }),
       ];
 
@@ -417,7 +422,8 @@ describe('ModelExecutionService', () => {
         .mockResolvedValueOnce(results[2]);
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: runMock,
@@ -439,7 +445,8 @@ describe('ModelExecutionService', () => {
       const executionResult = makeExecutionResult();
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(executionResult),
@@ -468,7 +475,8 @@ describe('ModelExecutionService', () => {
       });
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(failingResult),
@@ -485,14 +493,15 @@ describe('ModelExecutionService', () => {
     it('uses "Unnamed" when scenario.name is undefined', async () => {
       const scenario: Scenario = {
         id: 's1',
-        meta: { url: 'https://example.com', viewport: { width: 1280, height: 720 } },
+        meta: { url: 'https://example.com', viewport: { width: 1280, height: 720 }, recordedAt: new Date().toISOString(), astSchemaVersion: '1.0.0' },
         steps: [{ type: 'navigate', url: 'https://example.com' }],
       };
 
       const executionResult = makeExecutionResult();
 
       const { ScenarioRunner } = await import('@like-cake/runner');
-      vi.mocked(ScenarioRunner).mockImplementationOnce(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vi.mocked(ScenarioRunner) as any).mockImplementationOnce(() => ({
         init: vi.fn().mockResolvedValue(undefined),
         close: vi.fn().mockResolvedValue(undefined),
         run: vi.fn().mockResolvedValue(executionResult),
