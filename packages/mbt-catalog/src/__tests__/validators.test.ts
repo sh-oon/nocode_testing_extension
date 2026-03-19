@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { ElementBinding, AccessibilityInfo } from '../types/element-binding';
+import type { AccessibilityInfo, ElementBinding } from '../types/element-binding';
 import type { TestModel } from '../types/model';
-import { validateBindingAccessibility, getMaxImpact } from '../validators/accessibility';
-import { validateTestModel, countIssues } from '../validators/model-validator';
+import { getMaxImpact, validateBindingAccessibility } from '../validators/accessibility';
+import { countIssues, validateTestModel } from '../validators/model-validator';
 
 // ── Fixtures ────────────────────────────────────────────────────────────
 
@@ -37,7 +37,11 @@ const makeMinimalModel = (overrides: Partial<TestModel> = {}): TestModel => ({
       id: 't1',
       sourceStateId: 's1',
       targetStateId: 's2',
-      event: { eventId: 'navigate', elementBindingId: null, params: { url: 'https://example.com' } },
+      event: {
+        eventId: 'navigate',
+        elementBindingId: null,
+        params: { url: 'https://example.com' },
+      },
     },
   ],
   elementBindings: [],
@@ -212,12 +216,14 @@ describe('validateTestModel', () => {
 
   it('detects missing-event on transition', () => {
     const model = makeMinimalModel({
-      transitions: [{
-        id: 't1',
-        sourceStateId: 's1',
-        targetStateId: 's2',
-        event: { eventId: '', elementBindingId: null, params: {} },
-      }],
+      transitions: [
+        {
+          id: 't1',
+          sourceStateId: 's1',
+          targetStateId: 's2',
+          event: { eventId: '', elementBindingId: null, params: {} },
+        },
+      ],
     });
     const issues = validateTestModel(model);
     expect(issues.some((i) => i.code === 'missing-event')).toBe(true);
@@ -225,12 +231,14 @@ describe('validateTestModel', () => {
 
   it('detects missing-required-binding for click event', () => {
     const model = makeMinimalModel({
-      transitions: [{
-        id: 't1',
-        sourceStateId: 's1',
-        targetStateId: 's2',
-        event: { eventId: 'click', elementBindingId: null, params: {} },
-      }],
+      transitions: [
+        {
+          id: 't1',
+          sourceStateId: 's1',
+          targetStateId: 's2',
+          event: { eventId: 'click', elementBindingId: null, params: {} },
+        },
+      ],
     });
     const issues = validateTestModel(model);
     expect(issues.some((i) => i.code === 'missing-required-binding')).toBe(true);
@@ -240,12 +248,14 @@ describe('validateTestModel', () => {
     const binding = makeBinding('input');
     const model = makeMinimalModel({
       elementBindings: [binding],
-      transitions: [{
-        id: 't1',
-        sourceStateId: 's1',
-        targetStateId: 's2',
-        event: { eventId: 'type', elementBindingId: 'input', params: {} },
-      }],
+      transitions: [
+        {
+          id: 't1',
+          sourceStateId: 's1',
+          targetStateId: 's2',
+          event: { eventId: 'type', elementBindingId: 'input', params: {} },
+        },
+      ],
     });
     const issues = validateTestModel(model);
     expect(issues.some((i) => i.code === 'missing-required-param')).toBe(true);
@@ -276,12 +286,14 @@ describe('validateTestModel', () => {
     });
     const model = makeMinimalModel({
       elementBindings: [binding],
-      transitions: [{
-        id: 't1',
-        sourceStateId: 's1',
-        targetStateId: 's2',
-        event: { eventId: 'click', elementBindingId: 'btn', params: {} },
-      }],
+      transitions: [
+        {
+          id: 't1',
+          sourceStateId: 's1',
+          targetStateId: 's2',
+          event: { eventId: 'click', elementBindingId: 'btn', params: {} },
+        },
+      ],
     });
     const issues = validateTestModel(model);
     expect(issues.some((i) => i.code === 'a11y-missing-role')).toBe(true);
@@ -307,13 +319,15 @@ describe('validateTestModel', () => {
 
 describe('countIssues', () => {
   it('counts errors and warnings separately', () => {
-    const issues = validateTestModel(makeMinimalModel({
-      states: [
-        { id: 's1', name: 'Start', verifications: [], isInitial: true },
-        // no final → error
-      ],
-      transitions: [],
-    }));
+    const issues = validateTestModel(
+      makeMinimalModel({
+        states: [
+          { id: 's1', name: 'Start', verifications: [], isInitial: true },
+          // no final → error
+        ],
+        transitions: [],
+      })
+    );
     const { errors, warnings } = countIssues(issues);
     expect(errors).toBeGreaterThan(0);
     expect(typeof warnings).toBe('number');

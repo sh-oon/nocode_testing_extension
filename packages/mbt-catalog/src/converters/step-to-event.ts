@@ -7,8 +7,8 @@
  */
 
 import type { Step } from '@like-cake/ast-types';
+import type { ElementBindingRegistry } from './binding-utils';
 import type { StepToEventResult } from './types';
-import { ElementBindingRegistry } from './binding-utils';
 
 /**
  * Convert a UI action Step to a BoundEvent + ElementBinding.
@@ -19,7 +19,7 @@ import { ElementBindingRegistry } from './binding-utils';
  */
 export const convertStepToEvent = (
   step: Step,
-  registry: ElementBindingRegistry,
+  registry: ElementBindingRegistry
 ): StepToEventResult | null => {
   switch (step.type) {
     case 'click': {
@@ -64,9 +64,7 @@ export const convertStepToEvent = (
     }
 
     case 'scroll': {
-      const binding = step.selector
-        ? registry.getOrCreate(step.selector, 'scroll target')
-        : null;
+      const binding = step.selector ? registry.getOrCreate(step.selector, 'scroll target') : null;
       return {
         boundEvent: {
           eventId: 'scroll',
@@ -99,9 +97,7 @@ export const convertStepToEvent = (
     }
 
     case 'keypress': {
-      const binding = step.selector
-        ? registry.getOrCreate(step.selector, 'keypress target')
-        : null;
+      const binding = step.selector ? registry.getOrCreate(step.selector, 'keypress target') : null;
       const params: Record<string, unknown> = { key: step.key };
       if (step.modifiers && step.modifiers.length > 0) {
         params.modifiers = step.modifiers[0];

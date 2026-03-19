@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { buildJsonPath, getValueType, getValuePreview } from './PathBuilder';
+import { buildJsonPath, getValuePreview, getValueType } from './PathBuilder';
 
 interface TreeNodeProps {
   /** The key name or array index of this node */
@@ -114,7 +114,9 @@ export function TreeNode({
               : `{${Object.keys(value as object).length}}`}
           </span>
         ) : (
-          <span className={`text-xs font-mono truncate ${TYPE_COLORS[valueType] || 'text-gray-800'}`}>
+          <span
+            className={`text-xs font-mono truncate ${TYPE_COLORS[valueType] || 'text-gray-800'}`}
+          >
             {getValuePreview(value)}
           </span>
         )}

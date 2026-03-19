@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Step } from '@like-cake/ast-types';
-import { getApiClient, type BackendScenarioDetail } from '../../shared/api';
+import { type BackendScenarioDetail, getApiClient } from '../../shared/api';
 import { StepList } from './StepList';
 
 interface ScenarioDetailPanelProps {
@@ -230,7 +230,10 @@ export function ScenarioDetailPanel({
 
                   {/* Name */}
                   <div>
-                    <label htmlFor="scenario-name" className="block text-sm font-medium text-gray-400 mb-1">
+                    <label
+                      htmlFor="scenario-name"
+                      className="block text-sm font-medium text-gray-400 mb-1"
+                    >
                       Name
                     </label>
                     <input
@@ -245,7 +248,10 @@ export function ScenarioDetailPanel({
 
                   {/* Description */}
                   <div>
-                    <label htmlFor="scenario-description" className="block text-sm font-medium text-gray-400 mb-1">
+                    <label
+                      htmlFor="scenario-description"
+                      className="block text-sm font-medium text-gray-400 mb-1"
+                    >
                       Description
                     </label>
                     <textarea
@@ -260,7 +266,10 @@ export function ScenarioDetailPanel({
 
                   {/* Tags */}
                   <div>
-                    <label htmlFor="scenario-tags" className="block text-sm font-medium text-gray-400 mb-1">
+                    <label
+                      htmlFor="scenario-tags"
+                      className="block text-sm font-medium text-gray-400 mb-1"
+                    >
                       Tags
                     </label>
                     <input
@@ -278,7 +287,10 @@ export function ScenarioDetailPanel({
                   <div className="pt-4 border-t border-gray-200 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">URL:</span>
-                      <span className="text-gray-300 truncate max-w-[250px]" title={scenario.url}>
+                      <span
+                        className="text-gray-300 truncate max-w-[250px]"
+                        title={scenario.url}
+                      >
                         {scenario.url}
                       </span>
                     </div>
@@ -346,16 +358,39 @@ export function ScenarioDetailPanel({
 
 function CloseIcon() {
   return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M6 18L18 6M6 6l12 12"
+      />
     </svg>
   );
 }
 
 function LoadingSpinner() {
   return (
-    <svg className="w-5 h-5 animate-spin text-primary-400" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <svg
+      className="w-5 h-5 animate-spin text-primary-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
       <path
         className="opacity-75"
         fill="currentColor"

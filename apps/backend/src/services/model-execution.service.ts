@@ -54,7 +54,7 @@ export class ModelExecutionService {
     modelId: string,
     modelName: string,
     scenarios: Scenario[],
-    options: ModelExecutionOptions = {},
+    options: ModelExecutionOptions = {}
   ): Promise<ModelExecutionResult> {
     const startedAt = Date.now();
     const scenarioResults: ModelScenarioResult[] = [];
@@ -66,8 +66,15 @@ export class ModelExecutionService {
         status: 'passed',
         scenarioResults: [],
         summary: {
-          totalScenarios: 0, passedScenarios: 0, failedScenarios: 0, skippedScenarios: 0,
-          totalSteps: 0, passedSteps: 0, failedSteps: 0, skippedSteps: 0, duration: 0,
+          totalScenarios: 0,
+          passedScenarios: 0,
+          failedScenarios: 0,
+          skippedScenarios: 0,
+          totalSteps: 0,
+          passedSteps: 0,
+          failedSteps: 0,
+          skippedSteps: 0,
+          duration: 0,
         },
         startedAt,
         endedAt: Date.now(),
@@ -98,8 +105,11 @@ export class ModelExecutionService {
             stepResults: [],
             summary: {
               totalSteps: scenario.steps.length,
-              passed: 0, failed: 0, skipped: scenario.steps.length,
-              duration: 0, success: false,
+              passed: 0,
+              failed: 0,
+              skipped: scenario.steps.length,
+              duration: 0,
+              success: false,
             },
             duration: 0,
           });
@@ -120,7 +130,7 @@ export class ModelExecutionService {
           });
 
           if (!passed) hasFailed = true;
-        } catch (error) {
+        } catch (_error) {
           hasFailed = true;
           scenarioResults.push({
             scenarioId: scenario.id,
@@ -129,8 +139,11 @@ export class ModelExecutionService {
             stepResults: [],
             summary: {
               totalSteps: scenario.steps.length,
-              passed: 0, failed: 1, skipped: scenario.steps.length - 1,
-              duration: 0, success: false,
+              passed: 0,
+              failed: 1,
+              skipped: scenario.steps.length - 1,
+              duration: 0,
+              success: false,
             },
             duration: 0,
           });
@@ -150,11 +163,8 @@ export class ModelExecutionService {
     const failedSteps = scenarioResults.reduce((sum, r) => sum + r.summary.failed, 0);
     const skippedSteps = scenarioResults.reduce((sum, r) => sum + r.summary.skipped, 0);
 
-    const overallStatus = failedScenarios === 0
-      ? 'passed'
-      : passedScenarios > 0
-        ? 'partial'
-        : 'failed';
+    const overallStatus =
+      failedScenarios === 0 ? 'passed' : passedScenarios > 0 ? 'partial' : 'failed';
 
     return {
       modelId,

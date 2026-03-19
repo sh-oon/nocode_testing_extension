@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { FlowEdge, FlowNode } from '@like-cake/ast-types';
 import type { Edge, Node } from '@xyflow/react';
-import { getApiClient, type BackendUserFlow } from '../../../shared/api';
+import { type BackendUserFlow, getApiClient } from '../../../shared/api';
 
 // ============================================================================
 // Types
@@ -130,7 +130,7 @@ export function useFlowManager(options: UseFlowManagerOptions) {
       setNodes(rfNodes);
       setEdges(rfEdges);
     },
-    [setNodes, setEdges],
+    [setNodes, setEdges]
   );
 
   // ---- Actions ----
@@ -142,48 +142,45 @@ export function useFlowManager(options: UseFlowManagerOptions) {
    * fails, the validation is skipped gracefully and an empty array is
    * returned so the user is not blocked.
    */
-  const validateScenarioRefs = useCallback(
-    async (nodes: FlowNode[]): Promise<BrokenRef[]> => {
-      // Collect all scenario nodes and their referenced IDs
-      const scenarioNodes = nodes.filter(
-        (n): n is Extract<FlowNode, { type: 'scenario' }> => n.type === 'scenario',
-      );
+  const validateScenarioRefs = useCallback(async (nodes: FlowNode[]): Promise<BrokenRef[]> => {
+    // Collect all scenario nodes and their referenced IDs
+    const scenarioNodes = nodes.filter(
+      (n): n is Extract<FlowNode, { type: 'scenario' }> => n.type === 'scenario'
+    );
 
-      if (scenarioNodes.length === 0) {
+    if (scenarioNodes.length === 0) {
+      return [];
+    }
+
+    const ids = scenarioNodes.map((n) => n.data.scenarioId);
+
+    try {
+      const client = await getApiClient();
+      const response = await client.checkScenarioRefs(ids);
+
+      if (!response.success || !response.data) {
+        console.warn('[useFlowManager] check-refs API failed — skipping validation');
         return [];
       }
 
-      const ids = scenarioNodes.map((n) => n.data.scenarioId);
-
-      try {
-        const client = await getApiClient();
-        const response = await client.checkScenarioRefs(ids);
-
-        if (!response.success || !response.data) {
-          console.warn('[useFlowManager] check-refs API failed — skipping validation');
-          return [];
+      const broken: BrokenRef[] = [];
+      for (const node of scenarioNodes) {
+        const exists = response.data.results[node.data.scenarioId];
+        if (exists === false) {
+          broken.push({
+            nodeId: node.id,
+            scenarioId: node.data.scenarioId,
+            scenarioName: node.data.scenarioName,
+          });
         }
-
-        const broken: BrokenRef[] = [];
-        for (const node of scenarioNodes) {
-          const exists = response.data.results[node.data.scenarioId];
-          if (exists === false) {
-            broken.push({
-              nodeId: node.id,
-              scenarioId: node.data.scenarioId,
-              scenarioName: node.data.scenarioName,
-            });
-          }
-        }
-
-        return broken;
-      } catch (error) {
-        console.warn('[useFlowManager] Failed to validate scenario refs:', error);
-        return [];
       }
-    },
-    [],
-  );
+
+      return broken;
+    } catch (error) {
+      console.warn('[useFlowManager] Failed to validate scenario refs:', error);
+      return [];
+    }
+  }, []);
 
   /**
    * Load a flow by ID from the backend, populate the canvas, validate
@@ -229,7 +226,7 @@ export function useFlowManager(options: UseFlowManagerOptions) {
         operationLockRef.current = false;
       }
     },
-    [populateCanvas, validateScenarioRefs],
+    [populateCanvas, validateScenarioRefs]
   );
 
   /**
@@ -373,32 +370,29 @@ export function useFlowManager(options: UseFlowManagerOptions) {
         return false;
       }
     },
-    [flowId, clearFlow],
+    [flowId, clearFlow]
   );
 
   /**
    * Duplicate a flow by ID using the dedicated backend endpoint.
    * Returns the new flow ID or `null` on failure.
    */
-  const duplicateFlow = useCallback(
-    async (targetFlowId: string): Promise<string | null> => {
-      try {
-        const client = await getApiClient();
-        const response = await client.duplicateUserFlow(targetFlowId);
+  const duplicateFlow = useCallback(async (targetFlowId: string): Promise<string | null> => {
+    try {
+      const client = await getApiClient();
+      const response = await client.duplicateUserFlow(targetFlowId);
 
-        if (response.success && response.data) {
-          return response.data.id;
-        }
-
-        console.error('[useFlowManager] Failed to duplicate flow:', response.error);
-        return null;
-      } catch (error) {
-        console.error('[useFlowManager] Error duplicating flow:', error);
-        return null;
+      if (response.success && response.data) {
+        return response.data.id;
       }
-    },
-    [],
-  );
+
+      console.error('[useFlowManager] Failed to duplicate flow:', response.error);
+      return null;
+    } catch (error) {
+      console.error('[useFlowManager] Error duplicating flow:', error);
+      return null;
+    }
+  }, []);
 
   /**
    * Update the flow name and mark the flow as modified.

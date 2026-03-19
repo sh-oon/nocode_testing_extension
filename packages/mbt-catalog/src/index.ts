@@ -1,14 +1,5 @@
 // Types
 
-// Converters
-export * from './converters';
-
-// Graph (path generation)
-export * from './graph';
-
-// Validators
-export * from './validators';
-
 // Catalogs
 export { EVENT_CATALOG, getEventById, getEventsByCategory } from './catalogs/events';
 export {
@@ -16,6 +7,10 @@ export {
   getVerificationsByCategory,
   VERIFICATION_CATALOG,
 } from './catalogs/verifications';
+// Converters
+export * from './converters';
+// Graph (path generation)
+export * from './graph';
 export type {
   AccessibilityInfo,
   ElementBinding,
@@ -31,3 +26,5 @@ export type {
 } from './types/model';
 export type { CatalogParamDef, ElementRequirement } from './types/shared';
 export type { VerificationCatalogEntry, VerificationCategory } from './types/verification-catalog';
+// Validators
+export * from './validators';

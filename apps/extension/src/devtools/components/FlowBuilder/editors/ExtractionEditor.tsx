@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import type { VariableExtraction, ExtractionSource } from '@like-cake/ast-types';
+import { useCallback, useState } from 'react';
+import type { ExtractionSource, VariableExtraction } from '@like-cake/ast-types';
 import { JsonTreeViewer } from '../../JsonTreeViewer';
 import { getValuePreview } from '../../JsonTreeViewer/PathBuilder';
 
@@ -13,7 +13,11 @@ interface ExtractionEditorProps {
 }
 
 const sourceOptions: Array<{ value: ExtractionSource; label: string; description: string }> = [
-  { value: 'lastApiResponse', label: 'API Response', description: 'Extract from last API response' },
+  {
+    value: 'lastApiResponse',
+    label: 'API Response',
+    description: 'Extract from last API response',
+  },
   { value: 'element', label: 'DOM Element', description: 'Extract from page element' },
   { value: 'url', label: 'URL', description: 'Extract from current URL' },
   { value: 'localStorage', label: 'Local Storage', description: 'Extract from localStorage' },
@@ -67,7 +71,7 @@ export function ExtractionEditor({
   };
 
   const updateExtraction = (index: number, updates: Partial<VariableExtraction>) => {
-    setExtractions(prev => {
+    setExtractions((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], ...updates };
       return updated;
@@ -77,7 +81,7 @@ export function ExtractionEditor({
   const handleTreeSelect = useCallback(
     (jsonPath: string, value: unknown) => {
       if (activeTreeIndex !== null) {
-        setExtractions(prev => {
+        setExtractions((prev) => {
           const updated = [...prev];
           updated[activeTreeIndex] = { ...updated[activeTreeIndex], jsonPath };
           return updated;
@@ -114,18 +118,38 @@ export function ExtractionEditor({
   const responseData = sampleResponse || SAMPLE_API_RESPONSE;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="extraction-editor-title">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="extraction-editor-title"
+    >
       <div className="bg-white rounded-lg shadow-xl w-[640px] max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <h3 id="extraction-editor-title" className="text-lg font-semibold text-gray-900">Edit Extractions</h3>
+          <h3
+            id="extraction-editor-title"
+            className="text-lg font-semibold text-gray-900"
+          >
+            Edit Extractions
+          </h3>
           <button
             type="button"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-900 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -134,9 +158,7 @@ export function ExtractionEditor({
         <div className="p-4 space-y-4 overflow-y-auto max-h-[75vh]">
           {/* Label */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Node Label
-            </label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Node Label</label>
             <input
               type="text"
               value={nodeLabel}
@@ -149,23 +171,34 @@ export function ExtractionEditor({
           {/* Extractions List */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-600">
-                Extractions
-              </label>
+              <label className="text-sm font-medium text-gray-600">Extractions</label>
               <button
                 type="button"
                 onClick={addExtraction}
                 className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 Add Extraction
               </button>
             </div>
 
             {extractions.map((extraction, index) => (
-              <div key={index} className="p-3 bg-gray-50 rounded-md space-y-3">
+              <div
+                key={index}
+                className="p-3 bg-gray-50 rounded-md space-y-3"
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-gray-500">Extraction #{index + 1}</span>
                   <button
@@ -174,8 +207,18 @@ export function ExtractionEditor({
                     className="p-1 text-gray-500 hover:text-red-400 transition-colors"
                     disabled={extractions.length === 1}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -197,11 +240,16 @@ export function ExtractionEditor({
                   <label className="block text-xs text-gray-500 mb-1">Source</label>
                   <select
                     value={extraction.source}
-                    onChange={(e) => updateExtraction(index, { source: e.target.value as ExtractionSource })}
+                    onChange={(e) =>
+                      updateExtraction(index, { source: e.target.value as ExtractionSource })
+                    }
                     className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {sourceOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
+                      <option
+                        key={opt.value}
+                        value={opt.value}
+                      >
                         {opt.label} - {opt.description}
                       </option>
                     ))}
@@ -238,8 +286,18 @@ export function ExtractionEditor({
                           }`}
                           title="Pick from tree"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                            />
                           </svg>
                         </button>
                         <button
@@ -326,7 +384,9 @@ export function ExtractionEditor({
                   <input
                     type="text"
                     value={String(extraction.defaultValue ?? '')}
-                    onChange={(e) => updateExtraction(index, { defaultValue: e.target.value || undefined })}
+                    onChange={(e) =>
+                      updateExtraction(index, { defaultValue: e.target.value || undefined })
+                    }
                     className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="(optional)"
                   />

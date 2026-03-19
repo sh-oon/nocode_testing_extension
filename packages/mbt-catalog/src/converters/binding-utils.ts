@@ -30,7 +30,7 @@ export const serializeSelector = (selector: SelectorInput): string => {
 export const createElementBindingFromSelector = (
   selector: SelectorInput,
   label: string,
-  pageUrl = '',
+  pageUrl = ''
 ): ElementBinding => ({
   id: generateId(),
   selector,

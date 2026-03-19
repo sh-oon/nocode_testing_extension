@@ -5,7 +5,7 @@
  * grouped by category: comparison, string, and validation.
  */
 
-import type { ConditionOperator, Condition } from './types';
+import type { Condition, ConditionOperator } from './types';
 
 /**
  * Pattern preset definition
@@ -33,8 +33,20 @@ export interface PatternPreset {
 export const PATTERN_PRESETS: PatternPreset[] = [
   // Comparison
   { id: 'eq', label: 'Equals', description: 'Exact match', category: 'comparison', operator: 'eq' },
-  { id: 'ne', label: 'Not Equals', description: 'Not equal to', category: 'comparison', operator: 'ne' },
-  { id: 'gt', label: 'Greater Than', description: 'Number comparison (>)', category: 'comparison', operator: 'gt' },
+  {
+    id: 'ne',
+    label: 'Not Equals',
+    description: 'Not equal to',
+    category: 'comparison',
+    operator: 'ne',
+  },
+  {
+    id: 'gt',
+    label: 'Greater Than',
+    description: 'Number comparison (>)',
+    category: 'comparison',
+    operator: 'gt',
+  },
   {
     id: 'gte',
     label: 'Greater or Equal',
@@ -42,7 +54,13 @@ export const PATTERN_PRESETS: PatternPreset[] = [
     category: 'comparison',
     operator: 'gte',
   },
-  { id: 'lt', label: 'Less Than', description: 'Number comparison (<)', category: 'comparison', operator: 'lt' },
+  {
+    id: 'lt',
+    label: 'Less Than',
+    description: 'Number comparison (<)',
+    category: 'comparison',
+    operator: 'lt',
+  },
   {
     id: 'lte',
     label: 'Less or Equal',
@@ -52,7 +70,13 @@ export const PATTERN_PRESETS: PatternPreset[] = [
   },
 
   // String
-  { id: 'contains', label: 'Contains', description: 'Substring match', category: 'string', operator: 'contains' },
+  {
+    id: 'contains',
+    label: 'Contains',
+    description: 'Substring match',
+    category: 'string',
+    operator: 'contains',
+  },
   {
     id: 'startsWith',
     label: 'Starts With',
@@ -60,7 +84,13 @@ export const PATTERN_PRESETS: PatternPreset[] = [
     category: 'string',
     operator: 'startsWith',
   },
-  { id: 'endsWith', label: 'Ends With', description: 'Suffix match', category: 'string', operator: 'endsWith' },
+  {
+    id: 'endsWith',
+    label: 'Ends With',
+    description: 'Suffix match',
+    category: 'string',
+    operator: 'endsWith',
+  },
   {
     id: 'isEmpty',
     label: 'Is Empty',
@@ -137,7 +167,11 @@ export function getPresetById(id: string): PatternPreset | undefined {
 /**
  * Create a Condition from a preset selection
  */
-export function createConditionFromPreset(preset: PatternPreset, left: string, right?: string): Condition {
+export function createConditionFromPreset(
+  preset: PatternPreset,
+  left: string,
+  right?: string
+): Condition {
   return {
     left,
     operator: preset.operator,

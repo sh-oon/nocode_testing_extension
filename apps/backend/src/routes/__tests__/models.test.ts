@@ -9,8 +9,8 @@
 
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { models } from '../models';
 import type { ApiResponse } from '../../types';
+import { models } from '../models';
 
 // ── Service mocks ────────────────────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ describe('POST /models/execute', () => {
       'model-abc',
       'Login Flow',
       requestBody.scenarios,
-      { headless: false, timeout: 10000 },
+      { headless: false, timeout: 10000 }
     );
   });
 
@@ -173,7 +173,7 @@ describe('POST /models/execute', () => {
 
   it('returns 500 with error message when service throws', async () => {
     vi.mocked(modelExecutionService.execute).mockRejectedValue(
-      new Error('Browser failed to launch'),
+      new Error('Browser failed to launch')
     );
 
     const res = await post('/models/execute', executeBody());
@@ -214,11 +214,8 @@ describe('POST /models/save-scenarios', () => {
     const res = await post(
       '/models/save-scenarios',
       saveScenariosBody({
-        scenarios: [
-          minimalScenario({ id: 'sc-1' }),
-          minimalScenario({ id: 'sc-2' }),
-        ],
-      }),
+        scenarios: [minimalScenario({ id: 'sc-1' }), minimalScenario({ id: 'sc-2' })],
+      })
     );
 
     expect(res.status).toBe(200);
@@ -239,23 +236,20 @@ describe('POST /models/save-scenarios', () => {
       minimalScenario({ id: 'sc-2' }),
     ];
 
-    await post(
-      '/models/save-scenarios',
-      saveScenariosBody({ scenarios }),
-    );
+    await post('/models/save-scenarios', saveScenariosBody({ scenarios }));
 
     expect(scenarioService.create).toHaveBeenCalledTimes(2);
 
     // First scenario uses its explicit name
     expect(scenarioService.create).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ name: 'First Scenario', url: 'https://example.com' }),
+      expect.objectContaining({ name: 'First Scenario', url: 'https://example.com' })
     );
 
     // Second scenario falls back to the model-name-prefixed default
     expect(scenarioService.create).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ name: '[Login Flow] Scenario 2', url: 'https://example.com' }),
+      expect.objectContaining({ name: '[Login Flow] Scenario 2', url: 'https://example.com' })
     );
   });
 
@@ -267,11 +261,11 @@ describe('POST /models/save-scenarios', () => {
       saveScenariosBody({
         modelName: 'Checkout Flow',
         scenarios: [minimalScenario()],
-      }),
+      })
     );
 
     expect(scenarioService.create).toHaveBeenCalledWith(
-      expect.objectContaining({ name: '[Checkout Flow] Scenario 1' }),
+      expect.objectContaining({ name: '[Checkout Flow] Scenario 1' })
     );
   });
 
@@ -285,7 +279,7 @@ describe('POST /models/save-scenarios', () => {
     await post('/models/save-scenarios', saveScenariosBody({ scenarios: [scenarioWithViewport] }));
 
     expect(scenarioService.create).toHaveBeenCalledWith(
-      expect.objectContaining({ viewport: { width: 375, height: 812 } }),
+      expect.objectContaining({ viewport: { width: 375, height: 812 } })
     );
   });
 
@@ -295,7 +289,7 @@ describe('POST /models/save-scenarios', () => {
     await post('/models/save-scenarios', saveScenariosBody());
 
     expect(scenarioService.create).toHaveBeenCalledWith(
-      expect.objectContaining({ viewport: { width: 1440, height: 900 } }),
+      expect.objectContaining({ viewport: { width: 1440, height: 900 } })
     );
   });
 

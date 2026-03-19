@@ -3,6 +3,7 @@ import deepDiff from 'deep-diff';
 
 type Diff<LHS, RHS> = deepDiff.Diff<LHS, RHS>;
 const { diff } = deepDiff;
+
 import type {
   ApiCallDiffResult,
   ApiDiffConfig,

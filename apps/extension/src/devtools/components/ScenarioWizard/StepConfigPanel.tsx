@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { validateBindingAccessibility, type AccessibilityWarning } from '@like-cake/mbt-catalog';
 import type { ElementBinding } from '@like-cake/mbt-catalog';
-import type { CatalogType, PendingStepDraft, SelectorCandidate } from './useScenarioWizard';
+import { type AccessibilityWarning, validateBindingAccessibility } from '@like-cake/mbt-catalog';
 import { CatalogParamForm } from '../shared/CatalogParamForm';
+import type { CatalogType, PendingStepDraft, SelectorCandidate } from './useScenarioWizard';
 
 interface StepConfigPanelProps {
   draft: PendingStepDraft;
@@ -39,31 +39,131 @@ const CATALOG_OPTIONS: CatalogOption[] = [
   { label: '앞으로 간다', catalogId: 'historyForward', catalogType: 'event', group: '네비게이션' },
   { label: '대기한다', catalogId: 'wait', catalogType: 'event', group: '네비게이션' },
   // ── 검증: 요소 ──
-  { label: '요소가 보이는지 확인한다', catalogId: 'visible', catalogType: 'verification', group: '검증 - 요소' },
-  { label: '요소가 안 보이는지 확인한다', catalogId: 'hidden', catalogType: 'verification', group: '검증 - 요소' },
-  { label: '요소가 있는지 확인한다', catalogId: 'exists', catalogType: 'verification', group: '검증 - 요소' },
-  { label: '요소가 없는지 확인한다', catalogId: 'notExists', catalogType: 'verification', group: '검증 - 요소' },
-  { label: '요소 개수를 확인한다', catalogId: 'count', catalogType: 'verification', group: '검증 - 요소' },
+  {
+    label: '요소가 보이는지 확인한다',
+    catalogId: 'visible',
+    catalogType: 'verification',
+    group: '검증 - 요소',
+  },
+  {
+    label: '요소가 안 보이는지 확인한다',
+    catalogId: 'hidden',
+    catalogType: 'verification',
+    group: '검증 - 요소',
+  },
+  {
+    label: '요소가 있는지 확인한다',
+    catalogId: 'exists',
+    catalogType: 'verification',
+    group: '검증 - 요소',
+  },
+  {
+    label: '요소가 없는지 확인한다',
+    catalogId: 'notExists',
+    catalogType: 'verification',
+    group: '검증 - 요소',
+  },
+  {
+    label: '요소 개수를 확인한다',
+    catalogId: 'count',
+    catalogType: 'verification',
+    group: '검증 - 요소',
+  },
   // ── 검증: 텍스트 ──
-  { label: '텍스트가 포함되어 있는지 확인한다', catalogId: 'textContains', catalogType: 'verification', group: '검증 - 텍스트' },
-  { label: '텍스트가 일치하는지 확인한다', catalogId: 'textEquals', catalogType: 'verification', group: '검증 - 텍스트' },
-  { label: '요소가 비어있는지 확인한다', catalogId: 'elementEmpty', catalogType: 'verification', group: '검증 - 텍스트' },
+  {
+    label: '텍스트가 포함되어 있는지 확인한다',
+    catalogId: 'textContains',
+    catalogType: 'verification',
+    group: '검증 - 텍스트',
+  },
+  {
+    label: '텍스트가 일치하는지 확인한다',
+    catalogId: 'textEquals',
+    catalogType: 'verification',
+    group: '검증 - 텍스트',
+  },
+  {
+    label: '요소가 비어있는지 확인한다',
+    catalogId: 'elementEmpty',
+    catalogType: 'verification',
+    group: '검증 - 텍스트',
+  },
   // ── 검증: 폼 ──
-  { label: '입력 값을 확인한다', catalogId: 'inputValue', catalogType: 'verification', group: '검증 - 폼' },
-  { label: '체크박스가 체크되었는지 확인한다', catalogId: 'checkboxChecked', catalogType: 'verification', group: '검증 - 폼' },
-  { label: '요소가 비활성화인지 확인한다', catalogId: 'inputDisabled', catalogType: 'verification', group: '검증 - 폼' },
-  { label: '요소가 활성화인지 확인한다', catalogId: 'inputEnabled', catalogType: 'verification', group: '검증 - 폼' },
+  {
+    label: '입력 값을 확인한다',
+    catalogId: 'inputValue',
+    catalogType: 'verification',
+    group: '검증 - 폼',
+  },
+  {
+    label: '체크박스가 체크되었는지 확인한다',
+    catalogId: 'checkboxChecked',
+    catalogType: 'verification',
+    group: '검증 - 폼',
+  },
+  {
+    label: '요소가 비활성화인지 확인한다',
+    catalogId: 'inputDisabled',
+    catalogType: 'verification',
+    group: '검증 - 폼',
+  },
+  {
+    label: '요소가 활성화인지 확인한다',
+    catalogId: 'inputEnabled',
+    catalogType: 'verification',
+    group: '검증 - 폼',
+  },
   // ── 검증: 페이지 ──
-  { label: 'URL을 확인한다', catalogId: 'currentUrl', catalogType: 'verification', group: '검증 - 페이지' },
-  { label: '페이지 제목을 확인한다', catalogId: 'pageTitle', catalogType: 'verification', group: '검증 - 페이지' },
-  { label: '페이지가 로딩되었는지 확인한다', catalogId: 'documentExists', catalogType: 'verification', group: '검증 - 페이지' },
+  {
+    label: 'URL을 확인한다',
+    catalogId: 'currentUrl',
+    catalogType: 'verification',
+    group: '검증 - 페이지',
+  },
+  {
+    label: '페이지 제목을 확인한다',
+    catalogId: 'pageTitle',
+    catalogType: 'verification',
+    group: '검증 - 페이지',
+  },
+  {
+    label: '페이지가 로딩되었는지 확인한다',
+    catalogId: 'documentExists',
+    catalogType: 'verification',
+    group: '검증 - 페이지',
+  },
   // ── 검증: API ──
-  { label: 'API 응답을 확인한다', catalogId: 'apiResponse', catalogType: 'verification', group: '검증 - API' },
-  { label: 'API가 호출되었는지 확인한다', catalogId: 'apiCalled', catalogType: 'verification', group: '검증 - API' },
+  {
+    label: 'API 응답을 확인한다',
+    catalogId: 'apiResponse',
+    catalogType: 'verification',
+    group: '검증 - API',
+  },
+  {
+    label: 'API가 호출되었는지 확인한다',
+    catalogId: 'apiCalled',
+    catalogType: 'verification',
+    group: '검증 - API',
+  },
   // ── 검증: 스타일 ──
-  { label: 'CSS 스타일을 확인한다', catalogId: 'cssStyle', catalogType: 'verification', group: '검증 - 스타일' },
-  { label: '속성 값을 확인한다', catalogId: 'attributeValue', catalogType: 'verification', group: '검증 - 스타일' },
-  { label: '클래스가 있는지 확인한다', catalogId: 'classNameExists', catalogType: 'verification', group: '검증 - 스타일' },
+  {
+    label: 'CSS 스타일을 확인한다',
+    catalogId: 'cssStyle',
+    catalogType: 'verification',
+    group: '검증 - 스타일',
+  },
+  {
+    label: '속성 값을 확인한다',
+    catalogId: 'attributeValue',
+    catalogType: 'verification',
+    group: '검증 - 스타일',
+  },
+  {
+    label: '클래스가 있는지 확인한다',
+    catalogId: 'classNameExists',
+    catalogType: 'verification',
+    group: '검증 - 스타일',
+  },
 ];
 
 const GROUPS = [...new Set(CATALOG_OPTIONS.map((o) => o.group))];
@@ -109,17 +209,24 @@ export function StepConfigPanel({
         violations: [],
       },
     };
-    const context = draft.catalogType === 'event'
-      ? (['click', 'doubleClick'].includes(draft.catalogId) ? 'click' as const
-        : ['type', 'select', 'fileUpload', 'clear'].includes(draft.catalogId) ? 'type' as const
-        : ['hover', 'mouseout'].includes(draft.catalogId) ? 'hover' as const
-        : 'other' as const)
-      : 'assert' as const;
+    const context =
+      draft.catalogType === 'event'
+        ? ['click', 'doubleClick'].includes(draft.catalogId)
+          ? ('click' as const)
+          : ['type', 'select', 'fileUpload', 'clear'].includes(draft.catalogId)
+            ? ('type' as const)
+            : ['hover', 'mouseout'].includes(draft.catalogId)
+              ? ('hover' as const)
+              : ('other' as const)
+        : ('assert' as const);
     return validateBindingAccessibility(tempBinding, context);
   }, [draft.elementInfo, draft.selectedSelector, draft.catalogType, draft.catalogId]);
 
   return (
-    <div className="flex-1 overflow-y-auto" data-test-id="wizard-step-config">
+    <div
+      className="flex-1 overflow-y-auto"
+      data-test-id="wizard-step-config"
+    >
       {/* ── Section: 무엇을? ── */}
       <Section title="무엇을?">
         <select
@@ -131,9 +238,15 @@ export function StepConfigPanel({
           className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {GROUPS.map((group) => (
-            <optgroup key={group} label={group}>
+            <optgroup
+              key={group}
+              label={group}
+            >
               {CATALOG_OPTIONS.filter((o) => o.group === group).map((opt) => (
-                <option key={`${opt.catalogType}:${opt.catalogId}`} value={`${opt.catalogType}:${opt.catalogId}`}>
+                <option
+                  key={`${opt.catalogType}:${opt.catalogId}`}
+                  value={`${opt.catalogType}:${opt.catalogId}`}
+                >
                   {opt.label}
                 </option>
               ))}
@@ -165,9 +278,24 @@ export function StepConfigPanel({
           title="어떤 요소를?"
           trailing={
             <div className="flex gap-1">
-              <TabButton active={selectorTab === 'pick'} onClick={() => setSelectorTab('pick')}>화면에서 고르기</TabButton>
-              <TabButton active={selectorTab === 'manual'} onClick={() => setSelectorTab('manual')}>직접 입력</TabButton>
-              <TabButton active={selectorTab === 'regex'} onClick={() => setSelectorTab('regex')}>정규식 사용</TabButton>
+              <TabButton
+                active={selectorTab === 'pick'}
+                onClick={() => setSelectorTab('pick')}
+              >
+                화면에서 고르기
+              </TabButton>
+              <TabButton
+                active={selectorTab === 'manual'}
+                onClick={() => setSelectorTab('manual')}
+              >
+                직접 입력
+              </TabButton>
+              <TabButton
+                active={selectorTab === 'regex'}
+                onClick={() => setSelectorTab('regex')}
+              >
+                정규식 사용
+              </TabButton>
             </div>
           }
         >
@@ -178,7 +306,13 @@ export function StepConfigPanel({
                 <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-md">
                   <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                   <span className="text-sm text-orange-700">페이지에서 요소를 클릭하세요...</span>
-                  <button type="button" onClick={onCancel} className="ml-auto text-xs text-gray-500 hover:text-gray-700">취소</button>
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    className="ml-auto text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    취소
+                  </button>
                 </div>
               ) : draft.elementInfo ? (
                 <div className="space-y-2">
@@ -221,16 +355,28 @@ export function StepConfigPanel({
                   </FieldGroup>
 
                   {/* 접근성 */}
-                  <FieldGroup title={`접근성${a11yWarnings.length > 0 ? ` (${a11yWarnings.length})` : ''}`}>
+                  <FieldGroup
+                    title={`접근성${a11yWarnings.length > 0 ? ` (${a11yWarnings.length})` : ''}`}
+                  >
                     <div className="space-y-1.5 text-sm">
                       {Boolean(draft.elementInfo.role) && (
-                        <LabelValue label="접근성 역할" value={String(draft.elementInfo.role)} />
+                        <LabelValue
+                          label="접근성 역할"
+                          value={String(draft.elementInfo.role)}
+                        />
                       )}
                       {Boolean(draft.elementInfo.ariaLabel) && (
-                        <LabelValue label="접근성 이름" value={String(draft.elementInfo.ariaLabel)} />
+                        <LabelValue
+                          label="접근성 이름"
+                          value={String(draft.elementInfo.ariaLabel)}
+                        />
                       )}
                       {Boolean(draft.elementInfo.testId) && (
-                        <LabelValue label="Test ID" value={String(draft.elementInfo.testId)} highlight />
+                        <LabelValue
+                          label="Test ID"
+                          value={String(draft.elementInfo.testId)}
+                          highlight
+                        />
                       )}
                       {!draft.elementInfo.role && !draft.elementInfo.ariaLabel && (
                         <div className="text-xs text-yellow-600">접근성 속성이 없습니다</div>
@@ -240,7 +386,10 @@ export function StepConfigPanel({
                       {a11yWarnings.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {a11yWarnings.map((w, i) => (
-                            <A11yWarningItem key={i} warning={w} />
+                            <A11yWarningItem
+                              key={i}
+                              warning={w}
+                            />
                           ))}
                         </div>
                       )}
@@ -272,7 +421,9 @@ export function StepConfigPanel({
                       <div className="text-xs text-gray-500">
                         상위: {String(parentInfo.tagName ?? '').toLowerCase()}
                         {parentInfo.id ? `#${String(parentInfo.id)}` : ''}
-                        {parentInfo.classNames ? `.${String((parentInfo.classNames as string[])?.join('.'))}` : ''}
+                        {parentInfo.classNames
+                          ? `.${String((parentInfo.classNames as string[])?.join('.'))}`
+                          : ''}
                       </div>
                     </FieldGroup>
                   )}
@@ -316,9 +467,7 @@ export function StepConfigPanel({
                 placeholder="정규식 패턴 (예: button.*submit)"
                 className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <div className="text-[10px] text-gray-400">
-                XPath contains() 패턴으로 변환됩니다
-              </div>
+              <div className="text-[10px] text-gray-400">XPath contains() 패턴으로 변환됩니다</div>
               <button
                 type="button"
                 onClick={() => {
@@ -366,7 +515,15 @@ export function StepConfigPanel({
 
 /* ── Sub-components ── */
 
-function Section({ title, trailing, children }: { title: string; trailing?: React.ReactNode; children: React.ReactNode }) {
+function Section({
+  title,
+  trailing,
+  children,
+}: {
+  title: string;
+  trailing?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="border-b border-gray-200 px-4 py-3">
       <div className="flex items-center justify-between mb-2">
@@ -389,24 +546,42 @@ function FieldGroup({ title, children }: { title: string; children: React.ReactN
   );
 }
 
-function LabelValue({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function LabelValue({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs text-gray-500">{label}</span>
-      <span className={`text-xs font-mono ${highlight ? 'text-green-600 font-medium' : 'text-gray-700'}`}>{value}</span>
+      <span
+        className={`text-xs font-mono ${highlight ? 'text-green-600 font-medium' : 'text-gray-700'}`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
-        active
-          ? 'bg-blue-600 text-white'
-          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+        active ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
       }`}
     >
       {children}
@@ -443,7 +618,13 @@ const WAIT_PRESETS = [
   { label: '5s', value: 5000 },
 ] as const;
 
-function WaitPresets({ currentDuration, onSelect }: { currentDuration: number | undefined; onSelect: (ms: number) => void }) {
+function WaitPresets({
+  currentDuration,
+  onSelect,
+}: {
+  currentDuration: number | undefined;
+  onSelect: (ms: number) => void;
+}) {
   return (
     <div className="flex items-center gap-1.5 mb-2">
       {WAIT_PRESETS.map((preset) => (
@@ -464,7 +645,15 @@ function WaitPresets({ currentDuration, onSelect }: { currentDuration: number | 
   );
 }
 
-function SelectorOption({ candidate, isSelected, onSelect }: { candidate: SelectorCandidate; isSelected: boolean; onSelect: () => void }) {
+function SelectorOption({
+  candidate,
+  isSelected,
+  onSelect,
+}: {
+  candidate: SelectorCandidate;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
   return (
     <button
       type="button"

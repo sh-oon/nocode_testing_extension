@@ -10,7 +10,12 @@ import {
   StepPlayer,
 } from '@like-cake/step-player';
 import puppeteer, { type Browser, type Page } from 'puppeteer';
-import type { LabeledSnapshot, ObservedApiCall, RunnerOptions, ScenarioExecutionResult } from './types';
+import type {
+  LabeledSnapshot,
+  ObservedApiCall,
+  RunnerOptions,
+  ScenarioExecutionResult,
+} from './types';
 
 /**
  * Default runner options
@@ -100,7 +105,10 @@ export class ScenarioRunner {
         const result = await Promise.race([
           this.runOnce(scenario),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`Scenario timed out after ${globalTimeout}ms`)), globalTimeout)
+            setTimeout(
+              () => reject(new Error(`Scenario timed out after ${globalTimeout}ms`)),
+              globalTimeout
+            )
           ),
         ]);
         return result;

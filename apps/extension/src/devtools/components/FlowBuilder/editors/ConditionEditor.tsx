@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import type { FlowCondition } from '@like-cake/ast-types';
 import {
-  getPresetsByCategory,
   getPresetById,
+  getPresetsByCategory,
   resolvePresetFromCondition,
 } from '@like-cake/variable-store';
 
@@ -88,18 +88,38 @@ export function ConditionEditor({ condition, label, onChange, onClose }: Conditi
   })();
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="condition-editor-title">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="condition-editor-title"
+    >
       <div className="bg-white rounded-lg shadow-xl w-[480px] max-h-[80vh] overflow-hidden">
         {/* Header */}
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <h3 id="condition-editor-title" className="text-lg font-semibold text-gray-900">Edit Condition</h3>
+          <h3
+            id="condition-editor-title"
+            className="text-lg font-semibold text-gray-900"
+          >
+            Edit Condition
+          </h3>
           <button
             type="button"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-900 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -108,9 +128,7 @@ export function ConditionEditor({ condition, label, onChange, onClose }: Conditi
         <div className="p-4 space-y-4 overflow-y-auto">
           {/* Label */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Node Label
-            </label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Node Label</label>
             <input
               type="text"
               value={nodeLabel}
@@ -124,7 +142,7 @@ export function ConditionEditor({ condition, label, onChange, onClose }: Conditi
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Left Operand
-              <span className="text-gray-500 font-normal ml-2">Use {"{{var}}"} for variables</span>
+              <span className="text-gray-500 font-normal ml-2">Use {'{{var}}'} for variables</span>
             </label>
             <input
               type="text"
@@ -137,9 +155,7 @@ export function ConditionEditor({ condition, label, onChange, onClose }: Conditi
 
           {/* Match Type (Preset selector with categories) */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Match Type
-            </label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Match Type</label>
             <select
               value={selectedPresetId}
               onChange={(e) => handlePresetChange(e.target.value)}
@@ -147,29 +163,36 @@ export function ConditionEditor({ condition, label, onChange, onClose }: Conditi
             >
               <optgroup label="Comparison">
                 {comparisonPresets.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <option
+                    key={p.id}
+                    value={p.id}
+                  >
                     {p.label} - {p.description}
                   </option>
                 ))}
               </optgroup>
               <optgroup label="String">
                 {stringPresets.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <option
+                    key={p.id}
+                    value={p.id}
+                  >
                     {p.label} - {p.description}
                   </option>
                 ))}
               </optgroup>
               <optgroup label="Validation">
                 {validationPresets.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <option
+                    key={p.id}
+                    value={p.id}
+                  >
                     {p.label} - {p.description}
                   </option>
                 ))}
               </optgroup>
             </select>
-            {preset && (
-              <p className="mt-1 text-xs text-gray-400">{preset.description}</p>
-            )}
+            {preset && <p className="mt-1 text-xs text-gray-400">{preset.description}</p>}
           </div>
 
           {/* Right operand - only for binary non-regex presets */}
@@ -177,7 +200,7 @@ export function ConditionEditor({ condition, label, onChange, onClose }: Conditi
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Right Operand
-                <span className="text-gray-400 font-normal ml-2">Value or {"{{var}}"}</span>
+                <span className="text-gray-400 font-normal ml-2">Value or {'{{var}}'}</span>
               </label>
               <input
                 type="text"
@@ -206,18 +229,14 @@ export function ConditionEditor({ condition, label, onChange, onClose }: Conditi
                 className={`w-full px-3 py-2 bg-white border rounded-md text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${regexError ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="^[A-Z]{2,4}-\d+$"
               />
-              {regexError && (
-                <p className="mt-1 text-xs text-red-400">{regexError}</p>
-              )}
+              {regexError && <p className="mt-1 text-xs text-red-400">{regexError}</p>}
             </div>
           )}
 
           {/* Preview */}
           <div className="p-3 bg-gray-50 rounded-md">
             <div className="text-xs text-gray-400 mb-1">Preview:</div>
-            <div className="text-sm text-amber-400 font-mono">
-              {previewText}
-            </div>
+            <div className="text-sm text-amber-400 font-mono">{previewText}</div>
             {hasFixedRegex && (
               <div className="text-xs text-gray-400 mt-1">
                 Pattern: <span className="text-gray-500 font-mono">{preset?.regex}</span>

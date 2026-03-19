@@ -85,7 +85,7 @@ describe('executeNavigate', () => {
     expect(result.status).toBe('passed');
     expect(adapter.navigate).toHaveBeenCalledWith(
       'https://myapp.com/knowledge/personal',
-      expect.objectContaining({ timeout: 30000 }),
+      expect.objectContaining({ timeout: 30000 })
     );
   });
 
@@ -131,7 +131,7 @@ describe('executeNavigate', () => {
     expect(result.status).toBe('passed');
     expect(adapter.navigate).toHaveBeenCalledWith(
       'https://myapp.com/dashboard',
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -156,7 +156,7 @@ describe('executeNavigate', () => {
     expect(result.status).toBe('passed');
     expect(adapter.navigate).toHaveBeenCalledWith(
       'https://myapp.com/users/42/profile',
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 

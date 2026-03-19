@@ -8,13 +8,7 @@
  */
 
 /** Tags that should never be tracked */
-const IGNORED_TAGS = new Set([
-  'script',
-  'style',
-  'link',
-  'meta',
-  'noscript',
-]);
+const IGNORED_TAGS = new Set(['script', 'style', 'link', 'meta', 'noscript']);
 
 /** Maximum mutations reported per stable period */
 const MAX_MUTATIONS_PER_REPORT = 3;
@@ -150,7 +144,7 @@ function significanceScore(el: HTMLElement): number {
     const elCenterX = rect.left + rect.width / 2;
     const elCenterY = rect.top + rect.height / 2;
     const distance = Math.sqrt(
-      (elCenterX - viewportCenterX) ** 2 + (elCenterY - viewportCenterY) ** 2,
+      (elCenterX - viewportCenterX) ** 2 + (elCenterY - viewportCenterY) ** 2
     );
     // Normalise: closer to center -> higher score (max 50)
     const maxDist = Math.sqrt(viewportCenterX ** 2 + viewportCenterY ** 2);
@@ -202,7 +196,7 @@ export class DomMutationTracker {
   private stabilityTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
-    config: Partial<DomMutationTrackerConfig> & Pick<DomMutationTrackerConfig, 'onStable'>,
+    config: Partial<DomMutationTrackerConfig> & Pick<DomMutationTrackerConfig, 'onStable'>
   ) {
     this.config = {
       stabilityThreshold: config.stabilityThreshold ?? DEFAULT_STABILITY_THRESHOLD,
@@ -319,9 +313,7 @@ export class DomMutationTracker {
     if (filtered.length === 0) return;
 
     // Sort by significance (text > viewport proximity > others)
-    filtered.sort(
-      (a, b) => significanceScore(b.element) - significanceScore(a.element),
-    );
+    filtered.sort((a, b) => significanceScore(b.element) - significanceScore(a.element));
 
     // Limit to max mutations
     const top = filtered.slice(0, MAX_MUTATIONS_PER_REPORT);
@@ -345,7 +337,7 @@ export class DomMutationTracker {
  * Create a new DomMutationTracker instance
  */
 export function createDomMutationTracker(
-  config: Partial<DomMutationTrackerConfig> & Pick<DomMutationTrackerConfig, 'onStable'>,
+  config: Partial<DomMutationTrackerConfig> & Pick<DomMutationTrackerConfig, 'onStable'>
 ): DomMutationTracker {
   return new DomMutationTracker(config);
 }

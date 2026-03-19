@@ -1,12 +1,11 @@
 export {
-  validateBindingAccessibility,
-  getMaxImpact,
   type AccessibilityWarning,
+  getMaxImpact,
   type UsageContext,
+  validateBindingAccessibility,
 } from './accessibility';
-
 export {
-  validateTestModel,
   countIssues,
   type ValidationIssue,
+  validateTestModel,
 } from './model-validator';

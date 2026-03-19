@@ -20,18 +20,12 @@ export function SelectorOption({
 }: SelectorOptionProps) {
   // Color the stability bar based on score
   const barColor =
-    stabilityScore >= 70
-      ? 'bg-green-500'
-      : stabilityScore >= 40
-        ? 'bg-amber-500'
-        : 'bg-red-500';
+    stabilityScore >= 70 ? 'bg-green-500' : stabilityScore >= 40 ? 'bg-amber-500' : 'bg-red-500';
 
   return (
     <div
       className={`p-3 rounded-md cursor-pointer transition-colors border ${
-        isSelected
-          ? 'bg-blue-50 border-blue-300'
-          : 'bg-white border-gray-200 hover:border-gray-300'
+        isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200 hover:border-gray-300'
       }`}
       role="radio"
       aria-checked={isSelected}
@@ -71,18 +65,14 @@ export function SelectorOption({
       <div className="mt-2 flex items-center gap-3 ml-6">
         {/* Stability bar */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-[10px] text-gray-500 w-[52px]">
-            Stability:
-          </span>
+          <span className="text-[10px] text-gray-500 w-[52px]">Stability:</span>
           <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full ${barColor}`}
               style={{ width: `${stabilityScore}%` }}
             />
           </div>
-          <span className="text-[10px] text-gray-500 w-7 text-right">
-            {stabilityScore}%
-          </span>
+          <span className="text-[10px] text-gray-500 w-7 text-right">{stabilityScore}%</span>
         </div>
 
         {/* Divider */}
@@ -90,7 +80,8 @@ export function SelectorOption({
 
         {/* Unique indicator */}
         <span className="text-[10px] text-gray-500">
-          Unique: {candidate.isUnique ? (
+          Unique:{' '}
+          {candidate.isUnique ? (
             <span className="text-green-600">Yes</span>
           ) : (
             <span className="text-red-500">No</span>
@@ -102,7 +93,8 @@ export function SelectorOption({
 
         {/* Readable indicator */}
         <span className="text-[10px] text-gray-500">
-          Readable: {candidate.isReadable ? (
+          Readable:{' '}
+          {candidate.isReadable ? (
             <span className="text-green-600">Yes</span>
           ) : (
             <span className="text-gray-500">-</span>

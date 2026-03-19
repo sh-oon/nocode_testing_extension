@@ -1,4 +1,3 @@
-import path from 'node:path';
 import type {
   AssertElementStep,
   ClickStep,
@@ -8,9 +7,10 @@ import type {
   Step,
   TypeStep,
 } from '@like-cake/ast-types';
-import { ScenarioRunner } from '@like-cake/runner';
 import type { ScenarioExecutionResult } from '@like-cake/runner';
+import { ScenarioRunner } from '@like-cake/runner';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import path from 'node:path';
 import { createFixtureServer } from './setup';
 
 /* -------------------------------------------------------------------------- */

@@ -15,12 +15,7 @@ const sortLabels: Record<SortOption, string> = {
   createdAt: '생성일순',
 };
 
-export function FlowSearchBar({
-  query,
-  onQueryChange,
-  sortBy,
-  onSortChange,
-}: FlowSearchBarProps) {
+export function FlowSearchBar({ query, onQueryChange, sortBy, onSortChange }: FlowSearchBarProps) {
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
     onQueryChange(e.target.value);
   };
@@ -36,7 +31,10 @@ export function FlowSearchBar({
         <div className="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none">
           <SearchIcon />
         </div>
-        <label htmlFor="flow-search-input" className="sr-only">
+        <label
+          htmlFor="flow-search-input"
+          className="sr-only"
+        >
           플로우 검색
         </label>
         <input
@@ -51,7 +49,10 @@ export function FlowSearchBar({
       </div>
 
       {/* Sort dropdown */}
-      <label htmlFor="flow-sort-select" className="sr-only">
+      <label
+        htmlFor="flow-sort-select"
+        className="sr-only"
+      >
         정렬 기준
       </label>
       <select
@@ -61,13 +62,14 @@ export function FlowSearchBar({
         className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer"
         data-test-id="flow-sort-select"
       >
-        {(Object.entries(sortLabels) as Array<[SortOption, string]>).map(
-          ([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          )
-        )}
+        {(Object.entries(sortLabels) as Array<[SortOption, string]>).map(([value, label]) => (
+          <option
+            key={value}
+            value={value}
+          >
+            {label}
+          </option>
+        ))}
       </select>
     </div>
   );

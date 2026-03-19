@@ -36,8 +36,18 @@ export function StepEditor({ step, stepIndex, onSave, onClose }: StepEditorProps
             onClick={onClose}
             className="text-gray-500 hover:text-gray-900 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -47,10 +57,15 @@ export function StepEditor({ step, stepIndex, onSave, onClose }: StepEditorProps
           {/* Sensitive field banner */}
           {isSensitive && (
             <div className="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
-              This field contains masked sensitive data. Use <code className="px-1 bg-gray-100 rounded font-mono text-xs">${'{variableName}'}</code> syntax to inject runtime variables.
+              This field contains masked sensitive data. Use{' '}
+              <code className="px-1 bg-gray-100 rounded font-mono text-xs">
+                ${'{variableName}'}
+              </code>{' '}
+              syntax to inject runtime variables.
               {maskedValue && (
                 <div className="mt-1 text-yellow-700 text-xs">
-                  Suggested: replace with <code className="px-1 bg-gray-100 rounded font-mono">${'{password}'}</code>
+                  Suggested: replace with{' '}
+                  <code className="px-1 bg-gray-100 rounded font-mono">${'{password}'}</code>
                 </div>
               )}
             </div>
@@ -108,7 +123,10 @@ export function StepEditor({ step, stepIndex, onSave, onClose }: StepEditorProps
 
           {editedStep.type === 'wait' && (
             <>
-              <FieldDisplay label="Strategy" value={editedStep.strategy} />
+              <FieldDisplay
+                label="Strategy"
+                value={editedStep.strategy}
+              />
               {editedStep.strategy === 'time' && editedStep.duration !== undefined && (
                 <FieldInput
                   label="Duration (ms)"
@@ -133,12 +151,19 @@ export function StepEditor({ step, stepIndex, onSave, onClose }: StepEditorProps
               />
               <FieldInput
                 label="Values"
-                value={Array.isArray(editedStep.values) ? editedStep.values.join(', ') : editedStep.values}
+                value={
+                  Array.isArray(editedStep.values)
+                    ? editedStep.values.join(', ')
+                    : editedStep.values
+                }
                 onChange={(v) => {
-                  setEditedStep((prev) => ({
-                    ...prev,
-                    values: v.includes(',') ? v.split(',').map((s) => s.trim()) : v,
-                  }) as Step);
+                  setEditedStep(
+                    (prev) =>
+                      ({
+                        ...prev,
+                        values: v.includes(',') ? v.split(',').map((s) => s.trim()) : v,
+                      }) as Step
+                  );
                 }}
                 placeholder="option1, option2"
               />

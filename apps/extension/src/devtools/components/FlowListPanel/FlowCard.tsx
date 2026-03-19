@@ -68,13 +68,10 @@ export function FlowCard({
     }
   }, [flow.id, isRenaming, onSelect]);
 
-  const handleMenuToggle = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setIsMenuOpen((prev) => !prev);
-    },
-    []
-  );
+  const handleMenuToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen((prev) => !prev);
+  }, []);
 
   const handleRenameStart = useCallback(() => {
     setIsRenaming(true);
@@ -149,7 +146,10 @@ export function FlowCard({
         <div className="flex-1 min-w-0">
           {isRenaming ? (
             <div onClick={(e) => e.stopPropagation()}>
-              <label htmlFor={`rename-input-${flow.id}`} className="sr-only">
+              <label
+                htmlFor={`rename-input-${flow.id}`}
+                className="sr-only"
+              >
                 플로우 이름 변경
               </label>
               <input
@@ -165,15 +165,11 @@ export function FlowCard({
               />
             </div>
           ) : (
-            <h3 className="text-sm font-medium text-gray-800 truncate">
-              {flow.name}
-            </h3>
+            <h3 className="text-sm font-medium text-gray-800 truncate">{flow.name}</h3>
           )}
 
           {flow.description && (
-            <p className="mt-0.5 text-xs text-gray-500 truncate">
-              {flow.description}
-            </p>
+            <p className="mt-0.5 text-xs text-gray-500 truncate">{flow.description}</p>
           )}
 
           <div className="flex items-center gap-3 mt-1.5">
@@ -181,14 +177,15 @@ export function FlowCard({
               <NodeCountIcon />
               {nodeCount}개 노드
             </span>
-            <span className="text-xs text-gray-500">
-              {formatRelativeTime(flow.updatedAt)}
-            </span>
+            <span className="text-xs text-gray-500">{formatRelativeTime(flow.updatedAt)}</span>
           </div>
         </div>
 
         {/* Context menu button */}
-        <div className="relative" ref={menuRef}>
+        <div
+          className="relative"
+          ref={menuRef}
+        >
           <button
             type="button"
             onClick={handleMenuToggle}
@@ -265,9 +262,21 @@ function MoreIcon() {
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <circle cx="12" cy="5" r="1.5" />
-      <circle cx="12" cy="12" r="1.5" />
-      <circle cx="12" cy="19" r="1.5" />
+      <circle
+        cx="12"
+        cy="5"
+        r="1.5"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="1.5"
+      />
+      <circle
+        cx="12"
+        cy="19"
+        r="1.5"
+      />
     </svg>
   );
 }

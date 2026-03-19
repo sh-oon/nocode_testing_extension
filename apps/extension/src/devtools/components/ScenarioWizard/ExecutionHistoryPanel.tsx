@@ -30,7 +30,11 @@ export function ExecutionHistoryPanel({ scenarioId, onClose }: ExecutionHistoryP
   }, [loadHistory]);
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="bg-white rounded-xl shadow-xl w-[480px] max-h-[70vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -43,8 +47,19 @@ export function ExecutionHistoryPanel({ scenarioId, onClose }: ExecutionHistoryP
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -58,7 +73,10 @@ export function ExecutionHistoryPanel({ scenarioId, onClose }: ExecutionHistoryP
           ) : (
             <div className="divide-y divide-gray-50">
               {results.map((result) => (
-                <HistoryItem key={result.id} result={result} />
+                <HistoryItem
+                  key={result.id}
+                  result={result}
+                />
               ))}
             </div>
           )}
@@ -82,11 +100,15 @@ function HistoryItem({ result }: { result: StoredExecutionResultItem }) {
           </span>
         </div>
         <span className="text-[10px] text-gray-400">
-          {date.toLocaleDateString('ko-KR')} {date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+          {date.toLocaleDateString('ko-KR')}{' '}
+          {date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
       <div className="flex items-center gap-3 text-xs text-gray-500">
-        <span>Steps: <span className="text-green-600">{result.passed}</span>/<span className="text-gray-700">{result.totalSteps}</span></span>
+        <span>
+          Steps: <span className="text-green-600">{result.passed}</span>/
+          <span className="text-gray-700">{result.totalSteps}</span>
+        </span>
         {result.failed > 0 && <span className="text-red-500">{result.failed} failed</span>}
         {result.skipped > 0 && <span className="text-gray-400">{result.skipped} skipped</span>}
         <span>{(result.duration / 1000).toFixed(1)}s</span>

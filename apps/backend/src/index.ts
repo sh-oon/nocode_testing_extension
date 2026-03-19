@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server';
-import type { Server } from 'node:http';
 import { WebSocketServer } from 'ws';
+import type { Server } from 'node:http';
 import { createApp } from './app';
 import { closeDb, initializeDb } from './db';
 import { executionService } from './services/execution.service';

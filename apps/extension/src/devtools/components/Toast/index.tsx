@@ -1,11 +1,11 @@
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
-  type ReactNode,
 } from 'react';
 
 /* ------------------------------------------------------------------ */
@@ -70,9 +70,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
     const timer = setTimeout(() => {
       // Start exit animation
-      setToasts((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, exiting: true } : t)),
-      );
+      setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, exiting: true } : t)));
 
       // Remove after fade-out completes
       const removeTimer = setTimeout(() => {
@@ -102,7 +100,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       setToasts((prev) => [...prev, item]);
       scheduleDismiss(id, duration);
     },
-    [scheduleDismiss],
+    [scheduleDismiss]
   );
 
   const dismissToast = useCallback((id: string) => {
@@ -114,9 +112,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
 
     // Start exit animation
-    setToasts((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, exiting: true } : t)),
-    );
+    setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, exiting: true } : t)));
 
     // Remove after fade-out
     const removeTimer = setTimeout(() => {
@@ -179,13 +175,7 @@ const TYPE_ICONS: Record<ToastType, string> = {
   info: 'M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z',
 };
 
-function ToastCard({
-  toast,
-  onDismiss,
-}: {
-  toast: ToastItem;
-  onDismiss: (id: string) => void;
-}) {
+function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: string) => void }) {
   return (
     <div
       className={`

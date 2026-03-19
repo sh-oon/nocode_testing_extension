@@ -6,11 +6,11 @@
  */
 
 import type { Scenario } from '@like-cake/ast-types';
-import type { TestModel } from '../types/model';
-import type { UnsupportedMappingError } from '../converters/types';
 import { convertTestPathToScenario } from '../converters/path-to-scenario';
-import type { PathGenerationOptions } from './types';
+import type { UnsupportedMappingError } from '../converters/types';
+import type { TestModel } from '../types/model';
 import { generateTestPaths } from './path-generator';
+import type { PathGenerationOptions } from './types';
 
 /** Result of the full model → scenarios pipeline */
 export interface ScenarioGenerationResult {
@@ -35,7 +35,7 @@ export interface ScenarioGenerationResult {
  */
 export const generateScenariosFromModel = (
   model: TestModel,
-  options?: PathGenerationOptions,
+  options?: PathGenerationOptions
 ): ScenarioGenerationResult => {
   const pathResult = generateTestPaths(model, options);
 

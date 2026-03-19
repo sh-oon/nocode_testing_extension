@@ -7,7 +7,13 @@
 
 import type { FlowCondition, Step } from '@like-cake/ast-types';
 import type { ElementBinding } from '../types/element-binding';
-import type { BoundEvent, BoundVerification, ModelState, ModelTransition, TestModel } from '../types/model';
+import type {
+  BoundEvent,
+  BoundVerification,
+  ModelState,
+  ModelTransition,
+  TestModel,
+} from '../types/model';
 
 // ── TestPath: 상태머신에서 추출한 경로 ──────────────────────────────────
 

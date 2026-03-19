@@ -2,14 +2,14 @@
  * Test suite for pattern presets
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  PATTERN_PRESETS,
-  getPresetsByCategory,
-  getPresetById,
   createConditionFromPreset,
-  resolvePresetFromCondition,
+  getPresetById,
+  getPresetsByCategory,
+  PATTERN_PRESETS,
   type PatternPreset,
+  resolvePresetFromCondition,
 } from '../patterns';
 import type { Condition } from '../types';
 
@@ -77,7 +77,7 @@ describe('PATTERN_PRESETS', () => {
 
   it('should have regex patterns for validation presets except customRegex', () => {
     const validationPresets = PATTERN_PRESETS.filter(
-      (p) => p.category === 'validation' && p.id !== 'customRegex',
+      (p) => p.category === 'validation' && p.id !== 'customRegex'
     );
     for (const preset of validationPresets) {
       expect(preset.regex).toBeDefined();

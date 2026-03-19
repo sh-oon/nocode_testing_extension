@@ -258,18 +258,13 @@ export class PuppeteerAdapter implements PlaybackAdapter {
   private async ensureActionable(
     selector: SelectorInput,
     action: 'click' | 'hover' | 'type' | 'select',
-    timeout?: number,
+    timeout?: number
   ): Promise<void> {
     const sel = await this.getSelector(selector);
     const checks = ACTION_CHECKS[action];
     const timeoutMs = timeout ?? this.defaultTimeout;
 
-    await this.page.evaluate(
-      ACTIONABILITY_POLL_FN,
-      sel,
-      JSON.stringify(checks),
-      timeoutMs,
-    );
+    await this.page.evaluate(ACTIONABILITY_POLL_FN, sel, JSON.stringify(checks), timeoutMs);
   }
 
   async click(selector: SelectorInput, options?: ClickOptions): Promise<void> {

@@ -23,14 +23,11 @@ export function FlowEmptyState({ onOpenList, onCreateNew }: FlowEmptyStateProps)
       </div>
 
       {/* Heading */}
-      <h2 className="text-xl font-semibold text-gray-800 mb-2">
-        테스트 플로우 빌더
-      </h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-2">테스트 플로우 빌더</h2>
 
       {/* Description */}
       <p className="text-sm text-gray-500 mb-8 max-w-xs text-center leading-relaxed">
-        시나리오를 연결하여 E2E 테스트 플로우를 구성하세요.
-        조건 분기와 변수를 활용할 수 있습니다.
+        시나리오를 연결하여 E2E 테스트 플로우를 구성하세요. 조건 분기와 변수를 활용할 수 있습니다.
       </p>
 
       {/* Actions */}
@@ -51,8 +48,7 @@ export function FlowEmptyState({ onOpenList, onCreateNew }: FlowEmptyStateProps)
           className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           data-test-id="flow-empty-create-new"
         >
-          <PlusIcon />
-          새 플로우 만들기
+          <PlusIcon />새 플로우 만들기
         </button>
       </div>
     </div>

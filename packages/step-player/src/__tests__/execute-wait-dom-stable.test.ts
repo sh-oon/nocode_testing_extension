@@ -118,9 +118,9 @@ describe('executeWait - domStable strategy (step-player)', () => {
 
   it('should include duration in result', async () => {
     const adapter = createMockAdapter({
-      waitForDomStable: vi.fn().mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 10))
-      ),
+      waitForDomStable: vi
+        .fn()
+        .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 10))),
     });
     const context = createMockContext();
     const step: WaitStep = {

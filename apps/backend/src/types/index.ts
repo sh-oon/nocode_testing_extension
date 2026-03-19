@@ -1,4 +1,10 @@
-import type { FlowEdge, FlowNode, FlowNodeResult, ScenarioResult, Step } from '@like-cake/ast-types';
+import type {
+  FlowEdge,
+  FlowNode,
+  FlowNodeResult,
+  ScenarioResult,
+  Step,
+} from '@like-cake/ast-types';
 import type { RawEvent } from '@like-cake/event-collector';
 
 /**

@@ -5,8 +5,12 @@ import type {
   StepExecutionResult,
   StepExecutor,
 } from '../types';
-import { executeAssertApi, executeAssertElement, executeAssertPage, executeAssertStyle } from './assertions';
-import { executeNavigate, executeSnapshotDom, executeWait } from './navigation';
+import {
+  executeAssertApi,
+  executeAssertElement,
+  executeAssertPage,
+  executeAssertStyle,
+} from './assertions';
 import {
   executeDragAndDrop,
   executeFileUpload,
@@ -14,6 +18,7 @@ import {
   executeHistoryForward,
   executeMouseOut,
 } from './extended-actions';
+import { executeNavigate, executeSnapshotDom, executeWait } from './navigation';
 import {
   executeClick,
   executeHover,
@@ -23,8 +28,12 @@ import {
   executeType,
 } from './ui-actions';
 
-export { executeAssertApi, executeAssertElement, executeAssertPage, executeAssertStyle } from './assertions';
-export { executeNavigate, executeSnapshotDom, executeWait } from './navigation';
+export {
+  executeAssertApi,
+  executeAssertElement,
+  executeAssertPage,
+  executeAssertStyle,
+} from './assertions';
 export {
   executeDragAndDrop,
   executeFileUpload,
@@ -32,6 +41,7 @@ export {
   executeHistoryForward,
   executeMouseOut,
 } from './extended-actions';
+export { executeNavigate, executeSnapshotDom, executeWait } from './navigation';
 export {
   executeClick,
   executeHover,

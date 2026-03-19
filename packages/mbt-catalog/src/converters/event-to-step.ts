@@ -13,7 +13,7 @@ import type { ConversionResult } from './types';
 /** Resolve an ElementBinding's selector by ID */
 const resolveSelector = (
   elementBindingId: string | null,
-  elementBindings: ElementBinding[],
+  elementBindings: ElementBinding[]
 ): SelectorInput | undefined => {
   if (elementBindingId === null) return undefined;
   const binding = elementBindings.find((b) => b.id === elementBindingId);
@@ -29,7 +29,7 @@ const resolveSelector = (
  */
 export const convertBoundEventToStep = (
   boundEvent: BoundEvent,
-  elementBindings: ElementBinding[],
+  elementBindings: ElementBinding[]
 ): ConversionResult => {
   const { eventId, params } = boundEvent;
   const selector = resolveSelector(boundEvent.elementBindingId, elementBindings);
@@ -53,7 +53,7 @@ export const convertBoundEventToStep = (
 const convertMappedEvent = (
   eventId: string,
   params: Record<string, unknown>,
-  selector: SelectorInput | undefined,
+  selector: SelectorInput | undefined
 ): Step | undefined => {
   switch (eventId) {
     case 'click':
@@ -99,7 +99,9 @@ const convertMappedEvent = (
         key: params.key as string,
         ...(selector !== undefined && { selector }),
         ...(params.modifiers !== undefined &&
-          params.modifiers !== '' && { modifiers: [params.modifiers] as Array<'Alt' | 'Control' | 'Meta' | 'Shift'> }),
+          params.modifiers !== '' && {
+            modifiers: [params.modifiers] as Array<'Alt' | 'Control' | 'Meta' | 'Shift'>,
+          }),
       };
 
     case 'select':
@@ -112,7 +114,9 @@ const convertMappedEvent = (
       return {
         type: 'navigate',
         url: params.url as string,
-        ...(params.waitUntil !== undefined && { waitUntil: params.waitUntil as 'load' | 'domcontentloaded' | 'networkidle2' }),
+        ...(params.waitUntil !== undefined && {
+          waitUntil: params.waitUntil as 'load' | 'domcontentloaded' | 'networkidle2',
+        }),
       };
 
     case 'historyBack':

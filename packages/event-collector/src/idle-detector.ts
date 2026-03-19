@@ -158,7 +158,7 @@ export class IdleDetector {
  * Create a new IdleDetector instance
  */
 export function createIdleDetector(
-  config: Partial<IdleDetectorConfig> & Pick<IdleDetectorConfig, 'onIdle'>,
+  config: Partial<IdleDetectorConfig> & Pick<IdleDetectorConfig, 'onIdle'>
 ): IdleDetector {
   return new IdleDetector(config);
 }

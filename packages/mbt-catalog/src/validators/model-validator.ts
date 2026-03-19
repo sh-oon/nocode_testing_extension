@@ -5,9 +5,9 @@
  * warnings (can proceed, but may cause issues).
  */
 
-import type { TestModel } from '../types/model';
 import { getEventById } from '../catalogs/events';
 import { getVerificationById } from '../catalogs/verifications';
+import type { TestModel } from '../types/model';
 import { type UsageContext, validateBindingAccessibility } from './accessibility';
 
 export interface ValidationIssue {
@@ -86,7 +86,11 @@ export const validateTestModel = (model: TestModel): ValidationIssue[] => {
       // Check required params
       if (eventEntry) {
         for (const param of eventEntry.params) {
-          if (param.required && (transition.event.params[param.name] === undefined || transition.event.params[param.name] === '')) {
+          if (
+            param.required &&
+            (transition.event.params[param.name] === undefined ||
+              transition.event.params[param.name] === '')
+          ) {
             issues.push({
               type: 'error',
               code: 'missing-required-param',
@@ -136,7 +140,10 @@ export const validateTestModel = (model: TestModel): ValidationIssue[] => {
 
       if (verEntry) {
         for (const param of verEntry.params) {
-          if (param.required && (v.params[param.name] === undefined || v.params[param.name] === '')) {
+          if (
+            param.required &&
+            (v.params[param.name] === undefined || v.params[param.name] === '')
+          ) {
             issues.push({
               type: 'error',
               code: 'missing-required-param',

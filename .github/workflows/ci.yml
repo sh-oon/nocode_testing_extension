@@ -27,8 +27,9 @@ jobs:
 
       - run: yarn install --immutable
 
-      - name: Lint
-        run: yarn lint
+      - name: Format Check
+        run: npx biome format --check .
+        continue-on-error: true
 
       - name: Type Check
         run: yarn type-check

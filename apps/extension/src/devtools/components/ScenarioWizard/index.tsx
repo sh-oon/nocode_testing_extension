@@ -46,7 +46,15 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
 
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [wizard.canPlay, wizard.canSave, wizard.draft, wizard.playScenario, wizard.saveToBackend, wizard.cancelDraft, isConnected]);
+  }, [
+    wizard.canPlay,
+    wizard.canSave,
+    wizard.draft,
+    wizard.playScenario,
+    wizard.saveToBackend,
+    wizard.cancelDraft,
+    isConnected,
+  ]);
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -60,7 +68,9 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
           className="flex-1 text-sm text-gray-800 placeholder-gray-400 bg-transparent border-none outline-none"
         />
         {wizard.backendScenarioId && (
-          <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full">저장됨</span>
+          <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+            저장됨
+          </span>
         )}
       </div>
 
@@ -102,7 +112,10 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
           <div className="font-medium">
             실행 실패
             {wizard.playbackState.failedStepIndex !== undefined && (
-              <span className="font-normal"> — Step {wizard.playbackState.failedStepIndex + 1}에서 중단</span>
+              <span className="font-normal">
+                {' '}
+                — Step {wizard.playbackState.failedStepIndex + 1}에서 중단
+              </span>
             )}
           </div>
           {wizard.playbackState.errorMessage && (

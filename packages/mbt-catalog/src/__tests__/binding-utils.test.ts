@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest';
 import type { SelectorInput } from '@like-cake/ast-types';
+import { describe, expect, it } from 'vitest';
 import {
-  serializeSelector,
   createElementBindingFromSelector,
   ElementBindingRegistry,
+  serializeSelector,
 } from '../converters/binding-utils';
 
 // ── serializeSelector ────────────────────────────────────────────────────
@@ -30,7 +30,12 @@ describe('serializeSelector', () => {
   });
 
   it('serializes role strategy with accessible name as "role:roleName:accessibleName"', () => {
-    const selector: SelectorInput = { strategy: 'role', value: 'button', role: 'button', name: 'Submit' };
+    const selector: SelectorInput = {
+      strategy: 'role',
+      value: 'button',
+      role: 'button',
+      name: 'Submit',
+    };
     expect(serializeSelector(selector)).toBe('role:button:Submit');
   });
 
@@ -132,7 +137,12 @@ describe('ElementBindingRegistry', () => {
 
   it('getAll length matches unique selector count even with duplicates', () => {
     const registry = new ElementBindingRegistry();
-    const selector: SelectorInput = { strategy: 'role', value: 'button', role: 'button', name: 'OK' };
+    const selector: SelectorInput = {
+      strategy: 'role',
+      value: 'button',
+      role: 'button',
+      name: 'OK',
+    };
     registry.getOrCreate(selector, 'OK Button', 'https://example.com');
     registry.getOrCreate(selector, 'OK Button duplicate', 'https://example.com');
     registry.getOrCreate({ strategy: 'css', value: '.cancel' }, 'Cancel', 'https://example.com');

@@ -2,9 +2,9 @@
  * Test suite for VariableStore
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { CompoundCondition, Condition, FlowVariableValue } from '../types';
 import { VariableStore } from '../variable-store';
-import type { Condition, CompoundCondition, FlowVariableValue } from '../types';
 
 describe('VariableStore - Basic Operations', () => {
   let store: VariableStore;
@@ -259,7 +259,7 @@ describe('VariableStore - Interpolation', () => {
   it('should throw error for missing variables when throwOnMissing is true', () => {
     const strictStore = new VariableStore({ throwOnMissing: true });
     expect(() => strictStore.interpolate('Hello, {{missing}}!')).toThrow(
-      'Variable not found: missing',
+      'Variable not found: missing'
     );
   });
 
@@ -670,13 +670,7 @@ describe('VariableStore - Condition Evaluation', () => {
       store.set('text', 'test');
       // Nested quantifiers that are caught by the safety check
       // Note: (.*?)* is not caught by the current regex pattern
-      const unsafePatterns = [
-        '(a+)+',
-        '(a*)*',
-        '(a+)*',
-        '([^a]+)+',
-        '([a-z]+){2,}',
-      ];
+      const unsafePatterns = ['(a+)+', '(a*)*', '(a+)*', '([^a]+)+', '([a-z]+){2,}'];
 
       for (const pattern of unsafePatterns) {
         const condition: Condition = {

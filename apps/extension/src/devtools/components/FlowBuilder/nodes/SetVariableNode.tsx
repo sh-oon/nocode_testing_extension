@@ -1,5 +1,5 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { SetVariableNodeData } from '@like-cake/ast-types';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 
 type SetVariableNodeProps = NodeProps & {
   data: SetVariableNodeData;
@@ -50,15 +50,16 @@ export function SetVariableNode({ data, selected }: SetVariableNodeProps) {
           </div>
           {/* Preview first variable */}
           {data.variables && data.variables.length > 0 && (
-            <div className="text-purple-400 text-[10px] mt-1 truncate max-w-[120px]" title={`${data.variables[0].name} = ${data.variables[0].value}`}>
+            <div
+              className="text-purple-400 text-[10px] mt-1 truncate max-w-[120px]"
+              title={`${data.variables[0].name} = ${data.variables[0].value}`}
+            >
               {data.variables[0].name} = {truncate(data.variables[0].value, 10)}
               {variableCount > 1 && <span className="text-gray-400"> +{variableCount - 1}</span>}
             </div>
           )}
         </div>
-        {statusIcons[status] && (
-          <div className="flex-shrink-0">{statusIcons[status]}</div>
-        )}
+        {statusIcons[status] && <div className="flex-shrink-0">{statusIcons[status]}</div>}
       </div>
 
       <Handle

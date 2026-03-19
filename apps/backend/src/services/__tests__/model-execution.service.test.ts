@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Scenario } from '@like-cake/ast-types';
 import type { ScenarioExecutionResult } from '@like-cake/runner';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ModelExecutionService } from '../model-execution.service';
 
 vi.mock('@like-cake/runner', () => ({
@@ -17,14 +17,19 @@ const makeScenario = (overrides: Partial<Scenario> & { id: string }): Scenario =
   return {
     id,
     name: name ?? `Scenario ${id}`,
-    meta: { url: 'https://example.com', viewport: { width: 1280, height: 720 }, recordedAt: new Date().toISOString(), astSchemaVersion: '1.0.0' },
+    meta: {
+      url: 'https://example.com',
+      viewport: { width: 1280, height: 720 },
+      recordedAt: new Date().toISOString(),
+      astSchemaVersion: '1.0.0',
+    },
     steps: steps ?? [{ type: 'navigate', url: 'https://example.com' }],
     ...rest,
   };
 };
 
 const makeExecutionResult = (
-  overrides: Partial<ScenarioExecutionResult> = {},
+  overrides: Partial<ScenarioExecutionResult> = {}
 ): ScenarioExecutionResult => ({
   scenarioId: 's1',
   scenarioName: 'Scenario s1',
@@ -118,7 +123,10 @@ describe('ModelExecutionService', () => {
     });
 
     it('aggregates summary correctly for a single passing scenario', async () => {
-      const scenario = makeScenario({ id: 's1', steps: [{ type: 'navigate', url: 'https://example.com' }] });
+      const scenario = makeScenario({
+        id: 's1',
+        steps: [{ type: 'navigate', url: 'https://example.com' }],
+      });
       const executionResult = makeExecutionResult({
         summary: { totalSteps: 1, passed: 1, failed: 0, skipped: 0, duration: 150, success: true },
       });
@@ -174,7 +182,13 @@ describe('ModelExecutionService', () => {
     it('skips remaining scenarios after the first failure', async () => {
       const scenarios = [
         makeScenario({ id: 's1', steps: [{ type: 'navigate', url: 'https://example.com' }] }),
-        makeScenario({ id: 's2', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: 'a' }] }),
+        makeScenario({
+          id: 's2',
+          steps: [
+            { type: 'navigate', url: 'https://example.com' },
+            { type: 'click', selector: 'a' },
+          ],
+        }),
         makeScenario({ id: 's3', steps: [{ type: 'navigate', url: 'https://example.com' }] }),
       ];
 
@@ -191,7 +205,9 @@ describe('ModelExecutionService', () => {
         onStepEvent: vi.fn(),
       }));
 
-      const result = await service.execute('model-1', 'My Model', scenarios, { continueOnFailure: false });
+      const result = await service.execute('model-1', 'My Model', scenarios, {
+        continueOnFailure: false,
+      });
 
       expect(result.scenarioResults).toHaveLength(3);
       expect(result.scenarioResults[0].status).toBe('failed');
@@ -200,10 +216,7 @@ describe('ModelExecutionService', () => {
     });
 
     it('runner.run is called only once when first scenario fails and continueOnFailure=false', async () => {
-      const scenarios = [
-        makeScenario({ id: 's1' }),
-        makeScenario({ id: 's2' }),
-      ];
+      const scenarios = [makeScenario({ id: 's1' }), makeScenario({ id: 's2' })];
 
       const failingResult = makeExecutionResult({
         summary: { totalSteps: 1, passed: 0, failed: 1, skipped: 0, duration: 50, success: false },
@@ -289,7 +302,9 @@ describe('ModelExecutionService', () => {
         onStepEvent: vi.fn(),
       }));
 
-      const result = await service.execute('model-1', 'My Model', scenarios, { continueOnFailure: true });
+      const result = await service.execute('model-1', 'My Model', scenarios, {
+        continueOnFailure: true,
+      });
 
       expect(runMock).toHaveBeenCalledTimes(3);
       expect(result.scenarioResults[0].status).toBe('failed');
@@ -301,10 +316,7 @@ describe('ModelExecutionService', () => {
 
   describe('execute — overall status "partial"', () => {
     it('returns partial when some scenarios pass and some fail', async () => {
-      const scenarios = [
-        makeScenario({ id: 's1' }),
-        makeScenario({ id: 's2' }),
-      ];
+      const scenarios = [makeScenario({ id: 's1' }), makeScenario({ id: 's2' })];
 
       const failingResult = makeExecutionResult({
         summary: { totalSteps: 1, passed: 0, failed: 1, skipped: 0, duration: 50, success: false },
@@ -327,7 +339,9 @@ describe('ModelExecutionService', () => {
         onStepEvent: vi.fn(),
       }));
 
-      const result = await service.execute('model-1', 'My Model', scenarios, { continueOnFailure: true });
+      const result = await service.execute('model-1', 'My Model', scenarios, {
+        continueOnFailure: true,
+      });
 
       expect(result.status).toBe('partial');
       expect(result.summary.passedScenarios).toBe(1);
@@ -404,15 +418,55 @@ describe('ModelExecutionService', () => {
   describe('execute — summary aggregation across scenarios', () => {
     it('sums totalSteps, passedSteps, failedSteps, and skippedSteps across all scenarios', async () => {
       const scenarios = [
-        makeScenario({ id: 's1', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: 'a' }] }),
-        makeScenario({ id: 's2', steps: [{ type: 'navigate', url: 'https://example.com' }, { type: 'click', selector: 'b' }, { type: 'click', selector: 'c' }] }),
+        makeScenario({
+          id: 's1',
+          steps: [
+            { type: 'navigate', url: 'https://example.com' },
+            { type: 'click', selector: 'a' },
+          ],
+        }),
+        makeScenario({
+          id: 's2',
+          steps: [
+            { type: 'navigate', url: 'https://example.com' },
+            { type: 'click', selector: 'b' },
+            { type: 'click', selector: 'c' },
+          ],
+        }),
         makeScenario({ id: 's3', steps: [{ type: 'navigate', url: 'https://example.com' }] }),
       ];
 
       const results: ScenarioExecutionResult[] = [
-        makeExecutionResult({ summary: { totalSteps: 2, passed: 2, failed: 0, skipped: 0, duration: 100, success: true } }),
-        makeExecutionResult({ summary: { totalSteps: 3, passed: 1, failed: 1, skipped: 1, duration: 200, success: false } }),
-        makeExecutionResult({ summary: { totalSteps: 1, passed: 0, failed: 0, skipped: 1, duration: 50, success: false } }),
+        makeExecutionResult({
+          summary: {
+            totalSteps: 2,
+            passed: 2,
+            failed: 0,
+            skipped: 0,
+            duration: 100,
+            success: true,
+          },
+        }),
+        makeExecutionResult({
+          summary: {
+            totalSteps: 3,
+            passed: 1,
+            failed: 1,
+            skipped: 1,
+            duration: 200,
+            success: false,
+          },
+        }),
+        makeExecutionResult({
+          summary: {
+            totalSteps: 1,
+            passed: 0,
+            failed: 0,
+            skipped: 1,
+            duration: 50,
+            success: false,
+          },
+        }),
       ];
 
       const runMock = vi
@@ -430,11 +484,13 @@ describe('ModelExecutionService', () => {
         onStepEvent: vi.fn(),
       }));
 
-      const result = await service.execute('model-1', 'My Model', scenarios, { continueOnFailure: true });
+      const result = await service.execute('model-1', 'My Model', scenarios, {
+        continueOnFailure: true,
+      });
 
-      expect(result.summary.totalSteps).toBe(6);   // 2 + 3 + 1
-      expect(result.summary.passedSteps).toBe(3);  // 2 + 1 + 0
-      expect(result.summary.failedSteps).toBe(1);  // 0 + 1 + 0
+      expect(result.summary.totalSteps).toBe(6); // 2 + 3 + 1
+      expect(result.summary.passedSteps).toBe(3); // 2 + 1 + 0
+      expect(result.summary.failedSteps).toBe(1); // 0 + 1 + 0
       expect(result.summary.skippedSteps).toBe(2); // 0 + 1 + 1
     });
 
@@ -483,7 +539,9 @@ describe('ModelExecutionService', () => {
         onStepEvent: vi.fn(),
       }));
 
-      const result = await service.execute('model-1', 'My Model', scenarios, { continueOnFailure: false });
+      const result = await service.execute('model-1', 'My Model', scenarios, {
+        continueOnFailure: false,
+      });
 
       expect(result.summary.totalScenarios).toBe(3);
     });
@@ -493,7 +551,12 @@ describe('ModelExecutionService', () => {
     it('uses "Unnamed" when scenario.name is undefined', async () => {
       const scenario: Scenario = {
         id: 's1',
-        meta: { url: 'https://example.com', viewport: { width: 1280, height: 720 }, recordedAt: new Date().toISOString(), astSchemaVersion: '1.0.0' },
+        meta: {
+          url: 'https://example.com',
+          viewport: { width: 1280, height: 720 },
+          recordedAt: new Date().toISOString(),
+          astSchemaVersion: '1.0.0',
+        },
         steps: [{ type: 'navigate', url: 'https://example.com' }],
       };
 

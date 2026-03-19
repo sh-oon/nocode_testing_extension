@@ -1,22 +1,22 @@
-import type { Scenario } from '@like-cake/ast-types';
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
-import type { DomSnapshot, ScreenshotResult } from '@like-cake/dom-serializer';
+import type { Scenario } from '@like-cake/ast-types';
 import {
+  type ApiDiffResult,
   compareApiCalls,
   compareDomSnapshots,
   compareScreenshots,
-  type ApiDiffResult,
   type DomDiffResult,
   type VisualDiffResult,
 } from '@like-cake/diff-engine';
-import puppeteer, { type Browser, type Page } from 'puppeteer';
+import type { DomSnapshot, ScreenshotResult } from '@like-cake/dom-serializer';
 import {
-  StepPlayer,
-  PuppeteerAdapter,
   type PlaybackResult,
   type PlayerConfig,
+  PuppeteerAdapter,
   type PuppeteerPageLike,
+  StepPlayer,
 } from '@like-cake/step-player';
+import puppeteer, { type Browser, type Page } from 'puppeteer';
 import type { RunnerOptions } from './types';
 
 /**
@@ -136,10 +136,7 @@ export class ComparisonRunner {
   /**
    * Run scenario and compare against baseline
    */
-  async runWithComparison(
-    scenario: Scenario,
-    baseline: Baseline
-  ): Promise<ComparisonResult> {
+  async runWithComparison(scenario: Scenario, baseline: Baseline): Promise<ComparisonResult> {
     await this.init();
 
     if (!this.browser) {

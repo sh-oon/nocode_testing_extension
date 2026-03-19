@@ -1,5 +1,7 @@
 // Core runner
 
+// Re-export canonical DomSnapshot from dom-serializer for downstream consumers
+export type { DomSnapshot } from '@like-cake/dom-serializer';
 // Comparison runner (step-player + diff-engine integration)
 export {
   type Baseline,
@@ -34,5 +36,3 @@ export type {
   RunnerOptions,
   ScenarioExecutionResult,
 } from './types';
-// Re-export canonical DomSnapshot from dom-serializer for downstream consumers
-export type { DomSnapshot } from '@like-cake/dom-serializer';

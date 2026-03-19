@@ -230,7 +230,13 @@ async function runSimulation(): Promise<void> {
   const scenarioData = (await scenarioRes.json()) as ApiResponse<{
     id: string;
     name: string;
-    steps: Array<{ type: string; selector?: unknown; url?: string; value?: string; sensitive?: boolean }>;
+    steps: Array<{
+      type: string;
+      selector?: unknown;
+      url?: string;
+      value?: string;
+      sensitive?: boolean;
+    }>;
   }>;
   if (!scenarioData.success) {
     console.error('  ✗ Failed to create scenario:', scenarioData.error);

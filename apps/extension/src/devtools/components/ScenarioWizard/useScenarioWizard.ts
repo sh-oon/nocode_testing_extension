@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Scenario, Step, StepResult } from '@like-cake/ast-types';
-import type { EventCatalogEntry, VerificationCatalogEntry } from '@like-cake/mbt-catalog';
-import { getEventById, getVerificationById, convertBoundEventToStep, convertBoundVerificationToStep } from '@like-cake/mbt-catalog';
-import type { ElementBinding, BoundEvent, BoundVerification } from '@like-cake/mbt-catalog';
+import type {
+  BoundEvent,
+  BoundVerification,
+  ElementBinding,
+  EventCatalogEntry,
+  VerificationCatalogEntry,
+} from '@like-cake/mbt-catalog';
+import {
+  convertBoundEventToStep,
+  convertBoundVerificationToStep,
+  getEventById,
+  getVerificationById,
+} from '@like-cake/mbt-catalog';
 import type { PlayerState } from '@like-cake/step-player';
 import { getApiClient } from '../../../shared/api';
 
@@ -54,14 +64,17 @@ export function useScenarioWizard() {
   // Get current browser viewport
   const getViewport = useCallback(async (): Promise<{ width: number; height: number }> => {
     try {
-      const tabId = typeof chrome.devtools?.inspectedWindow?.tabId === 'number'
-        ? chrome.devtools.inspectedWindow.tabId
-        : undefined;
+      const tabId =
+        typeof chrome.devtools?.inspectedWindow?.tabId === 'number'
+          ? chrome.devtools.inspectedWindow.tabId
+          : undefined;
       if (tabId) {
         const tab = await chrome.tabs.get(tabId);
         if (tab.width && tab.height) return { width: tab.width, height: tab.height };
       }
-    } catch { /* fallback */ }
+    } catch {
+      /* fallback */
+    }
     return { width: window.screen.availWidth || 1440, height: window.screen.availHeight || 900 };
   }, []);
 
@@ -97,7 +110,9 @@ export function useScenarioWizard() {
               ...prev,
               elementInfo: info,
               selectorCandidates: (info?.selectorCandidates ?? []) as SelectorCandidate[],
-              selectedSelector: ((info?.selectorCandidates as SelectorCandidate[] | undefined)?.[0]?.selector) ?? null,
+              selectedSelector:
+                (info?.selectorCandidates as SelectorCandidate[] | undefined)?.[0]?.selector ??
+                null,
             };
           });
           break;
@@ -125,7 +140,10 @@ export function useScenarioWizard() {
         // Playback messages
         case 'PLAYBACK_STEP_START':
           if (message.stepIndex !== undefined) {
-            setPlaybackState((prev) => ({ ...prev, currentStepIndex: message.stepIndex as number }));
+            setPlaybackState((prev) => ({
+              ...prev,
+              currentStepIndex: message.stepIndex as number,
+            }));
           }
           break;
         case 'PLAYBACK_STEP_COMPLETE': {
@@ -139,7 +157,9 @@ export function useScenarioWizard() {
                   stepResults: newResults,
                   state: 'error',
                   failedStepIndex: result.index ?? prev.stepResults.length,
-                  errorMessage: result.error?.message || `Step ${(result.index ?? prev.stepResults.length) + 1} 실패`,
+                  errorMessage:
+                    result.error?.message ||
+                    `Step ${(result.index ?? prev.stepResults.length) + 1} 실패`,
                 };
               }
               return { ...prev, stepResults: newResults };
@@ -188,42 +208,43 @@ export function useScenarioWizard() {
 
   // ── Draft management ──
 
-  const startDraftFromCatalog = useCallback((catalogId: string, catalogType: CatalogType = 'event', insertAtIndex?: number) => {
-    const entry = catalogType === 'event'
-      ? getEventById(catalogId)
-      : getVerificationById(catalogId);
-    if (!entry) return;
+  const startDraftFromCatalog = useCallback(
+    (catalogId: string, catalogType: CatalogType = 'event', insertAtIndex?: number) => {
+      const entry =
+        catalogType === 'event' ? getEventById(catalogId) : getVerificationById(catalogId);
+      if (!entry) return;
 
-    const defaultParams: Record<string, unknown> = {};
-    for (const p of entry.params) {
-      if (p.defaultValue !== undefined) defaultParams[p.name] = p.defaultValue;
-    }
+      const defaultParams: Record<string, unknown> = {};
+      for (const p of entry.params) {
+        if (p.defaultValue !== undefined) defaultParams[p.name] = p.defaultValue;
+      }
 
-    const newDraft: PendingStepDraft = {
-      catalogType,
-      catalogId,
-      catalogEntry: entry,
-      params: defaultParams,
-      selectorCandidates: [],
-      selectedSelector: null,
-      elementInfo: null,
-      insertAtIndex,
-    };
+      const newDraft: PendingStepDraft = {
+        catalogType,
+        catalogId,
+        catalogEntry: entry,
+        params: defaultParams,
+        selectorCandidates: [],
+        selectedSelector: null,
+        elementInfo: null,
+        insertAtIndex,
+      };
 
-    setDraft(newDraft);
+      setDraft(newDraft);
 
-    if (entry.elementRequirement !== 'none') {
-      setIsInspecting(true);
-      getTabId().then((tabId) => {
-        chrome.runtime.sendMessage({ type: 'START_ELEMENT_INSPECT', tabId });
-      });
-    }
-  }, [getTabId]);
+      if (entry.elementRequirement !== 'none') {
+        setIsInspecting(true);
+        getTabId().then((tabId) => {
+          chrome.runtime.sendMessage({ type: 'START_ELEMENT_INSPECT', tabId });
+        });
+      }
+    },
+    [getTabId]
+  );
 
   const switchAction = useCallback((catalogId: string, catalogType: CatalogType = 'event') => {
-    const entry = catalogType === 'event'
-      ? getEventById(catalogId)
-      : getVerificationById(catalogId);
+    const entry =
+      catalogType === 'event' ? getEventById(catalogId) : getVerificationById(catalogId);
     if (!entry) return;
 
     const defaultParams: Record<string, unknown> = {};
@@ -239,7 +260,9 @@ export function useScenarioWizard() {
         catalogId,
         catalogEntry: entry,
         params: defaultParams,
-        ...(entry.elementRequirement === 'none' ? { elementInfo: null, selectorCandidates: [], selectedSelector: null } : {}),
+        ...(entry.elementRequirement === 'none'
+          ? { elementInfo: null, selectorCandidates: [], selectedSelector: null }
+          : {}),
       };
     });
   }, []);
@@ -262,23 +285,41 @@ export function useScenarioWizard() {
   }, [getTabId]);
 
   const selectSelector = useCallback((selector: string) => {
-    setDraft((prev) => prev ? { ...prev, selectedSelector: selector } : prev);
+    setDraft((prev) => (prev ? { ...prev, selectedSelector: selector } : prev));
   }, []);
 
   const manualSelector = useCallback((selector: string) => {
-    setDraft((prev) => prev ? { ...prev, selectedSelector: selector, selectorCandidates: [{ strategy: 'manual', selector, score: 100, isUnique: true, isReadable: true, confidence: 100 }] } : prev);
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            selectedSelector: selector,
+            selectorCandidates: [
+              {
+                strategy: 'manual',
+                selector,
+                score: 100,
+                isUnique: true,
+                isReadable: true,
+                confidence: 100,
+              },
+            ],
+          }
+        : prev
+    );
   }, []);
 
   const updateParams = useCallback((params: Record<string, unknown>) => {
-    setDraft((prev) => prev ? { ...prev, params } : prev);
+    setDraft((prev) => (prev ? { ...prev, params } : prev));
   }, []);
 
   const confirmStep = useCallback(() => {
     if (!draft) return;
 
-    const step = draft.catalogType === 'event'
-      ? buildEventStepFromDraft(draft)
-      : buildVerificationStepFromDraft(draft);
+    const step =
+      draft.catalogType === 'event'
+        ? buildEventStepFromDraft(draft)
+        : buildVerificationStepFromDraft(draft);
     if (!step) return;
 
     setSteps((prev) => {
@@ -333,47 +374,69 @@ export function useScenarioWizard() {
     });
   }, []);
 
-  const insertStepAt = useCallback((index: number) => {
-    startDraftFromCatalog('visible', 'verification', index);
-  }, [startDraftFromCatalog]);
+  const insertStepAt = useCallback(
+    (index: number) => {
+      startDraftFromCatalog('visible', 'verification', index);
+    },
+    [startDraftFromCatalog]
+  );
 
-  const editStep = useCallback((index: number) => {
-    // Remove the step and open it as a draft for re-editing
-    const step = steps[index];
-    if (!step) return;
+  const editStep = useCallback(
+    (index: number) => {
+      // Remove the step and open it as a draft for re-editing
+      const step = steps[index];
+      if (!step) return;
 
-    setEditingIndex(index);
+      setEditingIndex(index);
 
-    // Reverse-map: determine catalogType and catalogId from step.type
-    const isAssertion = ASSERT_TYPES.has(step.type);
-    const catalogType: CatalogType = isAssertion ? 'verification' : 'event';
+      // Reverse-map: determine catalogType and catalogId from step.type
+      const isAssertion = ASSERT_TYPES.has(step.type);
+      const catalogType: CatalogType = isAssertion ? 'verification' : 'event';
 
-    // Map step type to catalog ID
-    const catalogId = stepTypeToCatalogId(step);
-    const entry = catalogType === 'event'
-      ? getEventById(catalogId)
-      : getVerificationById(catalogId);
-    if (!entry) { setEditingIndex(null); return; }
+      // Map step type to catalog ID
+      const catalogId = stepTypeToCatalogId(step);
+      const entry =
+        catalogType === 'event' ? getEventById(catalogId) : getVerificationById(catalogId);
+      if (!entry) {
+        setEditingIndex(null);
+        return;
+      }
 
-    // Extract params from step
-    const params = extractParamsFromStep(step);
+      // Extract params from step
+      const params = extractParamsFromStep(step);
 
-    // Extract selector
-    const selector = 'selector' in step && step.selector
-      ? typeof step.selector === 'string' ? step.selector : ''
-      : null;
+      // Extract selector
+      const selector =
+        'selector' in step && step.selector
+          ? typeof step.selector === 'string'
+            ? step.selector
+            : ''
+          : null;
 
-    setDraft({
-      catalogType,
-      catalogId,
-      catalogEntry: entry,
-      params,
-      selectorCandidates: selector ? [{ strategy: 'manual', selector, score: 100, isUnique: true, isReadable: true, confidence: 100 }] : [],
-      selectedSelector: selector,
-      elementInfo: null,
-      insertAtIndex: undefined,
-    });
-  }, [steps]);
+      setDraft({
+        catalogType,
+        catalogId,
+        catalogEntry: entry,
+        params,
+        selectorCandidates: selector
+          ? [
+              {
+                strategy: 'manual',
+                selector,
+                score: 100,
+                isUnique: true,
+                isReadable: true,
+                confidence: 100,
+              },
+            ]
+          : [],
+        selectedSelector: selector,
+        elementInfo: null,
+        insertAtIndex: undefined,
+      });
+    },
+    [steps]
+  );
 
   // ── Playback ──
 
@@ -485,8 +548,10 @@ export function useScenarioWizard() {
         const result = report.stepResults.find((r) => r.index === i);
         const status = result?.status ?? 'skipped';
         const statusLabel = status === 'passed' ? '성공' : status === 'failed' ? '실패' : '건너뜀';
-        const statusColor = status === 'passed' ? '#16a34a' : status === 'failed' ? '#dc2626' : '#9ca3af';
-        const statusBg = status === 'passed' ? '#f0fdf4' : status === 'failed' ? '#fef2f2' : '#f9fafb';
+        const statusColor =
+          status === 'passed' ? '#16a34a' : status === 'failed' ? '#dc2626' : '#9ca3af';
+        const statusBg =
+          status === 'passed' ? '#f0fdf4' : status === 'failed' ? '#fef2f2' : '#f9fafb';
         const selectorSummary = 'selector' in step && step.selector ? String(step.selector) : '-';
         const duration = result?.duration != null ? `${result.duration}ms` : '-';
         const errorRow = result?.error
@@ -611,8 +676,13 @@ function buildEventStepFromDraft(draft: PendingStepDraft): Step | null {
   const tempBindingId = '__wizard_temp__';
   const needsElement = draft.catalogEntry.elementRequirement !== 'none';
   const tempBinding: ElementBinding = {
-    id: tempBindingId, label: 'wizard-element', selector: draft.selectedSelector || '',
-    candidates: [], selectionMethod: 'manual', pageUrl: '', createdAt: Date.now(),
+    id: tempBindingId,
+    label: 'wizard-element',
+    selector: draft.selectedSelector || '',
+    candidates: [],
+    selectionMethod: 'manual',
+    pageUrl: '',
+    createdAt: Date.now(),
   };
   const boundEvent: BoundEvent = {
     eventId: draft.catalogId,
@@ -627,8 +697,13 @@ function buildVerificationStepFromDraft(draft: PendingStepDraft): Step | null {
   const tempBindingId = '__wizard_temp__';
   const needsElement = draft.catalogEntry.elementRequirement !== 'none';
   const tempBinding: ElementBinding = {
-    id: tempBindingId, label: 'wizard-element', selector: draft.selectedSelector || '',
-    candidates: [], selectionMethod: 'manual', pageUrl: '', createdAt: Date.now(),
+    id: tempBindingId,
+    label: 'wizard-element',
+    selector: draft.selectedSelector || '',
+    candidates: [],
+    selectionMethod: 'manual',
+    pageUrl: '',
+    createdAt: Date.now(),
   };
   const boundVerification: BoundVerification = {
     verificationId: draft.catalogId,
@@ -636,7 +711,10 @@ function buildVerificationStepFromDraft(draft: PendingStepDraft): Step | null {
     params: draft.params,
     critical: true,
   };
-  const result = convertBoundVerificationToStep(boundVerification, needsElement ? [tempBinding] : []);
+  const result = convertBoundVerificationToStep(
+    boundVerification,
+    needsElement ? [tempBinding] : []
+  );
   return result.ok ? result.step : null;
 }
 
@@ -646,22 +724,42 @@ const ASSERT_TYPES = new Set(['assertElement', 'assertApi', 'assertPage', 'asser
 function stepTypeToCatalogId(step: Step): string {
   switch (step.type) {
     case 'click':
-      return (step as { clickCount?: number }).clickCount && (step as { clickCount?: number }).clickCount! >= 2 ? 'doubleClick' : 'click';
+      return (step as { clickCount?: number }).clickCount &&
+        (step as { clickCount?: number }).clickCount! >= 2
+        ? 'doubleClick'
+        : 'click';
     case 'type':
       return step.value === '' && step.clear ? 'clear' : 'type';
     case 'assertElement':
-      return step.assertion.type === 'visible' ? 'visible'
-        : step.assertion.type === 'hidden' ? 'hidden'
-        : step.assertion.type === 'exists' ? 'exists'
-        : step.assertion.type === 'notExists' ? 'notExists'
-        : step.assertion.type === 'count' ? 'count'
-        : step.assertion.type === 'text' ? (step.assertion.contains ? 'textContains' : step.assertion.value === '' ? 'elementEmpty' : 'textEquals')
-        : step.assertion.type === 'enabled' ? 'inputEnabled'
-        : step.assertion.type === 'value' ? 'inputValue'
-        : step.assertion.type === 'attribute' ? 'attributeValue'
-        : 'visible';
+      return step.assertion.type === 'visible'
+        ? 'visible'
+        : step.assertion.type === 'hidden'
+          ? 'hidden'
+          : step.assertion.type === 'exists'
+            ? 'exists'
+            : step.assertion.type === 'notExists'
+              ? 'notExists'
+              : step.assertion.type === 'count'
+                ? 'count'
+                : step.assertion.type === 'text'
+                  ? step.assertion.contains
+                    ? 'textContains'
+                    : step.assertion.value === ''
+                      ? 'elementEmpty'
+                      : 'textEquals'
+                  : step.assertion.type === 'enabled'
+                    ? 'inputEnabled'
+                    : step.assertion.type === 'value'
+                      ? 'inputValue'
+                      : step.assertion.type === 'attribute'
+                        ? 'attributeValue'
+                        : 'visible';
     case 'assertPage':
-      return step.assertion.type === 'url' ? 'currentUrl' : step.assertion.type === 'title' ? 'pageTitle' : 'documentExists';
+      return step.assertion.type === 'url'
+        ? 'currentUrl'
+        : step.assertion.type === 'title'
+          ? 'pageTitle'
+          : 'documentExists';
     case 'assertStyle':
       return 'cssStyle';
     case 'assertApi':
@@ -674,22 +772,32 @@ function stepTypeToCatalogId(step: Step): string {
 /** Extract params from a Step for re-editing */
 function extractParamsFromStep(step: Step): Record<string, unknown> {
   switch (step.type) {
-    case 'type': return { value: step.value, clear: step.clear, delay: step.delay };
-    case 'keypress': return { key: step.key, modifiers: step.modifiers?.[0] };
-    case 'navigate': return { url: step.url, waitUntil: step.waitUntil };
-    case 'wait': return { duration: step.duration };
-    case 'select': return { value: Array.isArray(step.values) ? step.values[0] : step.values };
-    case 'scroll': return { x: step.position?.x ?? 0, y: step.position?.y ?? 0 };
-    case 'assertApi': return {
-      url: step.match.url,
-      method: step.match.method,
-      ...(step.expect?.status !== undefined ? { status: step.expect.status } : {}),
-    };
+    case 'type':
+      return { value: step.value, clear: step.clear, delay: step.delay };
+    case 'keypress':
+      return { key: step.key, modifiers: step.modifiers?.[0] };
+    case 'navigate':
+      return { url: step.url, waitUntil: step.waitUntil };
+    case 'wait':
+      return { duration: step.duration };
+    case 'select':
+      return { value: Array.isArray(step.values) ? step.values[0] : step.values };
+    case 'scroll':
+      return { x: step.position?.x ?? 0, y: step.position?.y ?? 0 };
+    case 'assertApi':
+      return {
+        url: step.match.url,
+        method: step.match.method,
+        ...(step.expect?.status !== undefined ? { status: step.expect.status } : {}),
+      };
     case 'assertPage':
-      return step.assertion.type === 'url' ? { url: step.assertion.value, matchType: step.assertion.matchType }
-        : step.assertion.type === 'title' ? { title: step.assertion.value }
-        : {};
-    case 'assertStyle': return { property: step.property, value: step.value };
+      return step.assertion.type === 'url'
+        ? { url: step.assertion.value, matchType: step.assertion.matchType }
+        : step.assertion.type === 'title'
+          ? { title: step.assertion.value }
+          : {};
+    case 'assertStyle':
+      return { property: step.property, value: step.value };
     case 'assertElement': {
       const a = step.assertion;
       if (a.type === 'text') return { value: a.value };
@@ -698,6 +806,7 @@ function extractParamsFromStep(step: Step): Record<string, unknown> {
       if (a.type === 'value') return { value: a.value };
       return {};
     }
-    default: return {};
+    default:
+      return {};
   }
 }

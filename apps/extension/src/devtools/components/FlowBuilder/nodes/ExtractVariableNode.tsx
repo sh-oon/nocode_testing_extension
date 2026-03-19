@@ -1,5 +1,5 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { ExtractVariableNodeData, ExtractionSource } from '@like-cake/ast-types';
+import type { ExtractionSource, ExtractVariableNodeData } from '@like-cake/ast-types';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 
 type ExtractVariableNodeProps = NodeProps & {
   data: ExtractVariableNodeData;
@@ -42,9 +42,7 @@ export function ExtractVariableNode({ data, selected }: ExtractVariableNodeProps
   const extractionCount = data.extractions?.length || 0;
 
   // Get unique sources for display
-  const sources = data.extractions
-    ? [...new Set(data.extractions.map((e) => e.source))]
-    : [];
+  const sources = data.extractions ? [...new Set(data.extractions.map((e) => e.source))] : [];
 
   return (
     <div
@@ -95,14 +93,15 @@ export function ExtractVariableNode({ data, selected }: ExtractVariableNodeProps
             >
               {data.extractions[0].variableName}
               {data.extractions[0].jsonPath && (
-                <span className="text-gray-400"> ({truncate(data.extractions[0].jsonPath, 15)})</span>
+                <span className="text-gray-400">
+                  {' '}
+                  ({truncate(data.extractions[0].jsonPath, 15)})
+                </span>
               )}
             </div>
           )}
         </div>
-        {statusIcons[status] && (
-          <div className="flex-shrink-0">{statusIcons[status]}</div>
-        )}
+        {statusIcons[status] && <div className="flex-shrink-0">{statusIcons[status]}</div>}
       </div>
 
       <Handle

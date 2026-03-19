@@ -39,7 +39,7 @@ export interface RawGraphPath {
  */
 export const extractRawPaths = (
   config: XStateMachineConfig,
-  strategy: TraversalStrategy,
+  strategy: TraversalStrategy
 ): RawGraphPath[] => {
   // Strip entry actions — we only need graph topology for path traversal,
   // not action execution. xstate v5 expects action functions, not plain strings.
@@ -61,8 +61,7 @@ export const extractRawPaths = (
     states: strippedStates,
   } as any);
 
-  const xstatePaths =
-    strategy === 'shortest' ? getShortestPaths(machine) : getSimplePaths(machine);
+  const xstatePaths = strategy === 'shortest' ? getShortestPaths(machine) : getSimplePaths(machine);
 
   return xstatePaths.map(normalizeXStatePath);
 };

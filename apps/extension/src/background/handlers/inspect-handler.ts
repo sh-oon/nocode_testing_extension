@@ -1,9 +1,5 @@
 import type { Message } from '../../shared/messages';
-import {
-  activeTabId,
-  ensureContentScriptInjected,
-  notifyPanels,
-} from '../state';
+import { activeTabId, ensureContentScriptInjected, notifyPanels } from '../state';
 
 // --- Message handlers ---
 
@@ -11,12 +7,13 @@ export function handleStartElementInspect(
   _message: Message,
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
-  tabId?: number,
-): boolean | void {
+  tabId?: number
+): boolean | undefined {
   const inspectTabId = tabId ?? sender.tab?.id ?? activeTabId;
   const sendInspect = async (targetTabId: number) => {
     await ensureContentScriptInjected(targetTabId);
-    chrome.tabs.sendMessage(targetTabId, { type: 'START_ELEMENT_INSPECT' })
+    chrome.tabs
+      .sendMessage(targetTabId, { type: 'START_ELEMENT_INSPECT' })
       .then(() => sendResponse({ success: true }))
       .catch((error) => sendResponse({ success: false, error: String(error) }));
   };
@@ -40,8 +37,8 @@ export function handleStopElementInspect(
   _message: Message,
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
-  tabId?: number,
-): boolean | void {
+  tabId?: number
+): boolean | undefined {
   const stopInspectTabId = tabId ?? sender.tab?.id ?? activeTabId;
   if (stopInspectTabId) {
     chrome.tabs.sendMessage(stopInspectTabId, { type: 'STOP_ELEMENT_INSPECT' }).catch(() => {});
@@ -52,8 +49,8 @@ export function handleStopElementInspect(
 export function handleElementInspected(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   notifyPanels(message);
   sendResponse({ success: true });
 }

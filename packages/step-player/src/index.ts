@@ -8,10 +8,10 @@
 // Actionability
 export {
   ACTION_CHECKS,
-  checkActionability,
   type ActionabilityChecks,
   type ActionabilityFailure,
   type ActionabilityResult,
+  checkActionability,
 } from './actionability';
 // Adapters
 export { ExtensionAdapter } from './adapters/extension-adapter';

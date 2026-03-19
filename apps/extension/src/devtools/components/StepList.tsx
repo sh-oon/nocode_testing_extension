@@ -10,7 +10,13 @@ interface StepListProps {
   onStepUpdate?: (index: number, step: Step) => void;
 }
 
-export function StepList({ steps, currentStepIndex, stepResults, editable, onStepUpdate }: StepListProps) {
+export function StepList({
+  steps,
+  currentStepIndex,
+  stepResults,
+  editable,
+  onStepUpdate,
+}: StepListProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   if (steps.length === 0) {
@@ -140,8 +146,18 @@ function StepItem({ step, index, isCurrent, result, editable, onEdit }: StepItem
           className="flex-shrink-0 p-1.5 text-gray-500 hover:text-blue-600 transition-colors"
           title="Edit step"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
           </svg>
         </button>
       )}

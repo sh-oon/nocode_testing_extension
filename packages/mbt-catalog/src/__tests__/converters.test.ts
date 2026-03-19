@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest';
 import type { SelectorInput } from '@like-cake/ast-types';
-import type { ElementBinding } from '../types/element-binding';
-import type { BoundEvent, BoundVerification, TestModel } from '../types/model';
-import type { TestPath } from '../converters/types';
+import { describe, expect, it } from 'vitest';
 import { convertBoundEventToStep } from '../converters/event-to-step';
-import { convertBoundVerificationToStep } from '../converters/verification-to-step';
 import { convertModelToXStateMachineConfig } from '../converters/model-to-xstate';
 import { convertTestPathToScenario } from '../converters/path-to-scenario';
+import type { TestPath } from '../converters/types';
+import { convertBoundVerificationToStep } from '../converters/verification-to-step';
+import type { ElementBinding } from '../types/element-binding';
+import type { BoundEvent, BoundVerification, TestModel } from '../types/model';
 
 // ── Test fixtures ───────────────────────────────────────────────────────
 
@@ -80,7 +80,11 @@ describe('convertBoundEventToStep', () => {
   });
 
   it('converts scroll event without selector', () => {
-    const event: BoundEvent = { eventId: 'scroll', elementBindingId: null, params: { x: 0, y: 500 } };
+    const event: BoundEvent = {
+      eventId: 'scroll',
+      elementBindingId: null,
+      params: { x: 0, y: 500 },
+    };
     const result = convertBoundEventToStep(event, bindings);
     expect(result).toEqual({
       ok: true,
@@ -122,7 +126,11 @@ describe('convertBoundEventToStep', () => {
   });
 
   it('converts keypress event', () => {
-    const event: BoundEvent = { eventId: 'keypress', elementBindingId: null, params: { key: 'Enter' } };
+    const event: BoundEvent = {
+      eventId: 'keypress',
+      elementBindingId: null,
+      params: { key: 'Enter' },
+    };
     const result = convertBoundEventToStep(event, bindings);
     expect(result).toEqual({
       ok: true,
@@ -161,7 +169,11 @@ describe('convertBoundEventToStep', () => {
   });
 
   it('converts wait event', () => {
-    const event: BoundEvent = { eventId: 'wait', elementBindingId: null, params: { duration: 2000 } };
+    const event: BoundEvent = {
+      eventId: 'wait',
+      elementBindingId: null,
+      params: { duration: 2000 },
+    };
     const result = convertBoundEventToStep(event, bindings);
     expect(result).toEqual({
       ok: true,
@@ -189,7 +201,11 @@ describe('convertBoundEventToStep', () => {
     const result = convertBoundEventToStep(event, bindings);
     expect(result).toEqual({
       ok: true,
-      step: { type: 'dragAndDrop', selector: makeSelector('[data-testid="login-btn"]'), dropTarget: '.drop-zone' },
+      step: {
+        type: 'dragAndDrop',
+        selector: makeSelector('[data-testid="login-btn"]'),
+        dropTarget: '.drop-zone',
+      },
     });
   });
 
@@ -202,7 +218,11 @@ describe('convertBoundEventToStep', () => {
     const result = convertBoundEventToStep(event, bindings);
     expect(result).toEqual({
       ok: true,
-      step: { type: 'fileUpload', selector: makeSelector('[data-testid="email"]'), filePaths: '/tmp/test.png' },
+      step: {
+        type: 'fileUpload',
+        selector: makeSelector('[data-testid="email"]'),
+        filePaths: '/tmp/test.png',
+      },
     });
   });
 
@@ -229,38 +249,74 @@ describe('convertBoundEventToStep', () => {
 
 describe('convertBoundVerificationToStep', () => {
   it('converts visible verification', () => {
-    const v: BoundVerification = { verificationId: 'visible', elementBindingId: 'btn-login', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'visible',
+      elementBindingId: 'btn-login',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
-      step: { type: 'assertElement', selector: makeSelector('[data-testid="login-btn"]'), assertion: { type: 'visible' } },
+      step: {
+        type: 'assertElement',
+        selector: makeSelector('[data-testid="login-btn"]'),
+        assertion: { type: 'visible' },
+      },
     });
   });
 
   it('converts hidden verification', () => {
-    const v: BoundVerification = { verificationId: 'hidden', elementBindingId: 'btn-login', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'hidden',
+      elementBindingId: 'btn-login',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
-      step: { type: 'assertElement', selector: makeSelector('[data-testid="login-btn"]'), assertion: { type: 'hidden' } },
+      step: {
+        type: 'assertElement',
+        selector: makeSelector('[data-testid="login-btn"]'),
+        assertion: { type: 'hidden' },
+      },
     });
   });
 
   it('converts exists verification', () => {
-    const v: BoundVerification = { verificationId: 'exists', elementBindingId: 'btn-login', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'exists',
+      elementBindingId: 'btn-login',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
-      step: { type: 'assertElement', selector: makeSelector('[data-testid="login-btn"]'), assertion: { type: 'exists' } },
+      step: {
+        type: 'assertElement',
+        selector: makeSelector('[data-testid="login-btn"]'),
+        assertion: { type: 'exists' },
+      },
     });
   });
 
   it('converts notExists verification', () => {
-    const v: BoundVerification = { verificationId: 'notExists', elementBindingId: 'btn-login', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'notExists',
+      elementBindingId: 'btn-login',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
-      step: { type: 'assertElement', selector: makeSelector('[data-testid="login-btn"]'), assertion: { type: 'notExists' } },
+      step: {
+        type: 'assertElement',
+        selector: makeSelector('[data-testid="login-btn"]'),
+        assertion: { type: 'notExists' },
+      },
     });
   });
 
@@ -283,7 +339,12 @@ describe('convertBoundVerificationToStep', () => {
   });
 
   it('converts elementEmpty verification', () => {
-    const v: BoundVerification = { verificationId: 'elementEmpty', elementBindingId: 'input-email', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'elementEmpty',
+      elementBindingId: 'input-email',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
@@ -386,7 +447,12 @@ describe('convertBoundVerificationToStep', () => {
   });
 
   it('converts checkboxChecked verification', () => {
-    const v: BoundVerification = { verificationId: 'checkboxChecked', elementBindingId: 'btn-login', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'checkboxChecked',
+      elementBindingId: 'btn-login',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
@@ -399,7 +465,12 @@ describe('convertBoundVerificationToStep', () => {
   });
 
   it('converts inputDisabled verification', () => {
-    const v: BoundVerification = { verificationId: 'inputDisabled', elementBindingId: 'input-email', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'inputDisabled',
+      elementBindingId: 'input-email',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
@@ -412,7 +483,12 @@ describe('convertBoundVerificationToStep', () => {
   });
 
   it('converts inputReadonly verification', () => {
-    const v: BoundVerification = { verificationId: 'inputReadonly', elementBindingId: 'input-email', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'inputReadonly',
+      elementBindingId: 'input-email',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
@@ -428,7 +504,13 @@ describe('convertBoundVerificationToStep', () => {
     const v: BoundVerification = {
       verificationId: 'apiResponse',
       elementBindingId: null,
-      params: { url: '/api/users', method: 'GET', status: 200, jsonPath: '$.data.id', expectedValue: '42' },
+      params: {
+        url: '/api/users',
+        method: 'GET',
+        status: 200,
+        jsonPath: '$.data.id',
+        expectedValue: '42',
+      },
       critical: true,
     };
     const result = convertBoundVerificationToStep(v, bindings);
@@ -463,7 +545,12 @@ describe('convertBoundVerificationToStep', () => {
   // ── Phase 4 verifications (previously null-mapped, now supported) ──
 
   it('converts inputEnabled verification', () => {
-    const v: BoundVerification = { verificationId: 'inputEnabled', elementBindingId: 'input-email', params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'inputEnabled',
+      elementBindingId: 'input-email',
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
@@ -525,7 +612,12 @@ describe('convertBoundVerificationToStep', () => {
   });
 
   it('converts documentExists verification', () => {
-    const v: BoundVerification = { verificationId: 'documentExists', elementBindingId: null, params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'documentExists',
+      elementBindingId: null,
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result).toEqual({
       ok: true,
@@ -553,7 +645,12 @@ describe('convertBoundVerificationToStep', () => {
   });
 
   it('returns error for unknown verification ID', () => {
-    const v: BoundVerification = { verificationId: 'unknownVerification', elementBindingId: null, params: {}, critical: true };
+    const v: BoundVerification = {
+      verificationId: 'unknownVerification',
+      elementBindingId: null,
+      params: {},
+      critical: true,
+    };
     const result = convertBoundVerificationToStep(v, bindings);
     expect(result.ok).toBe(false);
   });
@@ -724,8 +821,18 @@ describe('convertTestPathToScenario', () => {
         id: 'dashboard',
         name: 'Dashboard',
         verifications: [
-          { verificationId: 'textContains', elementBindingId: 'btn-login', params: { value: 'Welcome' }, critical: true },
-          { verificationId: 'apiCalled', elementBindingId: null, params: { url: '/api/me', method: 'GET' }, critical: false },
+          {
+            verificationId: 'textContains',
+            elementBindingId: 'btn-login',
+            params: { value: 'Welcome' },
+            critical: true,
+          },
+          {
+            verificationId: 'apiCalled',
+            elementBindingId: null,
+            params: { url: '/api/me', method: 'GET' },
+            critical: false,
+          },
         ],
       },
     ],
@@ -792,8 +899,18 @@ describe('convertTestPathToScenario', () => {
           id: 'page',
           name: 'Page',
           verifications: [
-            { verificationId: 'visible', elementBindingId: 'btn-login', params: {}, critical: true },
-            { verificationId: 'unknownFutureVerification', elementBindingId: null, params: {}, critical: true },
+            {
+              verificationId: 'visible',
+              elementBindingId: 'btn-login',
+              params: {},
+              critical: true,
+            },
+            {
+              verificationId: 'unknownFutureVerification',
+              elementBindingId: null,
+              params: {},
+              critical: true,
+            },
           ],
           isInitial: true,
         },
@@ -808,7 +925,10 @@ describe('convertTestPathToScenario', () => {
       nodes: [{ kind: 'state', state: modelWithUnsupported.states[0] }],
     };
 
-    const { scenario, errors } = convertTestPathToScenario(pathWithUnsupported, modelWithUnsupported);
+    const { scenario, errors } = convertTestPathToScenario(
+      pathWithUnsupported,
+      modelWithUnsupported
+    );
     // Only the supported verification becomes a step
     expect(scenario.steps).toHaveLength(1);
     expect(scenario.steps[0].type).toBe('assertElement');
@@ -845,7 +965,10 @@ describe('convertTestPathToScenario', () => {
       ],
     };
 
-    const { scenario, errors } = convertTestPathToScenario(pathWithUnsupportedEvent, modelWithUnsupportedEvent);
+    const { scenario, errors } = convertTestPathToScenario(
+      pathWithUnsupportedEvent,
+      modelWithUnsupportedEvent
+    );
     expect(scenario.steps).toHaveLength(0);
     expect(errors).toHaveLength(1);
     expect(errors[0].catalogEntryId).toBe('unknownFutureEvent');

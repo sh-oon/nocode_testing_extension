@@ -1,15 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  ACTION_CHECKS,
-  checkActionability,
-  type ActionabilityChecks,
-} from '../actionability';
+import { ACTION_CHECKS, type ActionabilityChecks, checkActionability } from '../actionability';
 import { PuppeteerAdapter, type PuppeteerPageLike } from '../adapters/puppeteer-adapter';
 
 // ─── checkActionability pure function tests (jsdom) ─────────────
 
-const ALL_CHECKS: ActionabilityChecks = {
+const _ALL_CHECKS: ActionabilityChecks = {
   attached: true,
   visible: true,
   enabled: true,
@@ -30,7 +26,7 @@ const NO_CHECKS: ActionabilityChecks = {
 function createElement(
   tag: string,
   attrs: Record<string, string> = {},
-  style: Partial<CSSStyleDeclaration> = {},
+  style: Partial<CSSStyleDeclaration> = {}
 ): HTMLElement {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -322,7 +318,7 @@ describe('PuppeteerAdapter actionability integration', () => {
   it('should propagate actionability failure as error', async () => {
     const page = createMockPage();
     (page.evaluate as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
-      new Error('Actionability timeout after 30000ms: Element is disabled'),
+      new Error('Actionability timeout after 30000ms: Element is disabled')
     );
 
     const adapter = new PuppeteerAdapter({ page });

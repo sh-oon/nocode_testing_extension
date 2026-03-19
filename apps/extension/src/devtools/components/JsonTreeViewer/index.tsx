@@ -1,5 +1,5 @@
-import { TreeNode } from './TreeNode';
 import { getValuePreview } from './PathBuilder';
+import { TreeNode } from './TreeNode';
 
 interface JsonTreeViewerProps {
   /** JSON data to display */
@@ -74,13 +74,11 @@ export function JsonTreeViewer({
             ))
           )
         ) : (
-          <div className="px-2 py-1 text-xs text-gray-500 font-mono">
-            {getValuePreview(data)}
-          </div>
+          <div className="px-2 py-1 text-xs text-gray-500 font-mono">{getValuePreview(data)}</div>
         )}
       </div>
     </div>
   );
 }
 
-export { buildJsonPath, getValueType, getValuePreview } from './PathBuilder';
+export { buildJsonPath, getValuePreview, getValueType } from './PathBuilder';

@@ -1,27 +1,26 @@
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
 import type { Step } from '@like-cake/ast-types';
 import type { FullSnapshot } from '@like-cake/dom-serializer';
-import {
-  mergeTypeSteps,
-  type RawEvent,
-  transformEventsToSteps,
-} from '@like-cake/event-collector';
-import type { Message } from '../../shared/messages';
+import { mergeTypeSteps, type RawEvent, transformEventsToSteps } from '@like-cake/event-collector';
+import type {
+  ApiCallCapturedMessage,
+  Message,
+  SnapshotCapturedMessage,
+} from '../../shared/messages';
 import {
   clearCurrentSession,
   createSession,
   type LabeledSnapshot,
   saveCurrentSession,
 } from '../../shared/storage';
-import type { ApiCallCapturedMessage, SnapshotCapturedMessage } from '../../shared/messages';
 import {
   activeTabId,
   ensureContentScriptInjected,
   notifyPanels,
   sessionCache,
   setActiveTabId,
-  setSessionCache,
   setPendingDomMutations,
+  setSessionCache,
 } from '../state';
 
 /**
@@ -265,8 +264,8 @@ export function handleStartRecording(
   message: Message,
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
-  tabId?: number,
-): boolean | void {
+  tabId?: number
+): boolean | undefined {
   const recordTabId = tabId ?? sender.tab?.id ?? activeTabId;
   if (recordTabId) {
     startRecording(recordTabId, (message as { config?: Record<string, boolean> }).config);
@@ -280,8 +279,8 @@ export function handleStartRecording(
 export function handleStopRecording(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   stopRecording();
   sendResponse({ success: true });
 }
@@ -289,8 +288,8 @@ export function handleStopRecording(
 export function handlePauseRecording(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   if (sessionCache) {
     sessionCache.isPaused = true;
     saveCurrentSession(sessionCache);
@@ -304,8 +303,8 @@ export function handlePauseRecording(
 export function handleResumeRecording(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   if (sessionCache) {
     sessionCache.isPaused = false;
     saveCurrentSession(sessionCache);
@@ -319,8 +318,8 @@ export function handleResumeRecording(
 export function handleEventCapturedMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   handleEventCaptured((message as { event: RawEvent }).event);
   sendResponse({ success: true });
 }
@@ -328,8 +327,8 @@ export function handleEventCapturedMessage(
 export function handleApiCallCapturedMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   handleApiCallCaptured((message as { apiCall: CapturedApiCall }).apiCall);
   sendResponse({ success: true });
 }
@@ -337,24 +336,24 @@ export function handleApiCallCapturedMessage(
 export function handleGetRecordingState(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   sendResponse(getRecordingState());
 }
 
 export function handleGetEvents(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   sendResponse(getEventsData());
 }
 
 export function handleGetApiCalls(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   sendResponse(getApiCallsData());
 }
 
@@ -362,8 +361,8 @@ export function handleCaptureSnapshot(
   message: Message,
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
-  tabId?: number,
-): boolean | void {
+  tabId?: number
+): boolean | undefined {
   const captureTabId = tabId ?? sender.tab?.id ?? activeTabId;
   if (captureTabId) {
     chrome.tabs
@@ -381,8 +380,8 @@ export function handleCaptureSnapshot(
 export function handleSnapshotCapturedMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   const msg = message as SnapshotCapturedMessage;
   handleSnapshotCaptured(msg.snapshot, msg.label);
   sendResponse({ success: true });
@@ -391,16 +390,16 @@ export function handleSnapshotCapturedMessage(
 export function handleGetSnapshots(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   sendResponse(getSnapshotsData());
 }
 
 export function handleClearEvents(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   clearEvents();
   sendResponse({ success: true });
 }
@@ -408,8 +407,8 @@ export function handleClearEvents(
 export function handleResetSession(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   console.log('[Like Cake] Force resetting session');
   setSessionCache(null);
   setActiveTabId(null);

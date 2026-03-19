@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FlowNode } from '@like-cake/ast-types';
-import { getApiClient, type BackendUserFlow } from '../../../shared/api';
+import { type BackendUserFlow, getApiClient } from '../../../shared/api';
 import { ConfirmModal } from '../ConfirmModal';
 import { FlowCard } from './FlowCard';
 import { FlowSearchBar, type SortOption } from './FlowSearchBar';
@@ -46,9 +46,7 @@ export function FlowListPanel({
         setError(response.error || '플로우 목록을 불러오지 못했습니다.');
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.'
-      );
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -103,45 +101,35 @@ export function FlowListPanel({
     }
   }, [deleteTarget]);
 
-  const handleDuplicate = useCallback(
-    async (flowId: string) => {
-      try {
-        const client = await getApiClient();
-        const response = await client.duplicateUserFlow(flowId);
+  const handleDuplicate = useCallback(async (flowId: string) => {
+    try {
+      const client = await getApiClient();
+      const response = await client.duplicateUserFlow(flowId);
 
-        if (response.success && response.data) {
-          setFlows((prev) => [response.data as BackendUserFlow, ...prev]);
-        } else {
-          console.error('Failed to duplicate flow:', response.error);
-        }
-      } catch (err) {
-        console.error('Failed to duplicate flow:', err);
+      if (response.success && response.data) {
+        setFlows((prev) => [response.data as BackendUserFlow, ...prev]);
+      } else {
+        console.error('Failed to duplicate flow:', response.error);
       }
-    },
-    []
-  );
+    } catch (err) {
+      console.error('Failed to duplicate flow:', err);
+    }
+  }, []);
 
-  const handleRename = useCallback(
-    async (flowId: string, newName: string) => {
-      try {
-        const client = await getApiClient();
-        const response = await client.updateUserFlow(flowId, { name: newName });
+  const handleRename = useCallback(async (flowId: string, newName: string) => {
+    try {
+      const client = await getApiClient();
+      const response = await client.updateUserFlow(flowId, { name: newName });
 
-        if (response.success && response.data) {
-          setFlows((prev) =>
-            prev.map((f) =>
-              f.id === flowId ? { ...f, name: newName } : f
-            )
-          );
-        } else {
-          console.error('Failed to rename flow:', response.error);
-        }
-      } catch (err) {
-        console.error('Failed to rename flow:', err);
+      if (response.success && response.data) {
+        setFlows((prev) => prev.map((f) => (f.id === flowId ? { ...f, name: newName } : f)));
+      } else {
+        console.error('Failed to rename flow:', response.error);
       }
-    },
-    []
-  );
+    } catch (err) {
+      console.error('Failed to rename flow:', err);
+    }
+  }, []);
 
   const handleCreateNew = useCallback(() => {
     onCreateNew();
@@ -159,7 +147,10 @@ export function FlowListPanel({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex" data-test-id="flow-list-panel">
+    <div
+      className="fixed inset-0 z-50 flex"
+      data-test-id="flow-list-panel"
+    >
       {/* Overlay backdrop */}
       <div
         className="absolute inset-0 bg-black/40"
@@ -206,7 +197,10 @@ export function FlowListPanel({
         />
 
         {/* Flow list content */}
-        <div className="flex-1 overflow-y-auto" data-test-id="flow-list-content">
+        <div
+          className="flex-1 overflow-y-auto"
+          data-test-id="flow-list-content"
+        >
           {isLoading ? (
             <div
               className="flex items-center justify-center py-12"
@@ -244,9 +238,7 @@ export function FlowListPanel({
               ) : (
                 <>
                   <EmptyIcon />
-                  <p className="mt-3 text-sm text-gray-400">
-                    아직 생성된 플로우가 없습니다.
-                  </p>
+                  <p className="mt-3 text-sm text-gray-400">아직 생성된 플로우가 없습니다.</p>
                   <button
                     type="button"
                     onClick={handleCreateNew}

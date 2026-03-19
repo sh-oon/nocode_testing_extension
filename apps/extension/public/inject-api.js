@@ -3,7 +3,7 @@
  * Patches fetch and XMLHttpRequest to capture all API calls
  * Buffers calls until recording starts
  */
-(function() {
+(() => {
   // Prevent double injection
   if (window.__like_cake_api_injected__) return;
   window.__like_cake_api_injected__ = true;
@@ -18,9 +18,11 @@
 
   // Dispatch API call event to content script
   const dispatchApiEvent = (apiCall) => {
-    window.dispatchEvent(new CustomEvent('__like_cake_api_call__', {
-      detail: apiCall
-    }));
+    window.dispatchEvent(
+      new CustomEvent('__like_cake_api_call__', {
+        detail: apiCall,
+      })
+    );
   };
 
   // Serialize headers
@@ -62,7 +64,7 @@
       if (body instanceof ArrayBuffer || body instanceof Blob) {
         return '[Binary Data]';
       }
-    } catch (e) {
+    } catch (_e) {
       return String(body).substring(0, 1000);
     }
     return undefined;
@@ -83,7 +85,7 @@
       /hot-update/,
       /\.map$/,
     ];
-    return ignorePatterns.some(pattern => pattern.test(url));
+    return ignorePatterns.some((pattern) => pattern.test(url));
   };
 
   // Handle captured API call
@@ -104,7 +106,7 @@
   // ============================================
   const originalFetch = window.fetch.bind(window);
 
-  window.fetch = async function(input, init = {}) {
+  window.fetch = async (input, init = {}) => {
     const url = typeof input === 'string' ? input : input.url;
 
     if (shouldIgnore(url)) {
@@ -116,7 +118,9 @@
     const method = (init.method || 'GET').toUpperCase();
 
     // Capture request
-    const requestHeaders = serializeHeaders(init.headers || (input instanceof Request ? input.headers : {}));
+    const requestHeaders = serializeHeaders(
+      init.headers || (input instanceof Request ? input.headers : {})
+    );
     let requestBody;
     if (init.body) {
       requestBody = await parseBody(init.body, requestHeaders['content-type']);
@@ -150,7 +154,7 @@
           const text = await clonedResponse.text();
           responseBody = text.substring(0, 10000); // Limit size
         }
-      } catch (e) {
+      } catch (_e) {
         // Body parsing failed
       }
 
@@ -176,18 +180,18 @@
   // ============================================
   const OriginalXHR = window.XMLHttpRequest;
 
-  window.XMLHttpRequest = function() {
+  window.XMLHttpRequest = () => {
     const xhr = new OriginalXHR();
     const requestId = generateId();
     let method = 'GET';
     let url = '';
-    let requestHeaders = {};
-    let requestBody;
+    const requestHeaders = {};
+    let _requestBody;
     const timestamp = Date.now();
 
     // Intercept open
     const originalOpen = xhr.open.bind(xhr);
-    xhr.open = function(m, u, ...args) {
+    xhr.open = (m, u, ...args) => {
       method = (m || 'GET').toUpperCase();
       url = u;
       return originalOpen(m, u, ...args);
@@ -195,19 +199,19 @@
 
     // Intercept setRequestHeader
     const originalSetHeader = xhr.setRequestHeader.bind(xhr);
-    xhr.setRequestHeader = function(name, value) {
+    xhr.setRequestHeader = (name, value) => {
       requestHeaders[name.toLowerCase()] = value;
       return originalSetHeader(name, value);
     };
 
     // Intercept send
     const originalSend = xhr.send.bind(xhr);
-    xhr.send = function(body) {
+    xhr.send = (body) => {
       if (shouldIgnore(url)) {
         return originalSend(body);
       }
 
-      requestBody = body;
+      _requestBody = body;
 
       const apiCall = {
         request: {
@@ -222,7 +226,7 @@
         error: null,
       };
 
-      xhr.addEventListener('load', function() {
+      xhr.addEventListener('load', () => {
         let responseBody;
         try {
           const contentType = xhr.getResponseHeader('content-type') || '';
@@ -231,7 +235,7 @@
           } else if (contentType.includes('text/')) {
             responseBody = xhr.responseText.substring(0, 10000);
           }
-        } catch (e) {
+        } catch (_e) {
           // Parsing failed
         }
 
@@ -239,7 +243,7 @@
         const responseHeaders = {};
         const headerStr = xhr.getAllResponseHeaders();
         if (headerStr) {
-          headerStr.split('\r\n').forEach(line => {
+          headerStr.split('\r\n').forEach((line) => {
             const [key, ...values] = line.split(': ');
             if (key) {
               responseHeaders[key.toLowerCase()] = values.join(': ');
@@ -258,7 +262,7 @@
         handleApiCall(apiCall);
       });
 
-      xhr.addEventListener('error', function() {
+      xhr.addEventListener('error', () => {
         apiCall.error = 'Network error';
         handleApiCall(apiCall);
       });
@@ -270,7 +274,7 @@
   };
 
   // Copy static properties
-  Object.keys(OriginalXHR).forEach(key => {
+  Object.keys(OriginalXHR).forEach((key) => {
     window.XMLHttpRequest[key] = OriginalXHR[key];
   });
   window.XMLHttpRequest.prototype = OriginalXHR.prototype;
@@ -278,16 +282,14 @@
   // ============================================
   // Listen for recording state changes
   // ============================================
-  window.addEventListener('__like_cake_start_recording__', function() {
+  window.addEventListener('__like_cake_start_recording__', () => {
     isRecording = true;
 
     // Flush buffered calls (only recent ones within 10 seconds)
     const now = Date.now();
-    const recentCalls = apiCallBuffer.filter(call =>
-      now - call.request.timestamp < 10000
-    );
+    const recentCalls = apiCallBuffer.filter((call) => now - call.request.timestamp < 10000);
 
-    recentCalls.forEach(call => {
+    recentCalls.forEach((call) => {
       dispatchApiEvent(call);
     });
 
@@ -297,7 +299,7 @@
     console.log('[Like Cake] API recording started, flushed', recentCalls.length, 'buffered calls');
   });
 
-  window.addEventListener('__like_cake_stop_recording__', function() {
+  window.addEventListener('__like_cake_stop_recording__', () => {
     isRecording = false;
   });
 

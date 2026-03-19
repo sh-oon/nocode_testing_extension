@@ -41,7 +41,9 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
               <input
                 type="number"
                 value={currentValue === '' ? '' : Number(currentValue)}
-                onChange={(e) => handleChange(param.name, e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) =>
+                  handleChange(param.name, e.target.value === '' ? '' : Number(e.target.value))
+                }
                 placeholder={param.placeholder}
                 className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500"
               />
@@ -56,7 +58,7 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                   className="w-4 h-4 rounded border-gray-300 bg-white text-orange-500 focus:ring-orange-500 focus:ring-offset-white"
                 />
                 <span className="text-sm text-gray-600">
-                  {Boolean(currentValue) ? '활성화' : '비활성화'}
+                  {currentValue ? '활성화' : '비활성화'}
                 </span>
               </label>
             )}
@@ -69,7 +71,10 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
               >
                 {!param.required && <option value="">선택 안 함</option>}
                 {param.options?.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                  >
                     {opt.label}
                   </option>
                 ))}
@@ -102,9 +107,16 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                   <label className="block text-[10px] text-gray-500 mb-0.5">X</label>
                   <input
                     type="number"
-                    value={typeof currentValue === 'object' && currentValue !== null ? ((currentValue as Record<string, number>).x ?? 0) : 0}
+                    value={
+                      typeof currentValue === 'object' && currentValue !== null
+                        ? ((currentValue as Record<string, number>).x ?? 0)
+                        : 0
+                    }
                     onChange={(e) => {
-                      const current = typeof currentValue === 'object' && currentValue !== null ? currentValue as Record<string, number> : { x: 0, y: 0 };
+                      const current =
+                        typeof currentValue === 'object' && currentValue !== null
+                          ? (currentValue as Record<string, number>)
+                          : { x: 0, y: 0 };
                       handleChange(param.name, { ...current, x: Number(e.target.value) });
                     }}
                     className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:border-orange-500"
@@ -114,9 +126,16 @@ export function CatalogParamForm({ params, values, onChange }: CatalogParamFormP
                   <label className="block text-[10px] text-gray-500 mb-0.5">Y</label>
                   <input
                     type="number"
-                    value={typeof currentValue === 'object' && currentValue !== null ? ((currentValue as Record<string, number>).y ?? 0) : 0}
+                    value={
+                      typeof currentValue === 'object' && currentValue !== null
+                        ? ((currentValue as Record<string, number>).y ?? 0)
+                        : 0
+                    }
                     onChange={(e) => {
-                      const current = typeof currentValue === 'object' && currentValue !== null ? currentValue as Record<string, number> : { x: 0, y: 0 };
+                      const current =
+                        typeof currentValue === 'object' && currentValue !== null
+                          ? (currentValue as Record<string, number>)
+                          : { x: 0, y: 0 };
                       handleChange(param.name, { ...current, y: Number(e.target.value) });
                     }}
                     className="w-full px-2.5 py-1.5 text-sm bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:border-orange-500"

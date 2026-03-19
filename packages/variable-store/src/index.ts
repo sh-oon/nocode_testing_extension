@@ -8,6 +8,6 @@
  * - Condition evaluation for flow branching
  */
 
-export { VariableStore } from './variable-store';
-export * from './types';
 export * from './patterns';
+export * from './types';
+export { VariableStore } from './variable-store';

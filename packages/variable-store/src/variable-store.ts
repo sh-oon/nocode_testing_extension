@@ -10,10 +10,10 @@
 
 import { JSONPath } from 'jsonpath-plus';
 import type {
+  CompoundCondition,
   Condition,
   ConditionOperator,
   ConditionResult,
-  CompoundCondition,
   VariableStoreOptions,
   VariableValue,
 } from './types';
@@ -152,7 +152,7 @@ export class VariableStore {
   interpolate(template: string): string {
     const pattern = new RegExp(
       `${this.escapeRegex(this.interpolationPrefix)}([^}]+)${this.escapeRegex(this.interpolationSuffix)}`,
-      'g',
+      'g'
     );
 
     return template.replace(pattern, (match, path: string) => {
@@ -192,7 +192,12 @@ export class VariableStore {
   /**
    * Extract and store a variable from data
    */
-  extractAndStore(name: string, data: unknown, jsonPath: string, defaultValue?: VariableValue): VariableValue {
+  extractAndStore(
+    name: string,
+    data: unknown,
+    jsonPath: string,
+    defaultValue?: VariableValue
+  ): VariableValue {
     const extracted = this.extractJsonPath(data, jsonPath);
     const value = extracted ?? defaultValue ?? null;
     this.set(name, value);
@@ -223,7 +228,8 @@ export class VariableStore {
       }
 
       // For binary operators, resolve right operand
-      const rightValue = condition.right !== undefined ? this.resolveOperand(condition.right) : undefined;
+      const rightValue =
+        condition.right !== undefined ? this.resolveOperand(condition.right) : undefined;
 
       const result = this.compareValues(leftValue, condition.operator, rightValue);
 
@@ -333,8 +339,13 @@ export class VariableStore {
     const trimmed = operand.trim();
 
     // Check if it's a variable reference
-    if (trimmed.startsWith(this.interpolationPrefix) && trimmed.endsWith(this.interpolationSuffix)) {
-      const varPath = trimmed.slice(this.interpolationPrefix.length, -this.interpolationSuffix.length).trim();
+    if (
+      trimmed.startsWith(this.interpolationPrefix) &&
+      trimmed.endsWith(this.interpolationSuffix)
+    ) {
+      const varPath = trimmed
+        .slice(this.interpolationPrefix.length, -this.interpolationSuffix.length)
+        .trim();
       return this.get(varPath);
     }
 
@@ -347,7 +358,11 @@ export class VariableStore {
     }
   }
 
-  private compareValues(left: VariableValue, operator: ConditionOperator, right?: VariableValue): boolean {
+  private compareValues(
+    left: VariableValue,
+    operator: ConditionOperator,
+    right?: VariableValue
+  ): boolean {
     switch (operator) {
       case 'eq':
         return this.deepEqual(left, right ?? null);
@@ -379,7 +394,9 @@ export class VariableStore {
       case 'matches': {
         const pattern = String(right);
         if (!isRegexSafe(pattern)) {
-          throw new Error(`Unsafe regex pattern rejected: ${pattern.length >= 500 ? 'pattern too long' : 'potential ReDoS risk'}`);
+          throw new Error(
+            `Unsafe regex pattern rejected: ${pattern.length >= 500 ? 'pattern too long' : 'potential ReDoS risk'}`
+          );
         }
         const regex = new RegExp(pattern);
         return regex.test(String(left));
@@ -429,7 +446,12 @@ export class VariableStore {
       const keysB = Object.keys(b);
       if (keysA.length !== keysB.length) return false;
 
-      return keysA.every((key) => this.deepEqual((a as Record<string, VariableValue>)[key], (b as Record<string, VariableValue>)[key]));
+      return keysA.every((key) =>
+        this.deepEqual(
+          (a as Record<string, VariableValue>)[key],
+          (b as Record<string, VariableValue>)[key]
+        )
+      );
     }
 
     return false;

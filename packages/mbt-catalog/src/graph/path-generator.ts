@@ -5,9 +5,9 @@
  * by bridging the XState graph traversal output with the MBT model types.
  */
 
-import type { ModelState, ModelTransition, TestModel } from '../types/model';
-import type { TestPath, TestPathNode } from '../converters/types';
 import { convertModelToXStateMachineConfig } from '../converters/model-to-xstate';
+import type { TestPath, TestPathNode } from '../converters/types';
+import type { ModelState, ModelTransition, TestModel } from '../types/model';
 import type { PathGenerationOptions, PathGenerationResult } from './types';
 import type { RawGraphPath } from './xstate-bridge';
 import { extractRawPaths } from './xstate-bridge';
@@ -21,7 +21,7 @@ import { extractRawPaths } from './xstate-bridge';
  */
 export const generateTestPaths = (
   model: TestModel,
-  options?: PathGenerationOptions,
+  options?: PathGenerationOptions
 ): PathGenerationResult => {
   const strategy = options?.strategy ?? 'shortest';
   const maxPaths = options?.maxPaths ?? 0;
@@ -45,9 +45,7 @@ export const generateTestPaths = (
 
   // Filter: must reach a final state
   if (requireFinalState) {
-    const finalStateIds = new Set(
-      model.states.filter((s) => s.isFinal).map((s) => s.id),
-    );
+    const finalStateIds = new Set(model.states.filter((s) => s.isFinal).map((s) => s.id));
     const before = paths.length;
     paths = paths.filter((p) => {
       const lastStateNode = findLastStateNode(p.nodes);
@@ -70,9 +68,7 @@ export const generateTestPaths = (
 };
 
 /** Build a lookup map: eventType (transition.id) → ModelTransition */
-const buildTransitionLookup = (
-  transitions: ModelTransition[],
-): Map<string, ModelTransition> =>
+const buildTransitionLookup = (transitions: ModelTransition[]): Map<string, ModelTransition> =>
   new Map(transitions.map((t) => [t.id, t]));
 
 /** Find the last state node in a TestPath's node list */
@@ -93,7 +89,7 @@ const rawPathToTestPath = (
   index: number,
   modelId: string,
   stateMap: Map<string, ModelState>,
-  transitionMap: Map<string, ModelTransition>,
+  transitionMap: Map<string, ModelTransition>
 ): TestPath | undefined => {
   const nodes: TestPathNode[] = [];
 
@@ -111,9 +107,7 @@ const rawPathToTestPath = (
   }
 
   // Human-readable name: state names joined with →
-  const name = raw.stateIds
-    .map((id) => stateMap.get(id)?.name ?? id)
-    .join(' → ');
+  const name = raw.stateIds.map((id) => stateMap.get(id)?.name ?? id).join(' → ');
 
   return {
     id: `${modelId}_path_${index}`,

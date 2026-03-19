@@ -30,7 +30,9 @@ export function buildJsonPath(path: (string | number)[]): string {
 /**
  * Determine the display type of a JSON value
  */
-export function getValueType(value: unknown): 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' {
+export function getValueType(
+  value: unknown
+): 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' {
   if (value === null) return 'null';
   if (Array.isArray(value)) return 'array';
   return typeof value as 'object' | 'string' | 'number' | 'boolean';

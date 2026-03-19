@@ -8,8 +8,8 @@
 
 import type { Scenario, Step } from '@like-cake/ast-types';
 import type { TestModel } from '../types/model';
-import type { TestPath, UnsupportedMappingError } from './types';
 import { convertBoundEventToStep } from './event-to-step';
+import type { TestPath, UnsupportedMappingError } from './types';
 import { convertBoundVerificationToStep } from './verification-to-step';
 
 /**
@@ -21,7 +21,7 @@ import { convertBoundVerificationToStep } from './verification-to-step';
  */
 export const convertTestPathToScenario = (
   path: TestPath,
-  model: TestModel,
+  model: TestModel
 ): { scenario: Scenario; errors: UnsupportedMappingError[] } => {
   const steps: Step[] = [];
   const errors: UnsupportedMappingError[] = [];

@@ -10,7 +10,7 @@ import { DomMutationTracker, generateSelector } from '../dom-mutation-tracker';
 function createVisibleElement(
   tag: string,
   attrs: Record<string, string> = {},
-  textContent?: string,
+  textContent?: string
 ): HTMLElement {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {

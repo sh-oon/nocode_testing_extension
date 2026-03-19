@@ -264,7 +264,14 @@ export class UserFlowService {
       const current = queue.shift()!;
       const node = nodes.find((n) => n.id === current);
 
-      console.log('[UserFlowService.flatten] Processing node:', current, 'type:', node?.type, 'data:', node?.data);
+      console.log(
+        '[UserFlowService.flatten] Processing node:',
+        current,
+        'type:',
+        node?.type,
+        'data:',
+        node?.data
+      );
 
       // Only add scenario nodes to the result
       if (node?.type === 'scenario') {
@@ -312,7 +319,13 @@ export class UserFlowService {
       return null;
     }
 
-    console.log('[UserFlowService.execute] Flow found:', flow.name, 'with', flow.nodes.length, 'nodes');
+    console.log(
+      '[UserFlowService.execute] Flow found:',
+      flow.name,
+      'with',
+      flow.nodes.length,
+      'nodes'
+    );
 
     // Check if flow has condition nodes - use new FlowExecutor
     const hasConditionNodes = flow.nodes.some(
@@ -345,7 +358,7 @@ export class UserFlowService {
     }
   ): Promise<StoredFlowExecutionResult> {
     const executor = new FlowExecutor(flow.nodes, flow.edges, {
-      initialVariables: flow.variables as Record<string, FlowVariableValue> || {},
+      initialVariables: (flow.variables as Record<string, FlowVariableValue>) || {},
       scenarioService,
       executionService,
       runnerOptions: {
@@ -626,7 +639,9 @@ export class UserFlowService {
     };
   };
 
-  private mapRowToFlowExecutionResult = (row: FlowExecutionResultRow): StoredFlowExecutionResult => {
+  private mapRowToFlowExecutionResult = (
+    row: FlowExecutionResultRow
+  ): StoredFlowExecutionResult => {
     return {
       id: row.id,
       flowId: row.flow_id,

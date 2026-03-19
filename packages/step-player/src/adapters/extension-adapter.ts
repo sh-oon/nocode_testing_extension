@@ -1,13 +1,13 @@
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
 import type { Selector, SelectorInput } from '@like-cake/ast-types';
-import { runElementAssertion } from '../assert-element-logic';
 import {
-  captureSnapshot as captureDomSnapshot,
   captureScreenshot as captureDomScreenshot,
+  captureSnapshot as captureDomSnapshot,
   type DomSnapshot,
   type ScreenshotResult,
 } from '@like-cake/dom-serializer';
 import { ACTION_CHECKS, checkActionability } from '../actionability';
+import { runElementAssertion } from '../assert-element-logic';
 import type {
   ClickOptions,
   FoundElement,
@@ -294,7 +294,7 @@ export class ExtensionAdapter implements PlaybackAdapter {
   private async ensureActionable(
     selector: SelectorInput,
     action: 'click' | 'hover' | 'type' | 'select',
-    timeout = DEFAULT_WAIT_OPTIONS.timeout,
+    timeout = DEFAULT_WAIT_OPTIONS.timeout
   ): Promise<Element> {
     const checks = ACTION_CHECKS[action];
     const startTime = Date.now();
@@ -307,8 +307,8 @@ export class ExtensionAdapter implements PlaybackAdapter {
           if (Date.now() - startTime > timeout) {
             reject(
               new Error(
-                `Actionability timeout after ${timeout}ms: ${lastFailure || 'element not found'}`,
-              ),
+                `Actionability timeout after ${timeout}ms: ${lastFailure || 'element not found'}`
+              )
             );
             return;
           }
@@ -395,7 +395,7 @@ export class ExtensionAdapter implements PlaybackAdapter {
   }
 
   async type(selector: SelectorInput, text: string, options?: TypeOptions): Promise<void> {
-    const element = await this.ensureActionable(selector, 'type') as HTMLElement;
+    const element = (await this.ensureActionable(selector, 'type')) as HTMLElement;
 
     // Focus the element
     element.focus();
@@ -490,7 +490,7 @@ export class ExtensionAdapter implements PlaybackAdapter {
   }
 
   async select(selector: SelectorInput, values: string | string[]): Promise<void> {
-    const selectElement = await this.ensureActionable(selector, 'select') as HTMLSelectElement;
+    const selectElement = (await this.ensureActionable(selector, 'select')) as HTMLSelectElement;
     if (!(selectElement instanceof HTMLSelectElement)) {
       throw new Error('Element is not a select element');
     }
@@ -569,9 +569,7 @@ export class ExtensionAdapter implements PlaybackAdapter {
     throw new Error(`Network idle timeout after ${opts.timeout}ms`);
   }
 
-  async waitForDomStable(
-    options?: WaitOptions & { stabilityThreshold?: number }
-  ): Promise<void> {
+  async waitForDomStable(options?: WaitOptions & { stabilityThreshold?: number }): Promise<void> {
     const stabilityThreshold = options?.stabilityThreshold ?? 1500;
     const timeout = options?.timeout ?? DEFAULT_WAIT_OPTIONS.timeout;
 
@@ -691,8 +689,10 @@ export class ExtensionAdapter implements PlaybackAdapter {
     const targetElements = findAllElements(target);
     const sourceEl = sourceElements[0];
     const targetEl = targetElements[0];
-    if (!sourceEl) throw new Error(`Source element not found for dragAndDrop: ${JSON.stringify(source)}`);
-    if (!targetEl) throw new Error(`Target element not found for dragAndDrop: ${JSON.stringify(target)}`);
+    if (!sourceEl)
+      throw new Error(`Source element not found for dragAndDrop: ${JSON.stringify(source)}`);
+    if (!targetEl)
+      throw new Error(`Target element not found for dragAndDrop: ${JSON.stringify(target)}`);
 
     const dataTransfer = new DataTransfer();
     sourceEl.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer }));
@@ -704,13 +704,16 @@ export class ExtensionAdapter implements PlaybackAdapter {
   async uploadFile(_selector: SelectorInput, _filePaths: string | string[]): Promise<void> {
     // File upload via extension content script is limited — files can't be set programmatically
     // from content scripts due to security restrictions. This requires devtools protocol support.
-    throw new Error('File upload is not supported in the extension adapter. Use the Puppeteer adapter.');
+    throw new Error(
+      'File upload is not supported in the extension adapter. Use the Puppeteer adapter.'
+    );
   }
 
   async getComputedStyle(selector: SelectorInput, property: string): Promise<string> {
     const elements = findAllElements(selector);
     const element = elements[0];
-    if (!element) throw new Error(`Element not found for getComputedStyle: ${JSON.stringify(selector)}`);
+    if (!element)
+      throw new Error(`Element not found for getComputedStyle: ${JSON.stringify(selector)}`);
 
     return window.getComputedStyle(element).getPropertyValue(property);
   }

@@ -9,8 +9,8 @@
  */
 
 import type { Scenario, Step } from '@like-cake/ast-types';
-import type { ModelState, ModelTransition, TestModel, BoundVerification } from '../types/model';
 import { getEventById } from '../catalogs/events';
+import type { BoundVerification, ModelState, ModelTransition, TestModel } from '../types/model';
 import { ElementBindingRegistry } from './binding-utils';
 import { convertStepToEvent } from './step-to-event';
 import { convertStepToVerification } from './step-to-verification';
@@ -18,14 +18,23 @@ import type { ScenarioToModelResult, UnmappedStep } from './types';
 
 /** Step types that represent UI actions (cause state transitions) */
 const ACTION_TYPES = new Set([
-  'navigate', 'click', 'type', 'keypress', 'wait', 'hover', 'scroll',
-  'select', 'mouseOut', 'dragAndDrop', 'fileUpload', 'historyBack', 'historyForward',
+  'navigate',
+  'click',
+  'type',
+  'keypress',
+  'wait',
+  'hover',
+  'scroll',
+  'select',
+  'mouseOut',
+  'dragAndDrop',
+  'fileUpload',
+  'historyBack',
+  'historyForward',
 ]);
 
 /** Step types that represent verifications (added to current state) */
-const VERIFICATION_TYPES = new Set([
-  'assertElement', 'assertApi', 'assertPage', 'assertStyle',
-]);
+const VERIFICATION_TYPES = new Set(['assertElement', 'assertApi', 'assertPage', 'assertStyle']);
 
 let idCounter = 0;
 const nextId = (): string => `s${Date.now()}-${++idCounter}`;
@@ -34,7 +43,7 @@ const nextId = (): string => `s${Date.now()}-${++idCounter}`;
 const generateStateName = (
   eventId: string,
   step: Step,
-  nameCounters: Map<string, number>,
+  nameCounters: Map<string, number>
 ): string => {
   let baseName: string;
 
@@ -65,7 +74,7 @@ const generateStateName = (
  */
 export const convertScenarioToModel = (
   scenario: Scenario,
-  options?: { modelName?: string; modelDescription?: string },
+  options?: { modelName?: string; modelDescription?: string }
 ): ScenarioToModelResult => {
   const registry = new ElementBindingRegistry();
   const unmappedSteps: UnmappedStep[] = [];
@@ -124,12 +133,20 @@ export const convertScenarioToModel = (
     } else if (VERIFICATION_TYPES.has(step.type)) {
       const result = convertStepToVerification(step, registry);
       if (!result) {
-        unmappedSteps.push({ index: i, step, reason: `Unsupported verification type: ${step.type}` });
+        unmappedSteps.push({
+          index: i,
+          step,
+          reason: `Unsupported verification type: ${step.type}`,
+        });
         continue;
       }
       pendingVerifications.push(result.boundVerification);
     } else {
-      unmappedSteps.push({ index: i, step, reason: `Step type "${step.type}" has no catalog mapping` });
+      unmappedSteps.push({
+        index: i,
+        step,
+        reason: `Step type "${step.type}" has no catalog mapping`,
+      });
     }
   }
 

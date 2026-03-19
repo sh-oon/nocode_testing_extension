@@ -1,22 +1,22 @@
 import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
   addEdge,
-  useNodesState,
-  useEdgesState,
+  Background,
+  BackgroundVariant,
   type Connection,
+  Controls,
   type Edge,
+  MiniMap,
   type Node,
   type NodeTypes,
   type OnConnect,
-  type OnNodesChange,
   type OnEdgesChange,
-  BackgroundVariant,
+  type OnNodesChange,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useCallback, type DragEvent } from 'react';
+import { type DragEvent, useCallback } from 'react';
 import type {
   ConditionNodeData,
   ControlNodeData,
@@ -27,16 +27,16 @@ import type {
   SetVariableNodeData,
 } from '@like-cake/ast-types';
 import { nanoid } from '../../utils/nanoid';
+import type { ToolboxNodeType } from './FlowToolbox';
 import {
-  StartNode,
-  EndNode,
-  ScenarioNode,
   ConditionNode,
-  SetVariableNode,
+  EndNode,
   ExtractVariableNode,
+  ScenarioNode,
+  SetVariableNode,
+  StartNode,
 } from './nodes';
 import type { SidebarScenario } from './ScenarioSidebar';
-import type { ToolboxNodeType } from './FlowToolbox';
 
 const nodeTypes: NodeTypes = {
   start: StartNode,
@@ -133,7 +133,12 @@ export function FlowCanvas({
         }}
         className="bg-gray-50"
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e5e7eb" />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
+          size={1}
+          color="#e5e7eb"
+        />
         <Controls className="!bg-white !border-gray-200 !rounded-lg [&>button]:!bg-white [&>button]:!border-gray-200 [&>button]:!text-gray-600 [&>button:hover]:!bg-gray-100" />
         <MiniMap
           className="!bg-white !border-gray-200 !rounded-lg"
@@ -163,12 +168,8 @@ export function FlowCanvas({
 
 // Helper hooks for managing flow state
 export function useFlowState(initialNodes: FlowNode[] = [], initialEdges: FlowEdge[] = []) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(
-    initialNodes.map(flowNodeToReactFlowNode)
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(
-    initialEdges.map(flowEdgeToReactFlowEdge)
-  );
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes.map(flowNodeToReactFlowNode));
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges.map(flowEdgeToReactFlowEdge));
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
@@ -273,7 +274,10 @@ export function useFlowState(initialNodes: FlowNode[] = [], initialEdges: FlowEd
   );
 
   const updateNodeData = useCallback(
-    (nodeId: string, data: Partial<ConditionNodeData | SetVariableNodeData | ExtractVariableNodeData>) => {
+    (
+      nodeId: string,
+      data: Partial<ConditionNodeData | SetVariableNodeData | ExtractVariableNodeData>
+    ) => {
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {

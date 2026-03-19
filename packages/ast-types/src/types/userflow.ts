@@ -10,7 +10,13 @@
 /**
  * Supported variable value types
  */
-export type FlowVariableValue = string | number | boolean | null | FlowVariableObject | FlowVariableArray;
+export type FlowVariableValue =
+  | string
+  | number
+  | boolean
+  | null
+  | FlowVariableObject
+  | FlowVariableArray;
 
 export interface FlowVariableObject {
   [key: string]: FlowVariableValue;

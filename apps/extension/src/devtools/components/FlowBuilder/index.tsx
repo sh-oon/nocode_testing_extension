@@ -1,20 +1,20 @@
-import { ReactFlowProvider } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
 import type {
   ConditionNodeData,
   ExtractVariableNodeData,
   SetVariableNodeData,
 } from '@like-cake/ast-types';
+import { ReactFlowProvider } from '@xyflow/react';
 import { getApiClient } from '../../../shared/api';
 import { ConfirmModal } from '../ConfirmModal';
 import { FlowListPanel } from '../FlowListPanel';
 import { ScenarioDetailPanel } from '../ScenarioDetailPanel';
+import { ConditionEditor, ExtractionEditor, VariableEditor } from './editors';
 import { FlowCanvas, useFlowState } from './FlowCanvas';
 import { FlowEmptyState } from './FlowEmptyState';
 import { FlowToolbar } from './FlowToolbar';
 import { FlowToolbox, type ToolboxNodeType } from './FlowToolbox';
 import { ScenarioSidebar, type SidebarScenario } from './ScenarioSidebar';
-import { ConditionEditor, VariableEditor, ExtractionEditor } from './editors';
 import { useFlowManager } from './useFlowManager';
 
 interface FlowBuilderProps {
@@ -145,7 +145,7 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     if (!flowManager.isLoading && !isInitialSetup) {
       flowManager.markModified();
     }
-  }, [nodes, edges]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flowManager.isLoading, flowManager.markModified, isInitialSetup]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---- Handlers ----
 
@@ -173,19 +173,22 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     [addConditionNode, addSetVariableNode, addExtractVariableNode]
   );
 
-  const handleNodeDoubleClick = useCallback((nodeId: string, nodeType: string) => {
-    if (['condition', 'setVariable', 'extractVariable'].includes(nodeType)) {
-      setEditingNodeId(nodeId);
-      setEditingNodeType(nodeType);
-    } else if (nodeType === 'scenario') {
-      const node = nodes.find((n) => n.id === nodeId);
-      const scenarioId = (node?.data as Record<string, unknown>)?.scenarioId as string;
-      if (scenarioId) {
-        setSelectedScenarioId(scenarioId);
-        setIsDetailPanelOpen(true);
+  const handleNodeDoubleClick = useCallback(
+    (nodeId: string, nodeType: string) => {
+      if (['condition', 'setVariable', 'extractVariable'].includes(nodeType)) {
+        setEditingNodeId(nodeId);
+        setEditingNodeType(nodeType);
+      } else if (nodeType === 'scenario') {
+        const node = nodes.find((n) => n.id === nodeId);
+        const scenarioId = (node?.data as Record<string, unknown>)?.scenarioId as string;
+        if (scenarioId) {
+          setSelectedScenarioId(scenarioId);
+          setIsDetailPanelOpen(true);
+        }
       }
-    }
-  }, [nodes]);
+    },
+    [nodes]
+  );
 
   const handleCloseEditor = useCallback(() => {
     setEditingNodeId(null);
@@ -207,12 +210,9 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     loadScenarios();
   }, [loadScenarios]);
 
-  const handleScenarioDelete = useCallback(
-    (deletedId: string) => {
-      setScenarios((prev) => prev.filter((s) => s.id !== deletedId));
-    },
-    []
-  );
+  const handleScenarioDelete = useCallback((deletedId: string) => {
+    setScenarios((prev) => prev.filter((s) => s.id !== deletedId));
+  }, []);
 
   // Flow list panel handlers
   const handleOpenList = useCallback(() => {
@@ -423,9 +423,12 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
 
     const nodeRows = (s.nodeLogs ?? [])
       .map((log, i) => {
-        const statusLabel = log.status === 'passed' ? '성공' : log.status === 'failed' ? '실패' : '건너뜀';
-        const statusColor = log.status === 'passed' ? '#16a34a' : log.status === 'failed' ? '#dc2626' : '#9ca3af';
-        const statusBg = log.status === 'passed' ? '#f0fdf4' : log.status === 'failed' ? '#fef2f2' : '#f9fafb';
+        const statusLabel =
+          log.status === 'passed' ? '성공' : log.status === 'failed' ? '실패' : '건너뜀';
+        const statusColor =
+          log.status === 'passed' ? '#16a34a' : log.status === 'failed' ? '#dc2626' : '#9ca3af';
+        const statusBg =
+          log.status === 'passed' ? '#f0fdf4' : log.status === 'failed' ? '#fef2f2' : '#f9fafb';
         const duration = log.duration != null ? formatDuration(log.duration) : '-';
         const steps = log.stepCount != null ? `${log.passedSteps ?? 0}/${log.stepCount}` : '-';
         const errorRow = log.error
@@ -497,7 +500,8 @@ thead th:nth-child(4){text-align:center;}
   }, [executionSummary, flowManager.flowName, downloadFile]);
 
   // Show empty state when no flow is loaded and canvas only has start/end
-  const showEmptyState = !forceShowCanvas && !flowManager.flowId && !flowManager.flowName && nodes.length <= 2;
+  const showEmptyState =
+    !forceShowCanvas && !flowManager.flowId && !flowManager.flowName && nodes.length <= 2;
 
   return (
     <div className="flex flex-col h-full">
@@ -528,9 +532,9 @@ thead th:nth-child(4){text-align:center;}
               {executionSummary.status === 'passed' ? '✓ Flow Passed' : '✗ Flow Failed'}
             </span>
             <span className="text-xs opacity-75">
-              Nodes: {executionSummary.passedNodes}/{executionSummary.totalNodes} |{' '}
-              Steps: {executionSummary.passedSteps}/{executionSummary.totalSteps} |{' '}
-              Duration: {(executionSummary.duration / 1000).toFixed(1)}s
+              Nodes: {executionSummary.passedNodes}/{executionSummary.totalNodes} | Steps:{' '}
+              {executionSummary.passedSteps}/{executionSummary.totalSteps} | Duration:{' '}
+              {(executionSummary.duration / 1000).toFixed(1)}s
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -563,10 +567,14 @@ thead th:nth-child(4){text-align:center;}
       {executionSummary?.nodeLogs && executionSummary.nodeLogs.length > 0 && (
         <div className="border-b border-gray-200 max-h-48 overflow-y-auto bg-gray-50">
           <div className="px-3 py-1 bg-gray-100 border-b border-gray-200 flex items-center justify-between sticky top-0">
-            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Execution Log</span>
+            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+              Execution Log
+            </span>
             <button
               type="button"
-              onClick={() => setExecutionSummary((prev) => prev ? { ...prev, nodeLogs: undefined } : prev)}
+              onClick={() =>
+                setExecutionSummary((prev) => (prev ? { ...prev, nodeLogs: undefined } : prev))
+              }
               className="text-[10px] text-gray-400 hover:text-gray-600"
             >
               닫기
@@ -574,8 +582,14 @@ thead th:nth-child(4){text-align:center;}
           </div>
           <div className="px-3 py-1 font-mono text-[11px] space-y-0.5">
             {executionSummary.nodeLogs.map((log, i) => {
-              const statusIcon = log.status === 'passed' ? '✓' : log.status === 'failed' ? '✗' : '○';
-              const statusColor = log.status === 'passed' ? 'text-green-400' : log.status === 'failed' ? 'text-red-400' : 'text-gray-500';
+              const statusIcon =
+                log.status === 'passed' ? '✓' : log.status === 'failed' ? '✗' : '○';
+              const statusColor =
+                log.status === 'passed'
+                  ? 'text-green-400'
+                  : log.status === 'failed'
+                    ? 'text-red-400'
+                    : 'text-gray-500';
               return (
                 <div key={i}>
                   <div className={`flex items-center gap-2 py-0.5 ${statusColor}`}>
@@ -592,14 +606,10 @@ thead th:nth-child(4){text-align:center;}
                     )}
                   </div>
                   {log.error && (
-                    <div className="pl-5 text-red-400/80 break-all">
-                      Error: {log.error}
-                    </div>
+                    <div className="pl-5 text-red-400/80 break-all">Error: {log.error}</div>
                   )}
                   {log.status === 'skipped' && (
-                    <div className="pl-5 text-gray-600">
-                      이전 노드 실패로 건너뜀
-                    </div>
+                    <div className="pl-5 text-gray-600">이전 노드 실패로 건너뜀</div>
                   )}
                 </div>
               );
@@ -690,50 +700,56 @@ thead th:nth-child(4){text-align:center;}
       )}
 
       {/* Node Editors */}
-      {editingNodeId && editingNodeType === 'condition' && (() => {
-        const nodeData = getEditingNodeData() as unknown as ConditionNodeData | null;
-        return (
-          <ConditionEditor
-            condition={nodeData?.condition}
-            label={nodeData?.label}
-            onChange={(data) => {
-              updateNodeData(editingNodeId, data);
-              flowManager.markModified();
-            }}
-            onClose={handleCloseEditor}
-          />
-        );
-      })()}
+      {editingNodeId &&
+        editingNodeType === 'condition' &&
+        (() => {
+          const nodeData = getEditingNodeData() as unknown as ConditionNodeData | null;
+          return (
+            <ConditionEditor
+              condition={nodeData?.condition}
+              label={nodeData?.label}
+              onChange={(data) => {
+                updateNodeData(editingNodeId, data);
+                flowManager.markModified();
+              }}
+              onClose={handleCloseEditor}
+            />
+          );
+        })()}
 
-      {editingNodeId && editingNodeType === 'setVariable' && (() => {
-        const nodeData = getEditingNodeData() as unknown as SetVariableNodeData | null;
-        return (
-          <VariableEditor
-            variables={nodeData?.variables}
-            label={nodeData?.label}
-            onChange={(data) => {
-              updateNodeData(editingNodeId, data);
-              flowManager.markModified();
-            }}
-            onClose={handleCloseEditor}
-          />
-        );
-      })()}
+      {editingNodeId &&
+        editingNodeType === 'setVariable' &&
+        (() => {
+          const nodeData = getEditingNodeData() as unknown as SetVariableNodeData | null;
+          return (
+            <VariableEditor
+              variables={nodeData?.variables}
+              label={nodeData?.label}
+              onChange={(data) => {
+                updateNodeData(editingNodeId, data);
+                flowManager.markModified();
+              }}
+              onClose={handleCloseEditor}
+            />
+          );
+        })()}
 
-      {editingNodeId && editingNodeType === 'extractVariable' && (() => {
-        const nodeData = getEditingNodeData() as unknown as ExtractVariableNodeData | null;
-        return (
-          <ExtractionEditor
-            extractions={nodeData?.extractions}
-            label={nodeData?.label}
-            onChange={(data) => {
-              updateNodeData(editingNodeId, data);
-              flowManager.markModified();
-            }}
-            onClose={handleCloseEditor}
-          />
-        );
-      })()}
+      {editingNodeId &&
+        editingNodeType === 'extractVariable' &&
+        (() => {
+          const nodeData = getEditingNodeData() as unknown as ExtractVariableNodeData | null;
+          return (
+            <ExtractionEditor
+              extractions={nodeData?.extractions}
+              label={nodeData?.label}
+              onChange={(data) => {
+                updateNodeData(editingNodeId, data);
+                flowManager.markModified();
+              }}
+              onClose={handleCloseEditor}
+            />
+          );
+        })()}
     </div>
   );
 }

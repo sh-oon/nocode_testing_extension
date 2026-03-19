@@ -1,9 +1,6 @@
 import type { Scenario, Step } from '@like-cake/ast-types';
 import type { Message, PlaybackStateMessage, StartPlaybackMessage } from '../../shared/messages';
-import {
-  createPlaybackSession,
-  savePlaybackSession,
-} from '../../shared/storage';
+import { createPlaybackSession, savePlaybackSession } from '../../shared/storage';
 import {
   activeTabId,
   ensureContentScriptInjected,
@@ -19,7 +16,7 @@ import {
 async function startPlayback(
   tabId: number,
   scenario: Scenario,
-  baselineId?: string,
+  baselineId?: string
 ): Promise<void> {
   const tab = await chrome.tabs.get(tabId);
   if (!tab.url) return;
@@ -177,7 +174,7 @@ async function handlePlaybackStepStart(stepIndex: number, step: Step): Promise<v
  */
 async function handlePlaybackStepComplete(
   stepIndex: number,
-  result: { status: 'passed' | 'failed' | 'skipped'; duration: number; error?: { message: string } },
+  result: { status: 'passed' | 'failed' | 'skipped'; duration: number; error?: { message: string } }
 ): Promise<void> {
   if (playbackCache) {
     playbackCache.currentStepIndex = stepIndex;
@@ -237,8 +234,8 @@ export function handleStartPlayback(
   message: Message,
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: unknown) => void,
-  tabId?: number,
-): boolean | void {
+  tabId?: number
+): boolean | undefined {
   const msg = message as StartPlaybackMessage;
   const playTabId = tabId ?? sender.tab?.id ?? activeTabId;
   if (playTabId && msg.scenario) {
@@ -263,8 +260,8 @@ export function handleStartPlayback(
 export function handlePausePlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   pausePlayback();
   sendResponse({ success: true });
 }
@@ -272,8 +269,8 @@ export function handlePausePlayback(
 export function handleResumePlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   resumePlayback();
   sendResponse({ success: true });
 }
@@ -281,8 +278,8 @@ export function handleResumePlayback(
 export function handleStopPlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   stopPlayback();
   sendResponse({ success: true });
 }
@@ -290,8 +287,8 @@ export function handleStopPlayback(
 export function handleStepPlayback(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   stepPlayback();
   sendResponse({ success: true });
 }
@@ -299,16 +296,16 @@ export function handleStepPlayback(
 export function handleGetPlaybackState(
   _message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   sendResponse(getPlaybackState());
 }
 
 export function handlePlaybackStepStartMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   const msg = message as { stepIndex: number; step: Step };
   handlePlaybackStepStart(msg.stepIndex, msg.step);
   sendResponse({ success: true });
@@ -317,11 +314,15 @@ export function handlePlaybackStepStartMessage(
 export function handlePlaybackStepCompleteMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   const msg = message as {
     stepIndex: number;
-    result: { status: 'passed' | 'failed' | 'skipped'; duration: number; error?: { message: string } };
+    result: {
+      status: 'passed' | 'failed' | 'skipped';
+      duration: number;
+      error?: { message: string };
+    };
   };
   handlePlaybackStepComplete(msg.stepIndex, msg.result);
   sendResponse({ success: true });
@@ -330,8 +331,8 @@ export function handlePlaybackStepCompleteMessage(
 export function handlePlaybackErrorMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   const msg = message as { error: string; stepIndex?: number };
   handlePlaybackError(msg.error, msg.stepIndex);
   sendResponse({ success: true });

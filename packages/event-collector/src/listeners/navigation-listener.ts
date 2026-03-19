@@ -56,8 +56,7 @@ export function attachNavigationListener(handler: EventHandler): () => void {
   const { handlePushState, handleReplaceState, handlePopState } = createNavigationListener(handler);
 
   // Check if we're in an extension context (isolated world)
-  const isExtensionContext =
-    typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+  const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 
   // Store original methods (for non-extension contexts)
   const originalPushState = history.pushState.bind(history);
@@ -118,7 +117,7 @@ export function attachNavigationListener(handler: EventHandler): () => void {
     window.removeEventListener('popstate', handlePopState);
     window.removeEventListener('hashchange', handleHashChange);
 
-    if (injectedScript && injectedScript.parentNode) {
+    if (injectedScript?.parentNode) {
       injectedScript.parentNode.removeChild(injectedScript);
     }
 

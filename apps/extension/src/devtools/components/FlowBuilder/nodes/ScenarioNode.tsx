@@ -1,5 +1,5 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ScenarioNodeData } from '@like-cake/ast-types';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 
 type ScenarioNodeProps = NodeProps & {
   data: ScenarioNodeData;
@@ -44,9 +44,7 @@ export function ScenarioNode({ data, selected }: ScenarioNodeProps) {
           <div className="text-gray-800 text-sm font-medium truncate">{data.scenarioName}</div>
           <div className="text-gray-500 text-xs mt-1">{data.stepCount} steps</div>
         </div>
-        {statusIcons[status] && (
-          <div className="flex-shrink-0">{statusIcons[status]}</div>
-        )}
+        {statusIcons[status] && <div className="flex-shrink-0">{statusIcons[status]}</div>}
       </div>
 
       <Handle

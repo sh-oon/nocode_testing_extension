@@ -1,13 +1,11 @@
-import { describe, expect, it } from 'vitest';
 import type { SelectorCandidate } from '@like-cake/ast-types';
+import { describe, expect, it } from 'vitest';
 import { calculateStabilityScore, rankByStability } from '../utils/stability-scorer';
 
 /**
  * Helper to create a selector candidate with default values
  */
-function createCandidate(
-  overrides: Partial<SelectorCandidate>
-): SelectorCandidate {
+function createCandidate(overrides: Partial<SelectorCandidate>): SelectorCandidate {
   return {
     strategy: 'css',
     selector: '.btn',

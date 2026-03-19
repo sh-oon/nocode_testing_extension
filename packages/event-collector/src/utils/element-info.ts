@@ -11,7 +11,7 @@ import type { ElementInfo } from '@like-cake/selector-engine';
 export function extractElementInfo(
   element: Element,
   maxParentDepth = 3,
-  collectCandidates = false,
+  collectCandidates = false
 ): ElementInfo {
   const tagName = element.tagName.toLowerCase();
 
@@ -342,7 +342,7 @@ const SELECTOR_STRATEGIES: SelectorStrategy[] = [
     priority: 50,
     generate: (el) => {
       const classes = Array.from(el.classList).filter(
-        (c) => !isDynamicClassName(c) && c.length < 40,
+        (c) => !isDynamicClassName(c) && c.length < 40
       );
       if (classes.length === 0) return null;
       const selected = classes.slice(0, 2);

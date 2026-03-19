@@ -1,17 +1,16 @@
 import type { TrackedMutation } from '@like-cake/event-collector';
 import {
+  DEFAULT_EXCLUDE_PATTERNS,
   generateApiAssertions,
   getRelevantApiCalls,
-  DEFAULT_EXCLUDE_PATTERNS,
 } from '@like-cake/event-collector';
-import type { DomMutationsStableMessage, IdleDetectedMessage, Message } from '../../shared/messages';
+import type {
+  DomMutationsStableMessage,
+  IdleDetectedMessage,
+  Message,
+} from '../../shared/messages';
 import { saveCurrentSession } from '../../shared/storage';
-import {
-  notifyPanels,
-  pendingDomMutations,
-  sessionCache,
-  setPendingDomMutations,
-} from '../state';
+import { notifyPanels, pendingDomMutations, sessionCache, setPendingDomMutations } from '../state';
 
 /**
  * Handle DOM mutations stable message from content script.
@@ -32,7 +31,7 @@ function handleDomMutationsStable(mutations: TrackedMutation[]): void {
 function handleIdleDetected(
   idleStartedAt: number,
   idleDuration: number,
-  _lastEventType: string,
+  _lastEventType: string
 ): void {
   if (!sessionCache?.isRecording) return;
 
@@ -50,12 +49,16 @@ function handleIdleDetected(
   // 2. Generate assertApi steps from API calls during the idle window
   const apiCalls = sessionCache.apiCalls ?? [];
   if (apiCalls.length > 0) {
-    const relevantCalls = getRelevantApiCalls(apiCalls, {
-      lastEventTimestamp: idleStartedAt,
-      idleDetectedAt,
-    }, {
-      excludePatterns: DEFAULT_EXCLUDE_PATTERNS,
-    });
+    const relevantCalls = getRelevantApiCalls(
+      apiCalls,
+      {
+        lastEventTimestamp: idleStartedAt,
+        idleDetectedAt,
+      },
+      {
+        excludePatterns: DEFAULT_EXCLUDE_PATTERNS,
+      }
+    );
     const apiAssertions = generateApiAssertions(relevantCalls, {
       maxAssertions: 2,
     });
@@ -123,8 +126,8 @@ function handleIdleDetected(
 export function handleIdleDetectedMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   const idleMsg = message as IdleDetectedMessage;
   handleIdleDetected(idleMsg.idleStartedAt, idleMsg.idleDuration, idleMsg.lastEventType);
   sendResponse({ success: true });
@@ -133,8 +136,8 @@ export function handleIdleDetectedMessage(
 export function handleDomMutationsStableMessage(
   message: Message,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void,
-): boolean | void {
+  sendResponse: (response?: unknown) => void
+): boolean | undefined {
   const domMsg = message as DomMutationsStableMessage;
   handleDomMutationsStable(domMsg.mutations);
   sendResponse({ success: true });

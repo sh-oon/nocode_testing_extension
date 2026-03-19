@@ -466,7 +466,11 @@ export class FlowExecutor {
           return defaultValue ?? null;
         }
         if (jsonPath) {
-          return context.variables.extractJsonPath(context.lastApiResponse, jsonPath) ?? defaultValue ?? null;
+          return (
+            context.variables.extractJsonPath(context.lastApiResponse, jsonPath) ??
+            defaultValue ??
+            null
+          );
         }
         return context.lastApiResponse as FlowVariableValue;
 
@@ -573,9 +577,15 @@ export class FlowExecutor {
       variables: context.variables.getAll(),
       summary: {
         totalNodes: context.nodeResults.filter((r) => r.nodeType === 'scenario').length,
-        passedNodes: context.nodeResults.filter((r) => r.status === 'passed' && r.nodeType === 'scenario').length,
-        failedNodes: context.nodeResults.filter((r) => r.status === 'failed' && r.nodeType === 'scenario').length,
-        skippedNodes: context.nodeResults.filter((r) => r.status === 'skipped' && r.nodeType === 'scenario').length,
+        passedNodes: context.nodeResults.filter(
+          (r) => r.status === 'passed' && r.nodeType === 'scenario'
+        ).length,
+        failedNodes: context.nodeResults.filter(
+          (r) => r.status === 'failed' && r.nodeType === 'scenario'
+        ).length,
+        skippedNodes: context.nodeResults.filter(
+          (r) => r.status === 'skipped' && r.nodeType === 'scenario'
+        ).length,
         totalSteps,
         passedSteps,
         failedSteps,

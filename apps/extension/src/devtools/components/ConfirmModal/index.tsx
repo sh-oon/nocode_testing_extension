@@ -21,12 +21,9 @@ interface ConfirmModalProps {
 /* ------------------------------------------------------------------ */
 
 const CONFIRM_BUTTON_STYLES: Record<NonNullable<ConfirmModalProps['variant']>, string> = {
-  danger:
-    'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white',
-  warning:
-    'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 text-white',
-  default:
-    'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white',
+  danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white',
+  warning: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 text-white',
+  default: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white',
 };
 
 const ICON_COLORS: Record<NonNullable<ConfirmModalProps['variant']>, string> = {
@@ -71,7 +68,7 @@ export function ConfirmModal({
         onCancel();
       }
     },
-    [onCancel],
+    [onCancel]
   );
 
   // Prevent backdrop click from propagating
@@ -81,7 +78,7 @@ export function ConfirmModal({
         onCancel();
       }
     },
-    [onCancel],
+    [onCancel]
   );
 
   if (!isOpen) return null;
@@ -174,7 +171,13 @@ function VariantIcon({ variant }: { variant: NonNullable<ConfirmModalProps['vari
   switch (variant) {
     case 'danger':
       return (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -185,7 +188,13 @@ function VariantIcon({ variant }: { variant: NonNullable<ConfirmModalProps['vari
       );
     case 'warning':
       return (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -196,7 +205,13 @@ function VariantIcon({ variant }: { variant: NonNullable<ConfirmModalProps['vari
       );
     default:
       return (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

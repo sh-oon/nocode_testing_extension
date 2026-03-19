@@ -10,34 +10,34 @@
  * This validates that forward ∘ reverse = identity (modulo known lossy mappings).
  */
 
-import { describe, expect, it, beforeEach } from 'vitest';
 import type {
+  AssertApiStep,
+  AssertElementStep,
+  AssertPageStep,
+  AssertStyleStep,
   ClickStep,
-  TypeStep,
-  HoverStep,
-  ScrollStep,
-  KeypressStep,
-  SelectStep,
-  NavigateStep,
-  WaitStep,
-  MouseOutStep,
   DragAndDropStep,
   FileUploadStep,
   HistoryBackStep,
   HistoryForwardStep,
-  AssertElementStep,
-  AssertApiStep,
-  AssertPageStep,
-  AssertStyleStep,
-  Step,
+  HoverStep,
+  KeypressStep,
+  MouseOutStep,
+  NavigateStep,
   Scenario,
+  ScrollStep,
+  SelectStep,
+  Step,
+  TypeStep,
+  WaitStep,
 } from '@like-cake/ast-types';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ElementBindingRegistry } from '../converters/binding-utils';
+import { convertBoundEventToStep } from '../converters/event-to-step';
+import { convertScenarioToModel } from '../converters/scenario-to-model';
 import { convertStepToEvent } from '../converters/step-to-event';
 import { convertStepToVerification } from '../converters/step-to-verification';
-import { convertBoundEventToStep } from '../converters/event-to-step';
 import { convertBoundVerificationToStep } from '../converters/verification-to-step';
-import { convertScenarioToModel } from '../converters/scenario-to-model';
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -129,9 +129,21 @@ describe('Event roundtrip: Step → BoundEvent → Step', () => {
   });
 
   it('type with clear and delay', () => {
-    const step: TypeStep = { type: 'type', selector: '#email', value: 'new@val', clear: true, delay: 50 };
+    const step: TypeStep = {
+      type: 'type',
+      selector: '#email',
+      value: 'new@val',
+      clear: true,
+      delay: 50,
+    };
     const result = eventRoundtrip(step);
-    expect(result).toEqual({ type: 'type', selector: '#email', value: 'new@val', clear: true, delay: 50 });
+    expect(result).toEqual({
+      type: 'type',
+      selector: '#email',
+      value: 'new@val',
+      clear: true,
+      delay: 50,
+    });
   });
 
   it('clear (type with empty value + clear)', () => {
@@ -147,9 +159,19 @@ describe('Event roundtrip: Step → BoundEvent → Step', () => {
   });
 
   it('keypress with selector and modifiers', () => {
-    const step: KeypressStep = { type: 'keypress', key: 'a', selector: '#input', modifiers: ['Control'] };
+    const step: KeypressStep = {
+      type: 'keypress',
+      key: 'a',
+      selector: '#input',
+      modifiers: ['Control'],
+    };
     const result = eventRoundtrip(step);
-    expect(result).toEqual({ type: 'keypress', key: 'a', selector: '#input', modifiers: ['Control'] });
+    expect(result).toEqual({
+      type: 'keypress',
+      key: 'a',
+      selector: '#input',
+      modifiers: ['Control'],
+    });
   });
 
   it('select', () => {
@@ -159,15 +181,27 @@ describe('Event roundtrip: Step → BoundEvent → Step', () => {
   });
 
   it('fileUpload', () => {
-    const step: FileUploadStep = { type: 'fileUpload', selector: '#file', filePaths: '/tmp/test.png' };
+    const step: FileUploadStep = {
+      type: 'fileUpload',
+      selector: '#file',
+      filePaths: '/tmp/test.png',
+    };
     const result = eventRoundtrip(step);
     expect(result).toEqual({ type: 'fileUpload', selector: '#file', filePaths: '/tmp/test.png' });
   });
 
   it('navigate with waitUntil', () => {
-    const step: NavigateStep = { type: 'navigate', url: 'https://example.com', waitUntil: 'networkidle2' };
+    const step: NavigateStep = {
+      type: 'navigate',
+      url: 'https://example.com',
+      waitUntil: 'networkidle2',
+    };
     const result = eventRoundtrip(step);
-    expect(result).toEqual({ type: 'navigate', url: 'https://example.com', waitUntil: 'networkidle2' });
+    expect(result).toEqual({
+      type: 'navigate',
+      url: 'https://example.com',
+      waitUntil: 'networkidle2',
+    });
   });
 
   it('navigate without waitUntil', () => {
@@ -195,7 +229,11 @@ describe('Event roundtrip: Step → BoundEvent → Step', () => {
   });
 
   it('returns null for non-action steps', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#x', assertion: { type: 'visible' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#x',
+      assertion: { type: 'visible' },
+    };
     const result = convertStepToEvent(step, registry);
     expect(result).toBeNull();
   });
@@ -207,108 +245,185 @@ describe('Verification roundtrip: Step → BoundVerification → Step', () => {
   // ── Element (6) ──
 
   it('visible', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#el', assertion: { type: 'visible' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#el',
+      assertion: { type: 'visible' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('hidden', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#el', assertion: { type: 'hidden' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#el',
+      assertion: { type: 'hidden' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('exists', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#el', assertion: { type: 'exists' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#el',
+      assertion: { type: 'exists' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('notExists', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#el', assertion: { type: 'notExists' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#el',
+      assertion: { type: 'notExists' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('count with operator', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '.items', assertion: { type: 'count', value: 5, operator: 'gte' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '.items',
+      assertion: { type: 'count', value: 5, operator: 'gte' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('count without operator', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '.items', assertion: { type: 'count', value: 3 } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '.items',
+      assertion: { type: 'count', value: 3 },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('elementEmpty (text with empty value)', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#msg', assertion: { type: 'text', value: '', contains: false } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#msg',
+      assertion: { type: 'text', value: '', contains: false },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   // ── Content (5) ──
 
   it('textContains', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#msg', assertion: { type: 'text', value: 'hello', contains: true } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#msg',
+      assertion: { type: 'text', value: 'hello', contains: true },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('textEquals', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#msg', assertion: { type: 'text', value: 'exact text', contains: false } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#msg',
+      assertion: { type: 'text', value: 'exact text', contains: false },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('attributeExists', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#el', assertion: { type: 'attribute', name: 'data-testid' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#el',
+      assertion: { type: 'attribute', name: 'data-testid' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('attributeValue', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#el', assertion: { type: 'attribute', name: 'data-testid', value: 'login' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#el',
+      assertion: { type: 'attribute', name: 'data-testid', value: 'login' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('classNameExists (attribute name=class)', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#el', assertion: { type: 'attribute', name: 'class', value: 'active' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#el',
+      assertion: { type: 'attribute', name: 'class', value: 'active' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   // ── Form (5) ──
 
   it('checkboxChecked (attribute name=checked)', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#cb', assertion: { type: 'attribute', name: 'checked' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#cb',
+      assertion: { type: 'attribute', name: 'checked' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('inputDisabled (attribute name=disabled)', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#btn', assertion: { type: 'attribute', name: 'disabled' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#btn',
+      assertion: { type: 'attribute', name: 'disabled' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('inputReadonly (attribute name=readonly)', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#field', assertion: { type: 'attribute', name: 'readonly' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#field',
+      assertion: { type: 'attribute', name: 'readonly' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('inputEnabled', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#btn', assertion: { type: 'enabled' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#btn',
+      assertion: { type: 'enabled' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('inputValue', () => {
-    const step: AssertElementStep = { type: 'assertElement', selector: '#input', assertion: { type: 'value', value: 'test@email.com' } };
+    const step: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#input',
+      assertion: { type: 'value', value: 'test@email.com' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   // ── Page (4) ──
 
   it('currentUrl with matchType', () => {
-    const step: AssertPageStep = { type: 'assertPage', assertion: { type: 'url', value: '/dashboard', matchType: 'contains' } };
+    const step: AssertPageStep = {
+      type: 'assertPage',
+      assertion: { type: 'url', value: '/dashboard', matchType: 'contains' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('currentUrl without matchType', () => {
-    const step: AssertPageStep = { type: 'assertPage', assertion: { type: 'url', value: 'https://example.com' } };
+    const step: AssertPageStep = {
+      type: 'assertPage',
+      assertion: { type: 'url', value: 'https://example.com' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
   it('pageTitle', () => {
-    const step: AssertPageStep = { type: 'assertPage', assertion: { type: 'title', value: 'Dashboard' } };
+    const step: AssertPageStep = {
+      type: 'assertPage',
+      assertion: { type: 'title', value: 'Dashboard' },
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
@@ -320,7 +435,12 @@ describe('Verification roundtrip: Step → BoundVerification → Step', () => {
   // ── Style (1) ──
 
   it('cssStyle', () => {
-    const step: AssertStyleStep = { type: 'assertStyle', selector: '#el', property: 'color', value: 'rgb(0, 0, 0)' };
+    const step: AssertStyleStep = {
+      type: 'assertStyle',
+      selector: '#el',
+      property: 'color',
+      value: 'rgb(0, 0, 0)',
+    };
     expect(verificationRoundtrip(step)).toEqual(step);
   });
 
@@ -393,7 +513,11 @@ describe('ElementBindingRegistry', () => {
   it('deduplicates across event and verification reverse mappings', () => {
     const reg = new ElementBindingRegistry();
     const click: ClickStep = { type: 'click', selector: '#btn' };
-    const visible: AssertElementStep = { type: 'assertElement', selector: '#btn', assertion: { type: 'visible' } };
+    const visible: AssertElementStep = {
+      type: 'assertElement',
+      selector: '#btn',
+      assertion: { type: 'visible' },
+    };
 
     convertStepToEvent(click, reg);
     convertStepToVerification(visible, reg);
@@ -459,9 +583,7 @@ describe('convertScenarioToModel', () => {
   });
 
   it('names navigate states with hostname', () => {
-    const steps: Step[] = [
-      { type: 'navigate', url: 'https://example.com/dashboard' },
-    ];
+    const steps: Step[] = [{ type: 'navigate', url: 'https://example.com/dashboard' }];
     const result = convertScenarioToModel(makeScenario(steps));
 
     expect(result.model.states[1].name).toBe('Page: example.com/dashboard');
@@ -504,10 +626,9 @@ describe('convertScenarioToModel', () => {
   });
 
   it('uses scenario name and baseUrl', () => {
-    const result = convertScenarioToModel(
-      makeScenario([], 'Login Flow'),
-      { modelName: 'Custom Name' },
-    );
+    const result = convertScenarioToModel(makeScenario([], 'Login Flow'), {
+      modelName: 'Custom Name',
+    });
 
     expect(result.model.name).toBe('Custom Name');
     expect(result.model.baseUrl).toBe('https://example.com');

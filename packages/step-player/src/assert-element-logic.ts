@@ -27,7 +27,7 @@ export interface AssertionResult {
  */
 export function runElementAssertion(
   elements: Element[],
-  assertion: AssertionInput,
+  assertion: AssertionInput
 ): AssertionResult {
   const element = elements[0] as HTMLElement | undefined;
 
@@ -72,11 +72,17 @@ export function runElementAssertion(
       if (assertion.contains) {
         return textContent.includes(expectedText)
           ? { passed: true, message: `Text contains "${expectedText}"` }
-          : { passed: false, message: `Text does not contain "${expectedText}", actual: "${textContent}"` };
+          : {
+              passed: false,
+              message: `Text does not contain "${expectedText}", actual: "${textContent}"`,
+            };
       }
       return textContent.trim() === expectedText.trim()
         ? { passed: true, message: `Text matches "${expectedText}"` }
-        : { passed: false, message: `Text does not match, expected: "${expectedText}", actual: "${textContent}"` };
+        : {
+            passed: false,
+            message: `Text does not match, expected: "${expectedText}", actual: "${textContent}"`,
+          };
     }
 
     case 'attribute': {
@@ -90,7 +96,10 @@ export function runElementAssertion(
       }
       return attrValue === assertion.value
         ? { passed: true, message: `Attribute "${attrName}" equals "${String(assertion.value)}"` }
-        : { passed: false, message: `Attribute "${attrName}" mismatch, expected: "${String(assertion.value)}", actual: "${attrValue}"` };
+        : {
+            passed: false,
+            message: `Attribute "${attrName}" mismatch, expected: "${String(assertion.value)}", actual: "${attrValue}"`,
+          };
     }
 
     case 'count': {
@@ -100,11 +109,21 @@ export function runElementAssertion(
 
       let passed = false;
       switch (op) {
-        case 'eq': passed = count === expected; break;
-        case 'gt': passed = count > expected; break;
-        case 'gte': passed = count >= expected; break;
-        case 'lt': passed = count < expected; break;
-        case 'lte': passed = count <= expected; break;
+        case 'eq':
+          passed = count === expected;
+          break;
+        case 'gt':
+          passed = count > expected;
+          break;
+        case 'gte':
+          passed = count >= expected;
+          break;
+        case 'lt':
+          passed = count < expected;
+          break;
+        case 'lte':
+          passed = count <= expected;
+          break;
       }
 
       return passed
@@ -125,7 +144,10 @@ export function runElementAssertion(
       const expectedValue = String(assertion.value ?? '');
       return currentValue === expectedValue
         ? { passed: true, message: `Value matches "${expectedValue}"` }
-        : { passed: false, message: `Value mismatch, expected: "${expectedValue}", actual: "${currentValue}"` };
+        : {
+            passed: false,
+            message: `Value mismatch, expected: "${expectedValue}", actual: "${currentValue}"`,
+          };
     }
 
     default:

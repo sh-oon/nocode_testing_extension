@@ -20,9 +20,22 @@ export type UsageContext = 'click' | 'type' | 'hover' | 'assert' | 'other';
 
 /** Interactive roles that are expected on clickable elements */
 const INTERACTIVE_ROLES = new Set([
-  'button', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio',
-  'option', 'radio', 'switch', 'tab', 'checkbox', 'combobox',
-  'listbox', 'searchbox', 'slider', 'spinbutton', 'textbox',
+  'button',
+  'link',
+  'menuitem',
+  'menuitemcheckbox',
+  'menuitemradio',
+  'option',
+  'radio',
+  'switch',
+  'tab',
+  'checkbox',
+  'combobox',
+  'listbox',
+  'searchbox',
+  'slider',
+  'spinbutton',
+  'textbox',
 ]);
 
 /** Contexts where the element must be interactive */
@@ -34,7 +47,7 @@ const INTERACTIVE_CONTEXTS = new Set<UsageContext>(['click', 'type', 'hover']);
  */
 export const validateBindingAccessibility = (
   binding: ElementBinding,
-  usageContext: UsageContext,
+  usageContext: UsageContext
 ): AccessibilityWarning[] => {
   const { accessibility } = binding;
   if (!accessibility) return [];
@@ -136,7 +149,7 @@ export const validateBindingAccessibility = (
 
 /** Get the highest impact level from a list of warnings */
 export const getMaxImpact = (
-  warnings: AccessibilityWarning[],
+  warnings: AccessibilityWarning[]
 ): 'critical' | 'serious' | 'moderate' | 'minor' | null => {
   if (warnings.length === 0) return null;
   const order: Array<AccessibilityWarning['impact']> = ['critical', 'serious', 'moderate', 'minor'];

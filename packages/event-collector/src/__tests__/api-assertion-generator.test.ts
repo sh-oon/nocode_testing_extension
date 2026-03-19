@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest';
 import type { CapturedApiCall } from '@like-cake/api-interceptor';
+import { describe, expect, it } from 'vitest';
 import {
+  type ApiAssertionConfig,
+  type ApiAssertionContext,
   DEFAULT_EXCLUDE_PATTERNS,
   generateApiAssertions,
   getRelevantApiCalls,
-  type ApiAssertionConfig,
-  type ApiAssertionContext,
 } from '../api-assertion-generator';
 
 // ============================================================================
@@ -16,18 +16,20 @@ import {
  * Factory for creating mock CapturedApiCall objects with sensible defaults.
  * Override any nested property via partial overrides.
  */
-function createMockApiCall(overrides: {
-  url?: string;
-  method?: string;
-  requestTimestamp?: number;
-  responseTime?: number;
-  status?: number;
-  statusText?: string;
-  pending?: boolean;
-  error?: string;
-  responseBody?: unknown;
-  hasResponse?: boolean;
-} = {}): CapturedApiCall {
+function createMockApiCall(
+  overrides: {
+    url?: string;
+    method?: string;
+    requestTimestamp?: number;
+    responseTime?: number;
+    status?: number;
+    statusText?: string;
+    pending?: boolean;
+    error?: string;
+    responseBody?: unknown;
+    hasResponse?: boolean;
+  } = {}
+): CapturedApiCall {
   const {
     url = 'https://api.example.com/users',
     method = 'GET',
@@ -157,11 +159,7 @@ describe('getRelevantApiCalls', () => {
       responseTime: 500, // completes at exactly 3000
     });
 
-    const result = getRelevantApiCalls(
-      [callAtStart, callAtEnd],
-      defaultContext,
-      noExcludeConfig,
-    );
+    const result = getRelevantApiCalls([callAtStart, callAtEnd], defaultContext, noExcludeConfig);
     expect(result).toHaveLength(2);
   });
 

@@ -19,35 +19,43 @@ const models = new Hono();
 const executeModelSchema = z.object({
   modelId: z.string(),
   modelName: z.string(),
-  scenarios: z.array(z.object({
-    id: z.string(),
-    name: z.string().optional(),
-    meta: z.any(),
-    steps: z.array(z.any()),
-    variables: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
-  })),
-  options: z.object({
-    headless: z.boolean().optional(),
-    timeout: z.number().int().positive().optional(),
-    baseUrl: z.string().optional(),
-    viewport: z.object({
-      width: z.number().int().positive(),
-      height: z.number().int().positive(),
-    }).optional(),
-    continueOnFailure: z.boolean().optional(),
-  }).optional(),
+  scenarios: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string().optional(),
+      meta: z.any(),
+      steps: z.array(z.any()),
+      variables: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+    })
+  ),
+  options: z
+    .object({
+      headless: z.boolean().optional(),
+      timeout: z.number().int().positive().optional(),
+      baseUrl: z.string().optional(),
+      viewport: z
+        .object({
+          width: z.number().int().positive(),
+          height: z.number().int().positive(),
+        })
+        .optional(),
+      continueOnFailure: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 const saveScenariosSchema = z.object({
   modelName: z.string(),
   baseUrl: z.string(),
-  scenarios: z.array(z.object({
-    id: z.string(),
-    name: z.string().optional(),
-    meta: z.any(),
-    steps: z.array(z.any()),
-    variables: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
-  })),
+  scenarios: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string().optional(),
+      meta: z.any(),
+      steps: z.array(z.any()),
+      variables: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+    })
+  ),
 });
 
 // ── Execute model ───────────────────────────────────────────────────────
@@ -64,7 +72,7 @@ models.post('/execute', zValidator('json', executeModelSchema), async (c) => {
       body.modelId,
       body.modelName,
       body.scenarios as Parameters<typeof modelExecutionService.execute>[2],
-      body.options,
+      body.options
     );
 
     return c.json<ApiResponse<typeof result>>({
@@ -75,7 +83,7 @@ models.post('/execute', zValidator('json', executeModelSchema), async (c) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return c.json<ApiResponse<null>>(
       { success: false, error: `Model execution failed: ${errorMessage}` },
-      500,
+      500
     );
   }
 });
@@ -115,7 +123,7 @@ models.post('/save-scenarios', zValidator('json', saveScenariosSchema), async (c
     const errorMessage = error instanceof Error ? error.message : String(error);
     return c.json<ApiResponse<null>>(
       { success: false, error: `Failed to save scenarios: ${errorMessage}` },
-      500,
+      500
     );
   }
 });

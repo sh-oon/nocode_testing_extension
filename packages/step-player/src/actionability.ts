@@ -89,9 +89,10 @@ export const ACTION_CHECKS: Record<ActionType, ActionabilityChecks> = {
 function describeElement(el: Element): string {
   const tag = el.tagName.toLowerCase();
   const id = el.id ? `#${el.id}` : '';
-  const cls = el.className && typeof el.className === 'string'
-    ? `.${el.className.trim().split(/\s+/).join('.')}`
-    : '';
+  const cls =
+    el.className && typeof el.className === 'string'
+      ? `.${el.className.trim().split(/\s+/).join('.')}`
+      : '';
   return `<${tag}${id}${cls}>`;
 }
 
@@ -104,7 +105,7 @@ function describeElement(el: Element): string {
  */
 export function checkActionability(
   element: Element,
-  checks: ActionabilityChecks,
+  checks: ActionabilityChecks
 ): ActionabilityResult {
   // ── attached ──
   if (checks.attached && !element.isConnected) {
@@ -209,8 +210,7 @@ export function checkActionability(
   // ── editable ──
   if (checks.editable) {
     const htmlEl = element as HTMLInputElement | HTMLTextAreaElement;
-    const isInput =
-      element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement;
+    const isInput = element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement;
 
     if (isInput && htmlEl.readOnly) {
       return {

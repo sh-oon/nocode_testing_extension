@@ -124,7 +124,7 @@ function getPriority(call: CapturedApiCall): number {
 export function getRelevantApiCalls(
   allCalls: CapturedApiCall[],
   context: ApiAssertionContext,
-  config: Partial<ApiAssertionConfig> = {},
+  config: Partial<ApiAssertionConfig> = {}
 ): CapturedApiCall[] {
   const excludePatterns = config.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
   const seenUrls = new Set<string>();
@@ -172,7 +172,7 @@ export function getRelevantApiCalls(
  */
 export function generateApiAssertions(
   relevantCalls: CapturedApiCall[],
-  config: Partial<ApiAssertionConfig> = {},
+  config: Partial<ApiAssertionConfig> = {}
 ): AssertApiStep[] {
   const maxAssertions = config.maxAssertions ?? 2;
 

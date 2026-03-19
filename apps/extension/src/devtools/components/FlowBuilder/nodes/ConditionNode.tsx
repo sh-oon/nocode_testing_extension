@@ -1,5 +1,5 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ConditionNodeData, ConditionOperator } from '@like-cake/ast-types';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 
 type ConditionNodeProps = NodeProps & {
   data: ConditionNodeData;
@@ -55,18 +55,21 @@ export function ConditionNode({ data, selected }: ConditionNodeProps) {
         <div className="-rotate-45 absolute inset-0 flex flex-col items-center justify-center p-2">
           <div className="flex items-center gap-1 mb-1">
             <ConditionIcon />
-            {statusIcons[status] && (
-              <span className="ml-1">{statusIcons[status]}</span>
-            )}
+            {statusIcons[status] && <span className="ml-1">{statusIcons[status]}</span>}
           </div>
           <div className="text-gray-800 text-xs font-medium text-center truncate max-w-[100px]">
             {data.label || 'Condition'}
           </div>
-          <div className="text-gray-500 text-[10px] text-center mt-1 max-w-[110px] truncate" title={conditionPreview}>
+          <div
+            className="text-gray-500 text-[10px] text-center mt-1 max-w-[110px] truncate"
+            title={conditionPreview}
+          >
             {conditionPreview}
           </div>
           {lastResult !== undefined && (
-            <div className={`text-[10px] mt-1 font-medium ${lastResult ? 'text-green-400' : 'text-red-400'}`}>
+            <div
+              className={`text-[10px] mt-1 font-medium ${lastResult ? 'text-green-400' : 'text-red-400'}`}
+            >
               Result: {lastResult ? 'true' : 'false'}
             </div>
           )}

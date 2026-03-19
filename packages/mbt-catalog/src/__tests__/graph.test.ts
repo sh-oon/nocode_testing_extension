@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest';
 import type { SelectorInput } from '@like-cake/ast-types';
+import { describe, expect, it } from 'vitest';
+import { generateScenariosFromModel } from '../graph/generate-scenarios';
+import { generateTestPaths } from '../graph/path-generator';
 import type { ElementBinding } from '../types/element-binding';
 import type { TestModel } from '../types/model';
-import { generateTestPaths } from '../graph/path-generator';
-import { generateScenariosFromModel } from '../graph/generate-scenarios';
 
 // ── Test fixtures ───────────────────────────────────────────────────────
 
@@ -104,9 +104,7 @@ const makeDiamondModel = (): TestModel => ({
 const makeSingleStateModel = (): TestModel => ({
   id: 'single',
   name: 'Single State',
-  states: [
-    { id: 'a', name: 'A', verifications: [], isInitial: true, isFinal: true },
-  ],
+  states: [{ id: 'a', name: 'A', verifications: [], isInitial: true, isFinal: true }],
   transitions: [],
   elementBindings: bindings,
   baseUrl: 'https://example.com',
@@ -159,7 +157,11 @@ describe('generateTestPaths', () => {
       const path = result.paths[0];
       expect(path.nodes).toHaveLength(5);
       expect(path.nodes.map((n) => n.kind)).toEqual([
-        'state', 'transition', 'state', 'transition', 'state',
+        'state',
+        'transition',
+        'state',
+        'transition',
+        'state',
       ]);
     });
 

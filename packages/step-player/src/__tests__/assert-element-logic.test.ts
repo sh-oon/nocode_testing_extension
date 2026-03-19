@@ -12,7 +12,7 @@ import {
 function createElement(
   tag: string,
   attrs: Record<string, string> = {},
-  textContent?: string,
+  textContent?: string
 ): HTMLElement {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -54,7 +54,7 @@ function mockVisibleElement(el: HTMLElement): void {
  */
 function mockInvisibleElement(
   el: HTMLElement,
-  overrides: Partial<{ display: string; visibility: string; opacity: string }> = {},
+  overrides: Partial<{ display: string; visibility: string; opacity: string }> = {}
 ): void {
   vi.spyOn(window, 'getComputedStyle').mockReturnValue({
     display: overrides.display ?? 'none',
@@ -607,7 +607,7 @@ describe('ASSERT_ELEMENT_EVAL_SCRIPT', () => {
     // biome-ignore lint/security/noNewFunction: intentional — mirrors page.evaluate execution model
     const iife = new Function(`return ${scriptWithoutInvocation}`)() as (
       s: string,
-      a: AssertionInput,
+      a: AssertionInput
     ) => AssertionResult;
     return iife(selector, assertion);
   }

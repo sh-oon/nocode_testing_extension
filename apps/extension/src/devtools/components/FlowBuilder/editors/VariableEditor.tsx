@@ -17,7 +17,12 @@ const typeOptions: Array<{ value: VariableType; label: string }> = [
   { value: 'json', label: 'JSON' },
 ];
 
-export function VariableEditor({ variables: initialVariables, label, onChange, onClose }: VariableEditorProps) {
+export function VariableEditor({
+  variables: initialVariables,
+  label,
+  onChange,
+  onClose,
+}: VariableEditorProps) {
   const [nodeLabel, setNodeLabel] = useState(label || 'Set Variables');
   const [variables, setVariables] = useState<VariableAssignment[]>(
     initialVariables?.length ? initialVariables : [{ name: '', value: '', type: 'string' }]
@@ -58,8 +63,18 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
             onClick={onClose}
             className="text-gray-400 hover:text-gray-900 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -68,9 +83,7 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
         <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh]">
           {/* Label */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Node Label
-            </label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Node Label</label>
             <input
               type="text"
               value={nodeLabel}
@@ -83,23 +96,34 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
           {/* Variables List */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-600">
-                Variables
-              </label>
+              <label className="text-sm font-medium text-gray-600">Variables</label>
               <button
                 type="button"
                 onClick={addVariable}
                 className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 Add Variable
               </button>
             </div>
 
             {variables.map((variable, index) => (
-              <div key={index} className="flex gap-2 items-start p-3 bg-gray-50 rounded-md">
+              <div
+                key={index}
+                className="flex gap-2 items-start p-3 bg-gray-50 rounded-md"
+              >
                 <div className="flex-1 space-y-2">
                   <div className="flex gap-2">
                     <input
@@ -115,7 +139,10 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
                       className="w-24 px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       {typeOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
+                        <option
+                          key={opt.value}
+                          value={opt.value}
+                        >
                           {opt.label}
                         </option>
                       ))}
@@ -126,7 +153,9 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
                     value={variable.value}
                     onChange={(e) => updateVariable(index, 'value', e.target.value)}
                     className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={variable.type === 'json' ? '{"key": "value"}' : 'Value or {{otherVar}}'}
+                    placeholder={
+                      variable.type === 'json' ? '{"key": "value"}' : 'Value or {{otherVar}}'
+                    }
                   />
                 </div>
                 <button
@@ -135,8 +164,18 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
                   className="p-1.5 text-gray-500 hover:text-red-400 transition-colors"
                   disabled={variables.length === 1}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </div>
@@ -145,7 +184,7 @@ export function VariableEditor({ variables: initialVariables, label, onChange, o
 
           {/* Help text */}
           <div className="text-xs text-gray-400">
-            Use {"{{variableName}}"} syntax to reference other variables in values.
+            Use {'{{variableName}}'} syntax to reference other variables in values.
           </div>
         </div>
 

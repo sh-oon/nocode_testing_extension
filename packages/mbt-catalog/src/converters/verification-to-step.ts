@@ -14,7 +14,7 @@ import type { ConversionResult } from './types';
 /** Resolve an ElementBinding's selector by ID */
 const resolveSelector = (
   elementBindingId: string | null,
-  elementBindings: ElementBinding[],
+  elementBindings: ElementBinding[]
 ): SelectorInput | undefined => {
   if (elementBindingId === null) return undefined;
   const binding = elementBindings.find((b) => b.id === elementBindingId);
@@ -30,7 +30,7 @@ const resolveSelector = (
  */
 export const convertBoundVerificationToStep = (
   boundVerification: BoundVerification,
-  elementBindings: ElementBinding[],
+  elementBindings: ElementBinding[]
 ): ConversionResult => {
   const { verificationId, params } = boundVerification;
   const selector = resolveSelector(boundVerification.elementBindingId, elementBindings);
@@ -54,7 +54,7 @@ export const convertBoundVerificationToStep = (
 const convertMappedVerification = (
   verificationId: string,
   params: Record<string, unknown>,
-  selector: SelectorInput | undefined,
+  selector: SelectorInput | undefined
 ): Step | undefined => {
   switch (verificationId) {
     // ── Element assertions ──
@@ -77,7 +77,9 @@ const convertMappedVerification = (
         assertion: {
           type: 'count',
           value: params.value as number,
-          ...(params.operator !== undefined && { operator: params.operator as 'eq' | 'gt' | 'gte' | 'lt' | 'lte' }),
+          ...(params.operator !== undefined && {
+            operator: params.operator as 'eq' | 'gt' | 'gte' | 'lt' | 'lte',
+          }),
         },
       };
 
@@ -114,7 +116,11 @@ const convertMappedVerification = (
       return {
         type: 'assertElement',
         selector: selector!,
-        assertion: { type: 'attribute', name: params.name as string, value: params.value as string },
+        assertion: {
+          type: 'attribute',
+          name: params.name as string,
+          value: params.value as string,
+        },
       };
 
     case 'classNameExists':
@@ -167,7 +173,9 @@ const convertMappedVerification = (
         assertion: {
           type: 'url',
           value: params.url as string,
-          ...(params.matchType !== undefined && { matchType: params.matchType as 'contains' | 'exact' | 'regex' }),
+          ...(params.matchType !== undefined && {
+            matchType: params.matchType as 'contains' | 'exact' | 'regex',
+          }),
         },
       };
 
@@ -201,7 +209,9 @@ const convertMappedVerification = (
         type: 'assertApi',
         match: {
           url: params.url as string,
-          ...(params.method !== undefined && { method: params.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' }),
+          ...(params.method !== undefined && {
+            method: params.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+          }),
         },
         expect: {
           ...(params.status !== undefined && { status: params.status as number }),
@@ -215,7 +225,9 @@ const convertMappedVerification = (
         type: 'assertApi',
         match: {
           url: params.url as string,
-          ...(params.method !== undefined && { method: params.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' }),
+          ...(params.method !== undefined && {
+            method: params.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+          }),
         },
         waitFor: true,
       };

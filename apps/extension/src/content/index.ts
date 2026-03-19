@@ -3,22 +3,22 @@ import type { Scenario } from '@like-cake/ast-types';
 import { captureFullSnapshot, type FullSnapshot } from '@like-cake/dom-serializer';
 import {
   type CollectorConfig,
+  createDomMutationTracker,
   createEventCollector,
   createIdleDetector,
-  createDomMutationTracker,
-  type EventCollector,
-  type IdleDetector,
   type DomMutationTracker,
-  type RawEvent,
-  type TrackedMutation,
+  type EventCollector,
   extractElementInfo,
   findInteractiveAncestor,
+  type IdleDetector,
+  type RawEvent,
+  type TrackedMutation,
 } from '@like-cake/event-collector';
 import {
   ExtensionAdapter,
-  StepPlayer,
   type PlayerState,
   type StepExecutionResult,
+  StepPlayer,
 } from '@like-cake/step-player';
 import type { CaptureSnapshotMessage, Message, StartPlaybackMessage } from '../shared/messages';
 
@@ -150,9 +150,14 @@ function sendNavigationEvent(navEvent: { type: string; url: string; timestamp: n
     timestamp: navEvent.timestamp,
     url: navEvent.url,
     toUrl: navEvent.url,
-    navigationType: navEvent.type === 'pushState' ? 'push' :
-                    navEvent.type === 'replaceState' ? 'replace' :
-                    navEvent.type === 'popState' ? 'pop' : 'push',
+    navigationType:
+      navEvent.type === 'pushState'
+        ? 'push'
+        : navEvent.type === 'replaceState'
+          ? 'replace'
+          : navEvent.type === 'popState'
+            ? 'pop'
+            : 'push',
   } as RawEvent;
 
   sendEventToBackground(event);
@@ -194,23 +199,14 @@ function initializeCollector(config: Partial<CollectorConfig> = {}): void {
     minIdleDuration: 800,
     onIdle: (context) => {
       console.log('[Like Cake] Idle detected:', context);
-      sendIdleDetectedToBackground(
-        context.startedAt,
-        context.duration,
-        context.lastEventType
-      );
+      sendIdleDetectedToBackground(context.startedAt, context.duration, context.lastEventType);
     },
   });
 
   // Create DOM mutation tracker — fires when DOM stabilizes after changes
   domTracker = createDomMutationTracker({
     stabilityThreshold: 1500,
-    ignoreSelectors: [
-      '[data-like-cake-ignore]',
-      '.like-cake-overlay',
-      'script',
-      'style',
-    ],
+    ignoreSelectors: ['[data-like-cake-ignore]', '.like-cake-overlay', 'script', 'style'],
     onStable: (mutations) => {
       if (mutations.length > 0) {
         console.log('[Like Cake] DOM stable with mutations:', mutations.length);
@@ -230,7 +226,7 @@ function initializeCollector(config: Partial<CollectorConfig> = {}): void {
 function flushNavigationBuffer(): void {
   // Only flush recent events (within last 5 seconds)
   const now = Date.now();
-  const recentEvents = navigationEventBuffer.filter(e => now - e.timestamp < 5000);
+  const recentEvents = navigationEventBuffer.filter((e) => now - e.timestamp < 5000);
 
   for (const navEvent of recentEvents) {
     sendNavigationEvent(navEvent);
@@ -491,10 +487,7 @@ function getPlaybackState(): { state: PlayerState; currentStepIndex: number } {
 /**
  * Send notification to service worker
  */
-function notifyServiceWorker(
-  type: string,
-  data: Record<string, unknown>
-): void {
+function notifyServiceWorker(type: string, data: Record<string, unknown>): void {
   chrome.runtime.sendMessage({ type, ...data }).catch((error) => {
     console.warn('[Like Cake] Failed to notify service worker:', error);
   });
@@ -542,10 +535,12 @@ function startElementInspect(): void {
     const interactiveEl = findInteractiveAncestor(target) || target;
     const info = extractElementInfo(interactiveEl, 3, true);
 
-    chrome.runtime.sendMessage({
-      type: 'ELEMENT_INSPECTED',
-      elementInfo: info,
-    }).catch(() => {});
+    chrome.runtime
+      .sendMessage({
+        type: 'ELEMENT_INSPECTED',
+        elementInfo: info,
+      })
+      .catch(() => {});
 
     stopElementInspect();
   };

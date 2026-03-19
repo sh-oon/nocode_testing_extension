@@ -1,5 +1,20 @@
 // Re-export types from dependencies
 export type { ElementInfo } from '@like-cake/selector-engine';
+// Export API assertion generator
+export {
+  type ApiAssertionConfig,
+  type ApiAssertionContext,
+  DEFAULT_EXCLUDE_PATTERNS,
+  generateApiAssertions,
+  getRelevantApiCalls,
+} from './api-assertion-generator';
+// Export API transformer
+export {
+  type ApiTransformConfig,
+  mergeStepsWithApiAssertions,
+  transformApiCallsToSteps,
+  transformApiCallToStep,
+} from './api-transformer';
 // Export collector
 export {
   type CollectorState,
@@ -7,6 +22,21 @@ export {
   EventCollector,
   recordManualEvent,
 } from './collector';
+// Export DOM mutation tracker
+export {
+  createDomMutationTracker,
+  DomMutationTracker,
+  type DomMutationTrackerConfig,
+  generateSelector,
+  type TrackedMutation,
+} from './dom-mutation-tracker';
+// Export idle detector
+export {
+  createIdleDetector,
+  type IdleContext,
+  IdleDetector,
+  type IdleDetectorConfig,
+} from './idle-detector';
 // Export listeners
 export {
   attachClickListener,
@@ -28,21 +58,6 @@ export {
   transformEventsToSteps,
   transformEventToStep,
 } from './transformer';
-// Export API transformer
-export {
-  mergeStepsWithApiAssertions,
-  transformApiCallsToSteps,
-  transformApiCallToStep,
-  type ApiTransformConfig,
-} from './api-transformer';
-// Export API assertion generator
-export {
-  DEFAULT_EXCLUDE_PATTERNS,
-  generateApiAssertions,
-  getRelevantApiCalls,
-  type ApiAssertionConfig,
-  type ApiAssertionContext,
-} from './api-assertion-generator';
 // Export types
 export type {
   BaseRawEvent,
@@ -60,21 +75,6 @@ export type {
   StepTransformer,
 } from './types';
 export { DEFAULT_COLLECTOR_CONFIG } from './types';
-// Export idle detector
-export {
-  createIdleDetector,
-  IdleDetector,
-  type IdleContext,
-  type IdleDetectorConfig,
-} from './idle-detector';
-// Export DOM mutation tracker
-export {
-  createDomMutationTracker,
-  DomMutationTracker,
-  generateSelector,
-  type DomMutationTrackerConfig,
-  type TrackedMutation,
-} from './dom-mutation-tracker';
 // Export utilities
 export {
   debounce,

@@ -3,16 +3,8 @@
   "name": "Like Cake - E2E Test Recorder",
   "version": "0.1.0",
   "description": "Record user interactions and generate E2E test scenarios",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "storage",
-    "tabs",
-    "sidePanel"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "permissions": ["activeTab", "scripting", "storage", "tabs", "sidePanel"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "src/background/service-worker.ts",
     "type": "module"

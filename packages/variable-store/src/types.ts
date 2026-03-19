@@ -15,7 +15,13 @@ import type {
 } from '@like-cake/ast-types';
 
 // Re-export shared types from ast-types
-export type { ConditionOperator, ExtractionSource, FlowCondition, FlowVariableValue, VariableExtraction };
+export type {
+  ConditionOperator,
+  ExtractionSource,
+  FlowCondition,
+  FlowVariableValue,
+  VariableExtraction,
+};
 
 // Backward-compatible aliases
 export type VariableValue = FlowVariableValue;

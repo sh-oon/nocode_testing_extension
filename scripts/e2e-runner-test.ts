@@ -12,7 +12,7 @@
  * Usage: npx tsx scripts/e2e-runner-test.ts
  */
 
-import { spawn, type ChildProcess } from 'node:child_process';
+import { type ChildProcess, spawn } from 'node:child_process';
 
 const BACKEND_URL = 'http://localhost:3001';
 const TEST_TIMEOUT = 60000;

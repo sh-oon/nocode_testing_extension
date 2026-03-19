@@ -1,5 +1,5 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ControlNodeData } from '@like-cake/ast-types';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 
 type EndNodeProps = NodeProps & {
   data: ControlNodeData;

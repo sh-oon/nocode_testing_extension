@@ -46,19 +46,16 @@ export function FlowToolbar({
     setIsEditingName(false);
   }, []);
 
-  const handleNameKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-        setIsEditingName(false);
-        nameInputRef.current?.blur();
-      }
-      if (e.key === 'Escape') {
-        setIsEditingName(false);
-        nameInputRef.current?.blur();
-      }
-    },
-    [],
-  );
+  const handleNameKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setIsEditingName(false);
+      nameInputRef.current?.blur();
+    }
+    if (e.key === 'Escape') {
+      setIsEditingName(false);
+      nameInputRef.current?.blur();
+    }
+  }, []);
 
   const runDisabled = !flowId || isLoading || isSaving;
   const saveDisabled = isSaving || isLoading;
@@ -82,12 +79,18 @@ export function FlowToolbar({
       </button>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-200" aria-hidden="true" />
+      <div
+        className="w-px h-5 bg-gray-200"
+        aria-hidden="true"
+      />
 
       {/* Flow name with modification indicator */}
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
         {isEditingName ? (
-          <label className="sr-only" htmlFor="flow-name-input">
+          <label
+            className="sr-only"
+            htmlFor="flow-name-input"
+          >
             플로우 이름
           </label>
         ) : null}
@@ -105,9 +108,10 @@ export function FlowToolbar({
           className={`
             flex-1 min-w-0 px-2.5 py-1.5 text-sm rounded-md transition-colors
             bg-transparent text-gray-800 placeholder-gray-400
-            ${isEditingName
-              ? 'bg-white border border-gray-300 focus:outline-none focus:border-blue-500'
-              : 'border border-transparent hover:bg-gray-50 cursor-text'
+            ${
+              isEditingName
+                ? 'bg-white border border-gray-300 focus:outline-none focus:border-blue-500'
+                : 'border border-transparent hover:bg-gray-50 cursor-text'
             }
           `}
           data-test-id="flow-toolbar-name-input"
@@ -125,7 +129,10 @@ export function FlowToolbar({
       </div>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-200" aria-hidden="true" />
+      <div
+        className="w-px h-5 bg-gray-200"
+        aria-hidden="true"
+      />
 
       {/* Create new button */}
       <button
@@ -140,7 +147,10 @@ export function FlowToolbar({
       </button>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-200" aria-hidden="true" />
+      <div
+        className="w-px h-5 bg-gray-200"
+        aria-hidden="true"
+      />
 
       {/* Run button */}
       <button
@@ -149,9 +159,10 @@ export function FlowToolbar({
         disabled={runDisabled}
         className={`
           flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors
-          ${runDisabled
-            ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed'
-            : 'bg-green-500 hover:bg-green-600 text-white'
+          ${
+            runDisabled
+              ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed'
+              : 'bg-green-500 hover:bg-green-600 text-white'
           }
         `}
         aria-label="플로우 실행"
@@ -168,18 +179,17 @@ export function FlowToolbar({
         disabled={saveDisabled}
         className={`
           flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors
-          ${saveDisabled
-            ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed'
-            : 'bg-blue-500 hover:bg-blue-600 text-white'
+          ${
+            saveDisabled
+              ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
           }
         `}
         aria-label="플로우 저장"
         data-test-id="flow-toolbar-save"
       >
         {isSaving ? <LoadingSpinner /> : <SaveIcon />}
-        <span className="hidden sm:inline">
-          {isSaving ? '저장 중...' : '저장'}
-        </span>
+        <span className="hidden sm:inline">{isSaving ? '저장 중...' : '저장'}</span>
       </button>
     </nav>
   );

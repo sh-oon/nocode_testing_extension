@@ -50,9 +50,7 @@ export interface ComparisonJsonReport {
 /**
  * Generate JSON report from comparison results
  */
-export function generateComparisonJsonReport(
-  results: ComparisonResult[]
-): ComparisonJsonReport {
+export function generateComparisonJsonReport(results: ComparisonResult[]): ComparisonJsonReport {
   const passed = results.filter((r) => r.passed).length;
   const failed = results.length - passed;
   const passRate = results.length > 0 ? ((passed / results.length) * 100).toFixed(1) : '0';
@@ -73,10 +71,7 @@ export function generateComparisonJsonReport(
       const apiExtra = apiComparison?.summary?.extra ?? 0;
 
       const domComparisons = result.domComparisons;
-      const totalDomDiffs = domComparisons.reduce(
-        (sum, c) => sum + c.result.differences.length,
-        0
-      );
+      const totalDomDiffs = domComparisons.reduce((sum, c) => sum + c.result.differences.length, 0);
 
       const visualComparisons = result.visualComparisons;
       const maxDiffPercentage =
@@ -175,7 +170,7 @@ export function reportComparisonToConsole(result: ComparisonResult): void {
  * Report all comparison results to console
  */
 export function reportAllComparisonsToConsole(results: ComparisonResult[]): void {
-  console.log('\n' + '═'.repeat(60));
+  console.log(`\n${'═'.repeat(60)}`);
   console.log('COMPARISON TEST RESULTS');
   console.log('═'.repeat(60));
 
@@ -187,14 +182,16 @@ export function reportAllComparisonsToConsole(results: ComparisonResult[]): void
   const passed = results.filter((r) => r.passed).length;
   const failed = results.length - passed;
 
-  console.log('\n' + '═'.repeat(60));
+  console.log(`\n${'═'.repeat(60)}`);
   console.log('SUMMARY');
   console.log('═'.repeat(60));
   console.log(`Total: ${results.length}`);
   console.log(`Passed: ${passed}`);
   console.log(`Failed: ${failed}`);
-  console.log(`Pass Rate: ${results.length > 0 ? ((passed / results.length) * 100).toFixed(1) : 0}%`);
-  console.log('═'.repeat(60) + '\n');
+  console.log(
+    `Pass Rate: ${results.length > 0 ? ((passed / results.length) * 100).toFixed(1) : 0}%`
+  );
+  console.log(`${'═'.repeat(60)}\n`);
 }
 
 /**

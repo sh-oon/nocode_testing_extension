@@ -226,7 +226,14 @@ export class SessionService {
       let inserted = 0;
       for (const event of events) {
         const id = event.id || `event-${nanoid(12)}`;
-        const result = stmt.run(id, sessionId, event.type, event.timestamp, JSON.stringify(event), now);
+        const result = stmt.run(
+          id,
+          sessionId,
+          event.type,
+          event.timestamp,
+          JSON.stringify(event),
+          now
+        );
         if (result.changes > 0) inserted++;
       }
       return inserted;
