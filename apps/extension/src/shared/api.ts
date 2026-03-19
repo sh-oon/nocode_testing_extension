@@ -55,6 +55,22 @@ export interface BackendScenarioDetail {
 /**
  * Execution result from Backend
  */
+/**
+ * Stored execution result (from history)
+ */
+export interface StoredExecutionResultItem {
+  id: string;
+  scenarioId: string;
+  status: 'passed' | 'failed';
+  totalSteps: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  duration: number;
+  executedAt: number;
+  createdAt: number;
+}
+
 export interface ExecutionResult {
   scenarioId: string;
   scenarioName?: string;
@@ -654,6 +670,32 @@ export class BackendApiClient {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to save scenarios',
+      };
+    }
+  }
+
+  /**
+   * Get execution history for a scenario
+   */
+  async getExecutionHistory(
+    scenarioId: string,
+    params?: { page?: number; limit?: number }
+  ): Promise<ApiResponse<{ items: StoredExecutionResultItem[]; total: number; hasMore: boolean }>> {
+    try {
+      const query = new URLSearchParams();
+      if (params?.page) query.set('page', String(params.page));
+      if (params?.limit) query.set('limit', String(params.limit));
+      const qs = query.toString() ? `?${query.toString()}` : '';
+
+      const response = await fetch(`${this.baseUrl}/api/scenarios/${scenarioId}/results${qs}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return await response.json();
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get execution history',
       };
     }
   }

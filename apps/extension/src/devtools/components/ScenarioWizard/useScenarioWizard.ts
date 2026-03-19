@@ -311,6 +311,19 @@ export function useScenarioWizard() {
     setBackendScenarioId(null);
   }, []);
 
+  const duplicateStep = useCallback((index: number) => {
+    setSteps((prev) => {
+      const step = prev[index];
+      if (!step) return prev;
+      const copy = structuredClone(step);
+      const next = [...prev];
+      next.splice(index + 1, 0, copy);
+      return next;
+    });
+    setPlaybackState({ state: 'idle', currentStepIndex: -1, stepResults: [] });
+    setBackendScenarioId(null);
+  }, []);
+
   const moveStep = useCallback((fromIndex: number, toIndex: number) => {
     setSteps((prev) => {
       const next = [...prev];
@@ -568,6 +581,7 @@ thead th:last-child{text-align:right;}
     updateParams,
     confirmStep,
     removeStep,
+    duplicateStep,
     moveStep,
     insertStepAt,
     editStep,

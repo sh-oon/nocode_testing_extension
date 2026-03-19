@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { ExecutionHistoryPanel } from './ExecutionHistoryPanel';
 import { StepConfigPanel } from './StepConfigPanel';
 import { useScenarioWizard } from './useScenarioWizard';
 import { WizardStepList } from './WizardStepList';
@@ -8,10 +10,43 @@ interface ScenarioWizardProps {
 
 export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
   const wizard = useScenarioWizard();
+  const [showHistory, setShowHistory] = useState(false);
 
   const handleAddStep = () => {
     wizard.startDraftFromCatalog('click', 'event');
   };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isModifier = e.ctrlKey || e.metaKey;
+
+      // Ctrl/Cmd+Enter → play scenario
+      if (isModifier && e.key === 'Enter') {
+        e.preventDefault();
+        if (wizard.canPlay) wizard.playScenario();
+        return;
+      }
+
+      // Ctrl/Cmd+S → save to backend
+      if (isModifier && e.key === 's') {
+        e.preventDefault();
+        if (wizard.canSave && isConnected) wizard.saveToBackend();
+        return;
+      }
+
+      // Escape → cancel current draft
+      if (e.key === 'Escape') {
+        if (wizard.draft) {
+          e.preventDefault();
+          wizard.cancelDraft();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [wizard.canPlay, wizard.canSave, wizard.draft, wizard.playScenario, wizard.saveToBackend, wizard.cancelDraft, isConnected]);
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -88,6 +123,7 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
             stepResults={wizard.playbackState.stepResults}
             isRecording={wizard.isRecording}
             onRemove={wizard.removeStep}
+            onDuplicate={wizard.duplicateStep}
             onAddStep={handleAddStep}
             onInsertAt={wizard.insertStepAt}
             onMove={wizard.moveStep}
@@ -136,6 +172,15 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
           >
             초기화
           </button>
+          {wizard.backendScenarioId && isConnected && (
+            <button
+              type="button"
+              onClick={() => setShowHistory(true)}
+              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              히스토리
+            </button>
+          )}
           <button
             type="button"
             onClick={wizard.playScenario}
@@ -172,6 +217,14 @@ export function ScenarioWizard({ isConnected }: ScenarioWizardProps) {
           )}
         </div>
       </div>
+
+      {/* Execution History Panel */}
+      {showHistory && wizard.backendScenarioId && (
+        <ExecutionHistoryPanel
+          scenarioId={wizard.backendScenarioId}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
     </div>
   );
 }

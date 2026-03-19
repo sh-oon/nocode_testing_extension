@@ -7,6 +7,7 @@ interface WizardStepListProps {
   stepResults: StepResult[];
   isRecording: boolean;
   onRemove: (index: number) => void;
+  onDuplicate: (index: number) => void;
   onAddStep: () => void;
   onInsertAt: (index: number) => void;
   onMove: (fromIndex: number, toIndex: number) => void;
@@ -51,6 +52,7 @@ export function WizardStepList({
   stepResults,
   isRecording,
   onRemove,
+  onDuplicate,
   onAddStep,
   onInsertAt,
   onMove,
@@ -175,14 +177,24 @@ export function WizardStepList({
                     ) : isCurrent ? (
                       <span className="text-[10px] text-blue-500 animate-pulse">실행 중</span>
                     ) : !isRecording ? (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onRemove(idx); }}
-                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 transition-all"
-                        aria-label="삭제"
-                      >
-                        <TrashIcon />
-                      </button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onDuplicate(idx); }}
+                          className="text-gray-400 hover:text-blue-500 transition-colors"
+                          aria-label="복제"
+                        >
+                          <CopyIcon />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onRemove(idx); }}
+                          className="text-gray-400 hover:text-red-400 transition-colors"
+                          aria-label="삭제"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
                     ) : null}
                   </div>
                   {result?.status === 'failed' && result.error && (
@@ -219,6 +231,14 @@ function StatusBadge({ status }: { status: string }) {
       ? 'bg-red-100 text-red-700'
       : 'bg-gray-100 text-gray-500';
   return <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${styles}`}>{status}</span>;
+}
+
+function CopyIcon() {
+  return (
+    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+  );
 }
 
 function TrashIcon() {

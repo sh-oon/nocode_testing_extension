@@ -145,6 +145,12 @@ export function StepConfigPanel({
       {/* ── Section: 파라미터 ── */}
       {draft.catalogEntry.params.length > 0 && (
         <Section title="상세 설정">
+          {draft.catalogId === 'wait' && (
+            <WaitPresets
+              currentDuration={draft.params.duration as number | undefined}
+              onSelect={(ms) => onUpdateParams({ ...draft.params, duration: ms })}
+            />
+          )}
           <CatalogParamForm
             params={draft.catalogEntry.params}
             values={draft.params}
@@ -425,6 +431,35 @@ function A11yWarningItem({ warning }: { warning: AccessibilityWarning }) {
         <span className="text-[10px] text-gray-400 font-mono">{warning.rule}</span>
       </div>
       <div className={`text-xs mt-0.5 ${style.text}`}>{warning.message}</div>
+    </div>
+  );
+}
+
+const WAIT_PRESETS = [
+  { label: '500ms', value: 500 },
+  { label: '1s', value: 1000 },
+  { label: '2s', value: 2000 },
+  { label: '3s', value: 3000 },
+  { label: '5s', value: 5000 },
+] as const;
+
+function WaitPresets({ currentDuration, onSelect }: { currentDuration: number | undefined; onSelect: (ms: number) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 mb-2">
+      {WAIT_PRESETS.map((preset) => (
+        <button
+          key={preset.value}
+          type="button"
+          onClick={() => onSelect(preset.value)}
+          className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+            currentDuration === preset.value
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          {preset.label}
+        </button>
+      ))}
     </div>
   );
 }

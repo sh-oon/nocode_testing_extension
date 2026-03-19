@@ -377,6 +377,125 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
     }
   }, [isConnected, flowManager, resetNodeStatuses, updateNodeStatus]);
 
+  // ── Export helpers ──
+
+  const downloadFile = useCallback((content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const exportFlowJsonReport = useCallback(() => {
+    if (!executionSummary) return;
+    const report = {
+      flowName: flowManager.flowName || 'Unnamed Flow',
+      summary: {
+        status: executionSummary.status,
+        totalNodes: executionSummary.totalNodes,
+        passedNodes: executionSummary.passedNodes,
+        failedNodes: executionSummary.failedNodes,
+        totalSteps: executionSummary.totalSteps,
+        passedSteps: executionSummary.passedSteps,
+        failedSteps: executionSummary.failedSteps,
+        duration: executionSummary.duration,
+      },
+      nodeLogs: executionSummary.nodeLogs ?? [],
+      errors: executionSummary.errors ?? [],
+      exportedAt: new Date().toISOString(),
+    };
+    const json = JSON.stringify(report, null, 2);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    downloadFile(json, `flow-report-${timestamp}.json`, 'application/json');
+  }, [executionSummary, flowManager.flowName, downloadFile]);
+
+  const exportFlowHtmlReport = useCallback(() => {
+    if (!executionSummary) return;
+    const name = escapeHtml(flowManager.flowName || 'Unnamed Flow');
+    const date = new Date().toLocaleString('ko-KR');
+    const s = executionSummary;
+    const isSuccess = s.status === 'passed';
+
+    const nodeRows = (s.nodeLogs ?? [])
+      .map((log, i) => {
+        const statusLabel = log.status === 'passed' ? '성공' : log.status === 'failed' ? '실패' : '건너뜀';
+        const statusColor = log.status === 'passed' ? '#16a34a' : log.status === 'failed' ? '#dc2626' : '#9ca3af';
+        const statusBg = log.status === 'passed' ? '#f0fdf4' : log.status === 'failed' ? '#fef2f2' : '#f9fafb';
+        const duration = log.duration != null ? formatDuration(log.duration) : '-';
+        const steps = log.stepCount != null ? `${log.passedSteps ?? 0}/${log.stepCount}` : '-';
+        const errorRow = log.error
+          ? `<tr><td colspan="5" style="padding:6px 12px;background:#fef2f2;color:#b91c1c;font-size:12px;font-family:monospace;border-bottom:1px solid #fee2e2;">오류: ${escapeHtml(log.error)}</td></tr>`
+          : '';
+        return `<tr style="border-bottom:1px solid #f3f4f6;">
+          <td style="padding:10px 12px;color:#6b7280;font-size:13px;">${i + 1}</td>
+          <td style="padding:10px 12px;font-weight:500;font-size:13px;">${escapeHtml(log.nodeId)}</td>
+          <td style="padding:10px 12px;"><span style="display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;color:${statusColor};background:${statusBg};">${statusLabel}</span></td>
+          <td style="padding:10px 12px;color:#6b7280;font-size:13px;text-align:center;">${steps}</td>
+          <td style="padding:10px 12px;color:#6b7280;font-size:13px;text-align:right;">${duration}</td>
+        </tr>${errorRow}`;
+      })
+      .join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flow 실행 리포트 - ${name}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;color:#111827;padding:40px 20px;}
+.container{max-width:720px;margin:0 auto;}
+.header{margin-bottom:16px;}
+.header h1{font-size:22px;font-weight:700;color:#111827;}
+.meta{font-size:13px;color:#9ca3af;margin-top:4px;}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.card{background:#fff;border:1px solid #f3f4f6;border-radius:12px;padding:16px;text-align:center;}
+.card .value{font-size:24px;font-weight:700;color:#111827;}
+.card .label{font-size:11px;color:#9ca3af;margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;}
+.badge{display:inline-block;padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:600;margin-bottom:24px;}
+table{width:100%;background:#fff;border:1px solid #f3f4f6;border-radius:12px;border-collapse:collapse;overflow:hidden;}
+thead th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #f3f4f6;}
+thead th:last-child{text-align:right;}
+thead th:nth-child(4){text-align:center;}
+.footer{margin-top:32px;text-align:center;font-size:11px;color:#d1d5db;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>${name}</h1>
+    <div class="meta">${date}</div>
+  </div>
+  <span class="badge" style="color:${isSuccess ? '#16a34a' : '#dc2626'};background:${isSuccess ? '#f0fdf4' : '#fef2f2'};">${isSuccess ? '성공' : '실패'}</span>
+  <div class="summary">
+    <div class="card"><div class="value">${s.totalNodes}</div><div class="label">전체 노드</div></div>
+    <div class="card"><div class="value" style="color:#16a34a;">${s.passedNodes}</div><div class="label">성공</div></div>
+    <div class="card"><div class="value" style="color:#dc2626;">${s.failedNodes}</div><div class="label">실패</div></div>
+    <div class="card"><div class="value">${formatDuration(s.duration)}</div><div class="label">소요 시간</div></div>
+  </div>
+  <div class="summary" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="card"><div class="value">${s.totalSteps}</div><div class="label">전체 스텝</div></div>
+    <div class="card"><div class="value" style="color:#16a34a;">${s.passedSteps}</div><div class="label">성공 스텝</div></div>
+    <div class="card"><div class="value" style="color:#dc2626;">${s.failedSteps}</div><div class="label">실패 스텝</div></div>
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>노드 ID</th><th>상태</th><th style="text-align:center;">스텝 (성공/전체)</th><th style="text-align:right;">소요 시간</th></tr></thead>
+    <tbody>${nodeRows}</tbody>
+  </table>
+  <div class="footer">Like Cake - Flow 실행 리포트</div>
+</div>
+</body>
+</html>`;
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    downloadFile(html, `flow-report-${timestamp}.html`, 'text/html');
+  }, [executionSummary, flowManager.flowName, downloadFile]);
+
   // Show empty state when no flow is loaded and canvas only has start/end
   const showEmptyState = !forceShowCanvas && !flowManager.flowId && !flowManager.flowName && nodes.length <= 2;
 
@@ -414,13 +533,29 @@ function FlowBuilderInner({ isConnected }: FlowBuilderProps) {
               Duration: {(executionSummary.duration / 1000).toFixed(1)}s
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setExecutionSummary(null)}
-            className="text-xs hover:underline"
-          >
-            Dismiss
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={exportFlowJsonReport}
+              className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              JSON 내보내기
+            </button>
+            <button
+              type="button"
+              onClick={exportFlowHtmlReport}
+              className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              HTML 리포트
+            </button>
+            <button
+              type="button"
+              onClick={() => setExecutionSummary(null)}
+              className="text-xs hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
@@ -609,4 +744,17 @@ export function FlowBuilder(props: FlowBuilderProps) {
       <FlowBuilderInner {...props} />
     </ReactFlowProvider>
   );
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
 }
