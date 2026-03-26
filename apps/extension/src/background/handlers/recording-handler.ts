@@ -7,6 +7,7 @@ import type {
   Message,
   SnapshotCapturedMessage,
 } from '../../shared/messages';
+import { isUrlRecordable, loadUrlFilterConfig } from '../../shared/url-filter';
 import {
   clearCurrentSession,
   createSession,
@@ -16,27 +17,68 @@ import {
 import {
   activeTabId,
   ensureContentScriptInjected,
+  interceptionMode,
   notifyPanels,
   sessionCache,
   setActiveTabId,
+  setInterceptionMode,
   setPendingDomMutations,
   setSessionCache,
 } from '../state';
+import {
+  attachToTab,
+  detachFromTab,
+  isAttached,
+  setOnApiCallCaptured,
+  setOnDetach,
+} from './cdp-network-handler';
+import {
+  setOnNavigationEvent,
+  startListening as startNavigationListening,
+  stopListening as stopNavigationListening,
+} from './navigation-handler';
+import {
+  cleanupInjectedScripts,
+  injectApiInterceptor,
+  injectNavigationPatch,
+} from './fallback-injector';
+
+// Wire up CDP and navigation callbacks once at module load
+setOnApiCallCaptured((apiCall) => handleApiCallCaptured(apiCall));
+setOnNavigationEvent((event) => handleEventCaptured(event));
+
+// Auto-fallback when user closes the debugger yellow bar during recording
+setOnDetach(async (tabId) => {
+  if (interceptionMode !== 'cdp' || activeTabId !== tabId) return;
+
+  console.log('[Like Cake] CDP detached during recording, switching to fallback');
+  setInterceptionMode('fallback');
+
+  // Inject fallback scripts
+  await injectApiInterceptor(tabId);
+  await injectNavigationPatch(tabId);
+  try {
+    await chrome.tabs.sendMessage(tabId, { type: 'ENABLE_FALLBACK_LISTENERS' });
+  } catch {
+    // Content script may not be available
+  }
+
+  // Notify panels of mode change
+  notifyPanels({ type: 'INTERCEPTION_MODE', mode: 'fallback' });
+});
 
 /**
- * Start recording on specified tab
+ * Start recording on specified tab.
+ * Uses CDP for API capture when available, falls back to chrome.scripting injection.
  */
 async function startRecording(tabId: number, config?: Record<string, boolean>): Promise<void> {
   const tab = await chrome.tabs.get(tabId);
   if (!tab.url) return;
 
-  // Check if this is a restricted URL
-  if (
-    tab.url.startsWith('chrome://') ||
-    tab.url.startsWith('chrome-extension://') ||
-    tab.url.startsWith('about:')
-  ) {
-    console.error('[Like Cake] Cannot record on restricted URL:', tab.url);
+  // Check URL against filter rules (replaces hardcoded checks)
+  const urlConfig = await loadUrlFilterConfig();
+  if (!isUrlRecordable(tab.url, urlConfig)) {
+    console.error('[Like Cake] Cannot record on filtered URL:', tab.url);
     notifyPanels({
       type: 'RECORDING_STOPPED',
       eventCount: 0,
@@ -44,7 +86,25 @@ async function startRecording(tabId: number, config?: Record<string, boolean>): 
     return;
   }
 
-  // Ensure content script is injected
+  // Ensure we have host permission for this URL (optional_host_permissions)
+  const hasPermission = await chrome.permissions.contains({
+    origins: [new URL(tab.url).origin + '/*'],
+  }).catch(() => false);
+
+  if (!hasPermission) {
+    // Request permission at runtime
+    const granted = await chrome.permissions.request({
+      origins: [new URL(tab.url).origin + '/*'],
+    }).catch(() => false);
+
+    if (!granted) {
+      console.error('[Like Cake] Host permission denied for:', tab.url);
+      notifyPanels({ type: 'RECORDING_STOPPED', eventCount: 0 });
+      return;
+    }
+  }
+
+  // Ensure content script is injected (for event collection + playback)
   const injected = await ensureContentScriptInjected(tabId);
   if (!injected) {
     console.error('[Like Cake] Failed to ensure content script');
@@ -56,6 +116,35 @@ async function startRecording(tabId: number, config?: Record<string, boolean>): 
   setSessionCache(newSession);
   await saveCurrentSession(newSession);
   setActiveTabId(tabId);
+
+  // --- API Interception: CDP primary, fallback secondary ---
+  const cdpResult = await attachToTab(tabId);
+  if (cdpResult.success) {
+    setInterceptionMode('cdp');
+    console.log('[Like Cake] Using CDP for API capture');
+  } else {
+    // Fallback: inject via chrome.scripting
+    console.log('[Like Cake] CDP unavailable, using fallback injection');
+    await injectApiInterceptor(tabId);
+    // Also inject navigation patch in fallback (webNavigation is primary but this adds pushState detail)
+    await injectNavigationPatch(tabId);
+    // Enable fallback event listeners in content script
+    try {
+      await chrome.tabs.sendMessage(tabId, { type: 'ENABLE_FALLBACK_LISTENERS' });
+    } catch {
+      // Content script might not support this message yet
+    }
+    setInterceptionMode('fallback');
+  }
+
+  // --- Navigation: always use webNavigation API ---
+  startNavigationListening(tabId);
+
+  // Notify interception mode to panels
+  notifyPanels({
+    type: 'INTERCEPTION_MODE',
+    mode: interceptionMode,
+  });
 
   // Send start command to content script
   try {
@@ -78,7 +167,7 @@ async function startRecording(tabId: number, config?: Record<string, boolean>): 
 }
 
 /**
- * Stop recording
+ * Stop recording — cleans up CDP, navigation, and fallback resources.
  */
 async function stopRecording(): Promise<void> {
   console.log('[Like Cake] stopRecording called, activeTabId:', activeTabId);
@@ -92,6 +181,28 @@ async function stopRecording(): Promise<void> {
     sessionCache.isPaused = false;
     await saveCurrentSession(sessionCache);
   }
+
+  // --- Cleanup interception resources ---
+
+  // CDP cleanup
+  if (activeTabId !== null && isAttached(activeTabId)) {
+    await detachFromTab(activeTabId);
+  }
+
+  // Navigation cleanup
+  stopNavigationListening();
+
+  // Fallback cleanup
+  if (activeTabId !== null && interceptionMode === 'fallback') {
+    await cleanupInjectedScripts(activeTabId);
+    try {
+      await chrome.tabs.sendMessage(activeTabId, { type: 'DISABLE_FALLBACK_LISTENERS' });
+    } catch {
+      // Content script might not be available
+    }
+  }
+
+  setInterceptionMode('none');
 
   // Try to notify content script if we have an active tab
   if (activeTabId !== null) {
@@ -107,14 +218,12 @@ async function stopRecording(): Promise<void> {
       });
     } catch (error) {
       console.error('[Like Cake] Error notifying content script:', error);
-      // Still notify panels even if content script failed
       notifyPanels({
         type: 'RECORDING_STOPPED',
         eventCount: sessionCache?.events.length ?? 0,
       });
     }
   } else {
-    // No active tab, just notify panels
     notifyPanels({
       type: 'RECORDING_STOPPED',
       eventCount: sessionCache?.events.length ?? 0,

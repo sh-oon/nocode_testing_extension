@@ -57,6 +57,10 @@ export type MessageType =
   | 'START_ELEMENT_INSPECT'
   | 'STOP_ELEMENT_INSPECT'
   | 'ELEMENT_INSPECTED'
+  // Interception mode messages
+  | 'INTERCEPTION_MODE'
+  | 'ENABLE_FALLBACK_LISTENERS'
+  | 'DISABLE_FALLBACK_LISTENERS'
   // Utility messages
   | 'PING'
   | 'PONG';
@@ -358,6 +362,16 @@ export interface ElementInspectedMessage extends BaseMessage {
 }
 
 /**
+ * Interception mode notification (service worker → panel)
+ */
+export type InterceptionMode = 'cdp' | 'fallback' | 'none';
+
+export interface InterceptionModeMessage extends BaseMessage {
+  type: 'INTERCEPTION_MODE';
+  mode: InterceptionMode;
+}
+
+/**
  * Union of all message types
  */
 export type Message =
@@ -407,7 +421,10 @@ export type Message =
   | { type: 'PLAYBACK_PAUSED' }
   | { type: 'PLAYBACK_RESUMED' }
   | { type: 'PLAYBACK_STOPPED' }
-  | { type: 'PLAYBACK_COMPLETED' };
+  | { type: 'PLAYBACK_COMPLETED' }
+  | InterceptionModeMessage
+  | { type: 'ENABLE_FALLBACK_LISTENERS' }
+  | { type: 'DISABLE_FALLBACK_LISTENERS' };
 
 /**
  * Send message to background service worker

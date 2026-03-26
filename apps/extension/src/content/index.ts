@@ -1,579 +1,109 @@
-import type { CapturedApiCall } from '@like-cake/api-interceptor';
-import type { Scenario } from '@like-cake/ast-types';
-import { captureFullSnapshot, type FullSnapshot } from '@like-cake/dom-serializer';
-import {
-  type CollectorConfig,
-  createDomMutationTracker,
-  createEventCollector,
-  createIdleDetector,
-  type DomMutationTracker,
-  type EventCollector,
-  extractElementInfo,
-  findInteractiveAncestor,
-  type IdleDetector,
-  type RawEvent,
-  type TrackedMutation,
-} from '@like-cake/event-collector';
-import {
-  ExtensionAdapter,
-  type PlayerState,
-  type StepExecutionResult,
-  StepPlayer,
-} from '@like-cake/step-player';
+import type { DomMutationTracker, EventCollector, IdleDetector } from '@like-cake/event-collector';
+import type { StepPlayer } from '@like-cake/step-player';
 import type { CaptureSnapshotMessage, Message, StartPlaybackMessage } from '../shared/messages';
+import { startElementInspect, stopElementInspect } from './inspection';
+import { sendApiCallToBackground, sendSnapshotToBackground } from './messaging';
+import {
+  initializePlayback,
+  getPlaybackState,
+  pausePlayback,
+  startPlayback,
+  stepPlayback,
+  stopPlayback,
+} from './playback';
+import {
+  type NavigationEvent,
+  flushNavigationBuffer,
+  initializeCollector,
+  notifyMainWorldRecordingState,
+  sendNavigationEvent,
+} from './recording';
+import { captureSnapshotInternal } from './snapshot';
 
 /**
- * Content Script - Runs in the context of web pages
- * Handles event collection using @like-cake/event-collector,
- * API interception using @like-cake/api-interceptor,
- * and DOM snapshots using @like-cake/dom-serializer
+ * Content Script - Runs in ISOLATED world.
+ *
+ * NO main world injection at load time.
+ * API interception is handled by CDP in the service worker.
+ * Navigation is handled by chrome.webNavigation in the service worker.
+ *
+ * Fallback listeners are activated only when service worker sends
+ * ENABLE_FALLBACK_LISTENERS (when CDP is unavailable).
  */
 
 // ============================================
-// EARLY INJECTION: Patch APIs immediately
-// This must happen before any page JavaScript runs
+// Constants
 // ============================================
-injectNavigationPatchEarly();
-injectApiInterceptorEarly();
+const NAV_BUFFER_MAX_SIZE = 50;
 
+// Global State
+// ============================================
 let collector: EventCollector | null = null;
 let idleDetector: IdleDetector | null = null;
 let domTracker: DomMutationTracker | null = null;
 let isInitialized = false;
-let navigationEventBuffer: Array<{ type: string; url: string; timestamp: number }> = [];
+let navigationEventBuffer: NavigationEvent[] = [];
 
-/**
- * Inject navigation patch script into main world IMMEDIATELY
- * This runs at document_start, before any page JavaScript
- * Uses external script file to bypass CSP restrictions
- */
-function injectNavigationPatchEarly(): void {
-  // Listen for navigation events from main world
-  window.addEventListener('__like_cake_navigation__', ((event: CustomEvent) => {
-    const detail = event.detail;
-    if (!detail?.url) return;
-
-    // Buffer events if recording hasn't started yet
-    // Or forward immediately if collector is active
-    const navEvent = {
-      type: detail.type,
-      url: detail.url,
-      timestamp: Date.now(),
-    };
-
-    if (collector?.getState() === 'recording') {
-      // Forward immediately
-      sendNavigationEvent(navEvent);
-    } else {
-      // Buffer for later (in case recording starts soon)
-      navigationEventBuffer.push(navEvent);
-      // Keep buffer small
-      if (navigationEventBuffer.length > 50) {
-        navigationEventBuffer.shift();
-      }
-    }
-  }) as EventListener);
-
-  // Inject external script file into main world (bypasses CSP)
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL('inject-navigation.js');
-  script.onload = () => {
-    script.remove(); // Clean up after loading
-  };
-
-  // Insert as early as possible
-  if (document.documentElement) {
-    document.documentElement.appendChild(script);
-  } else {
-    // Fallback: wait for documentElement
-    const observer = new MutationObserver(() => {
-      if (document.documentElement) {
-        document.documentElement.appendChild(script);
-        observer.disconnect();
-      }
-    });
-    observer.observe(document, { childList: true });
-  }
-}
-
-/**
- * Inject API interceptor script into main world IMMEDIATELY
- * This captures fetch/XHR calls from page load
- */
-function injectApiInterceptorEarly(): void {
-  // Listen for API call events from main world
-  window.addEventListener('__like_cake_api_call__', ((event: CustomEvent) => {
-    const apiCall = event.detail;
-    if (!apiCall?.request) return;
-
-    // Forward to background
-    sendApiCallToBackground(apiCall);
-  }) as EventListener);
-
-  // Inject external script file into main world
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL('inject-api.js');
-  script.onload = () => {
-    script.remove();
-  };
-
-  // Insert as early as possible
-  if (document.documentElement) {
-    document.documentElement.appendChild(script);
-  } else {
-    const observer = new MutationObserver(() => {
-      if (document.documentElement) {
-        document.documentElement.appendChild(script);
-        observer.disconnect();
-      }
-    });
-    observer.observe(document, { childList: true });
-  }
-}
-
-/**
- * Notify main world about recording state change
- */
-function notifyMainWorldRecordingState(isRecording: boolean): void {
-  const eventName = isRecording ? '__like_cake_start_recording__' : '__like_cake_stop_recording__';
-  window.dispatchEvent(new CustomEvent(eventName));
-}
-
-/**
- * Send navigation event to background
- */
-function sendNavigationEvent(navEvent: { type: string; url: string; timestamp: number }): void {
-  // Create a RawEvent-compatible navigation event
-  const event: RawEvent = {
-    type: 'navigation',
-    id: `nav-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-    timestamp: navEvent.timestamp,
-    url: navEvent.url,
-    toUrl: navEvent.url,
-    navigationType:
-      navEvent.type === 'pushState'
-        ? 'push'
-        : navEvent.type === 'replaceState'
-          ? 'replace'
-          : navEvent.type === 'popState'
-            ? 'pop'
-            : 'push',
-  } as RawEvent;
-
-  sendEventToBackground(event);
-}
-
-// Playback state
 let player: StepPlayer | null = null;
-let playbackAdapter: ExtensionAdapter | null = null;
+
+// Fallback mode listeners
+let fallbackListenersActive = false;
+
+// ============================================
+// FALLBACK LISTENERS (activated on demand only)
+// ============================================
 
 /**
- * Initialize the event collector with given config
+ * Enable fallback event listeners for when CDP is unavailable.
+ * Listens for CustomEvents from injected main-world scripts.
  */
-function initializeCollector(config: Partial<CollectorConfig> = {}): void {
-  if (collector) {
-    collector.stop();
-  }
+function enableFallbackListeners(): void {
+  if (fallbackListenersActive) return;
+  fallbackListenersActive = true;
 
-  collector = createEventCollector({
-    ...config,
-    // Disable built-in navigation listener - we handle it separately with early injection
-    captureNavigation: false,
-    ignoreSelectors: [
-      // Ignore extension-injected elements
-      '[data-like-cake-ignore]',
-      '.like-cake-overlay',
-    ],
-  });
+  window.addEventListener('__like_cake_navigation__', handleFallbackNavigation as EventListener);
+  window.addEventListener('__like_cake_api_call__', handleFallbackApiCall as EventListener);
 
-  // Forward events to service worker and notify idle detector
-  collector.onEvent((event: RawEvent) => {
-    sendEventToBackground(event);
-    // Notify idle detector of user activity
-    idleDetector?.recordEvent(event.type);
-  });
-
-  // Create idle detector — fires when user stops interacting
-  idleDetector = createIdleDetector({
-    idleThreshold: 2000,
-    minIdleDuration: 800,
-    onIdle: (context) => {
-      console.log('[Like Cake] Idle detected:', context);
-      sendIdleDetectedToBackground(context.startedAt, context.duration, context.lastEventType);
-    },
-  });
-
-  // Create DOM mutation tracker — fires when DOM stabilizes after changes
-  domTracker = createDomMutationTracker({
-    stabilityThreshold: 1500,
-    ignoreSelectors: ['[data-like-cake-ignore]', '.like-cake-overlay', 'script', 'style'],
-    onStable: (mutations) => {
-      if (mutations.length > 0) {
-        console.log('[Like Cake] DOM stable with mutations:', mutations.length);
-        sendDomMutationsStableToBackground(mutations);
-      }
-    },
-  });
-
-  isInitialized = true;
-  console.log('[Like Cake] Event collector initialized');
+  console.log('[Like Cake] Fallback listeners enabled');
 }
 
 /**
- * Flush buffered navigation events when recording starts
- * This captures navigations that happened before recording started
+ * Disable fallback event listeners.
  */
-function flushNavigationBuffer(): void {
-  // Only flush recent events (within last 5 seconds)
-  const now = Date.now();
-  const recentEvents = navigationEventBuffer.filter((e) => now - e.timestamp < 5000);
+function disableFallbackListeners(): void {
+  if (!fallbackListenersActive) return;
+  fallbackListenersActive = false;
 
-  for (const navEvent of recentEvents) {
+  window.removeEventListener('__like_cake_navigation__', handleFallbackNavigation as EventListener);
+  window.removeEventListener('__like_cake_api_call__', handleFallbackApiCall as EventListener);
+
+  console.log('[Like Cake] Fallback listeners disabled');
+}
+
+function handleFallbackNavigation(event: CustomEvent): void {
+  const detail = event.detail;
+  if (!detail?.url) return;
+
+  const navEvent: NavigationEvent = {
+    type: detail.type,
+    url: detail.url,
+    timestamp: Date.now(),
+  };
+
+  if (collector?.getState() === 'recording') {
     sendNavigationEvent(navEvent);
-  }
-
-  // Clear buffer
-  navigationEventBuffer = [];
-}
-
-/**
- * Send captured event to background service worker
- */
-function sendEventToBackground(event: RawEvent): void {
-  chrome.runtime
-    .sendMessage({
-      type: 'EVENT_CAPTURED',
-      event,
-    })
-    .catch((error) => {
-      // Extension context might be invalidated
-      console.warn('[Like Cake] Failed to send event:', error);
-    });
-}
-
-/**
- * Send captured API call to background service worker
- */
-function sendApiCallToBackground(apiCall: CapturedApiCall): void {
-  chrome.runtime
-    .sendMessage({
-      type: 'API_CALL_CAPTURED',
-      apiCall,
-    })
-    .catch((error) => {
-      // Extension context might be invalidated
-      console.warn('[Like Cake] Failed to send API call:', error);
-    });
-}
-
-/**
- * Send captured snapshot to background service worker
- */
-function sendSnapshotToBackground(snapshot: FullSnapshot, label?: string): void {
-  chrome.runtime
-    .sendMessage({
-      type: 'SNAPSHOT_CAPTURED',
-      snapshot,
-      label,
-    })
-    .catch((error) => {
-      // Extension context might be invalidated
-      console.warn('[Like Cake] Failed to send snapshot:', error);
-    });
-}
-
-/**
- * Send idle detection event to background service worker
- */
-function sendIdleDetectedToBackground(
-  idleStartedAt: number,
-  idleDuration: number,
-  lastEventType: string
-): void {
-  chrome.runtime
-    .sendMessage({
-      type: 'IDLE_DETECTED',
-      idleStartedAt,
-      idleDuration,
-      lastEventType,
-    })
-    .catch((error) => {
-      console.warn('[Like Cake] Failed to send idle detected:', error);
-    });
-}
-
-/**
- * Send DOM mutations stable event to background service worker
- */
-function sendDomMutationsStableToBackground(mutations: TrackedMutation[]): void {
-  chrome.runtime
-    .sendMessage({
-      type: 'DOM_MUTATIONS_STABLE',
-      mutations,
-    })
-    .catch((error) => {
-      console.warn('[Like Cake] Failed to send DOM mutations stable:', error);
-    });
-}
-
-/**
- * Capture a DOM snapshot and optionally a screenshot
- */
-async function captureSnapshotInternal(includeScreenshot = true): Promise<FullSnapshot> {
-  console.log('[Like Cake] Capturing snapshot...');
-
-  try {
-    const snapshot = await captureFullSnapshot(
-      {
-        // DOM serialization config
-        includeComputedStyles: false,
-        includeBoundingRects: true,
-        includeVisibility: true,
-        includeShadowDom: true,
-        skipSelectors: [
-          'script',
-          'noscript',
-          'style',
-          'link[rel="stylesheet"]',
-          '[data-like-cake-ignore]',
-          '.like-cake-overlay',
-        ],
-      },
-      includeScreenshot
-        ? {
-            // Screenshot config
-            format: 'png',
-            scale: 1,
-            fullPage: false,
-            excludeSelectors: ['[data-like-cake-ignore]', '.like-cake-overlay'],
-          }
-        : undefined
-    );
-
-    // If no screenshot requested, remove it from the result
-    if (!includeScreenshot) {
-      return { dom: snapshot.dom };
+  } else {
+    navigationEventBuffer.push(navEvent);
+    if (navigationEventBuffer.length > NAV_BUFFER_MAX_SIZE) {
+      navigationEventBuffer.shift();
     }
-
-    console.log('[Like Cake] Snapshot captured successfully');
-    return snapshot;
-  } catch (error) {
-    console.error('[Like Cake] Failed to capture snapshot:', error);
-    throw error;
   }
 }
 
-// ============================================
-// Playback Functions
-// ============================================
-
-/**
- * Initialize playback with a scenario
- */
-async function initializePlayback(scenario: Scenario): Promise<void> {
-  // Clean up existing player
-  if (player) {
-    player.stop();
-  }
-
-  // Create adapter and player
-  playbackAdapter = new ExtensionAdapter();
-  await playbackAdapter.initialize();
-
-  player = new StepPlayer(playbackAdapter, {
-    defaultTimeout: 30000,
-    screenshotOnFailure: true,
-    continueOnFailure: false,
-    pauseOnFailure: true,
-  });
-
-  // Set up event listeners
-  player.on('stepStart', (event) => {
-    const { stepIndex, step } = event.data;
-    notifyServiceWorker('PLAYBACK_STEP_START', { stepIndex, step });
-    console.log(`[Like Cake] Step ${stepIndex} started:`, step?.type);
-  });
-
-  player.on('stepComplete', (event) => {
-    const { stepIndex, result } = event.data;
-    notifyServiceWorker('PLAYBACK_STEP_COMPLETE', {
-      stepIndex,
-      result: result
-        ? {
-            status: result.status,
-            duration: result.duration,
-            error: result.error,
-          }
-        : undefined,
-    });
-    console.log(`[Like Cake] Step ${stepIndex} completed:`, result?.status);
-  });
-
-  player.on('stateChange', (event) => {
-    const { state } = event.data;
-    console.log(`[Like Cake] Playback state changed:`, state);
-  });
-
-  player.on('playbackComplete', () => {
-    notifyServiceWorker('PLAYBACK_COMPLETED', {});
-    console.log('[Like Cake] Playback completed');
-  });
-
-  player.on('playbackError', (event) => {
-    notifyServiceWorker('PLAYBACK_ERROR', {
-      error: event.data.error?.message ?? 'Unknown error',
-      stepIndex: event.data.stepIndex,
-    });
-    console.error('[Like Cake] Playback error:', event.data.error);
-  });
-
-  // Load scenario
-  player.load(scenario);
-  console.log('[Like Cake] Playback initialized with scenario:', scenario.id);
-}
-
-/**
- * Start or resume playback
- */
-async function startPlayback(): Promise<void> {
-  if (!player) {
-    throw new Error('Player not initialized');
-  }
-
-  await player.play();
-}
-
-/**
- * Pause playback
- */
-function pausePlayback(): void {
-  if (player) {
-    player.pause();
-    console.log('[Like Cake] Playback paused');
-  }
-}
-
-/**
- * Stop playback
- */
-function stopPlayback(): void {
-  if (player) {
-    player.stop();
-    console.log('[Like Cake] Playback stopped');
-  }
-}
-
-/**
- * Execute single step
- */
-async function stepPlayback(): Promise<StepExecutionResult | null> {
-  if (!player) {
-    throw new Error('Player not initialized');
-  }
-
-  return await player.step();
-}
-
-/**
- * Get current playback state
- */
-function getPlaybackState(): { state: PlayerState; currentStepIndex: number } {
-  return {
-    state: player?.state ?? 'idle',
-    currentStepIndex: player?.currentStepIndex ?? -1,
-  };
-}
-
-/**
- * Send notification to service worker
- */
-function notifyServiceWorker(type: string, data: Record<string, unknown>): void {
-  chrome.runtime.sendMessage({ type, ...data }).catch((error) => {
-    console.warn('[Like Cake] Failed to notify service worker:', error);
-  });
-}
-
-// ============================================
-// ELEMENT INSPECT MODE (ScenarioWizard)
-// ============================================
-
-let inspectOverlay: HTMLDivElement | null = null;
-let inspectCleanup: (() => void) | null = null;
-
-function startElementInspect(): void {
-  stopElementInspect();
-
-  // Create highlight overlay
-  inspectOverlay = document.createElement('div');
-  inspectOverlay.setAttribute('data-like-cake-ignore', 'true');
-  inspectOverlay.style.cssText =
-    'position:fixed;pointer-events:none;border:2px solid #f97316;background:rgba(249,115,22,0.1);z-index:2147483647;display:none;transition:all 0.05s ease;border-radius:2px;';
-  document.documentElement.appendChild(inspectOverlay);
-
-  const overlay = inspectOverlay;
-
-  const handleMouseMove = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (!target || target === overlay || target.hasAttribute?.('data-like-cake-ignore')) return;
-
-    const rect = target.getBoundingClientRect();
-    overlay.style.left = `${rect.left}px`;
-    overlay.style.top = `${rect.top}px`;
-    overlay.style.width = `${rect.width}px`;
-    overlay.style.height = `${rect.height}px`;
-    overlay.style.display = 'block';
-  };
-
-  const handleClick = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    const target = e.target as Element;
-    if (!target || target === overlay || target.hasAttribute?.('data-like-cake-ignore')) return;
-
-    const interactiveEl = findInteractiveAncestor(target) || target;
-    const info = extractElementInfo(interactiveEl, 3, true);
-
-    chrome.runtime
-      .sendMessage({
-        type: 'ELEMENT_INSPECTED',
-        elementInfo: info,
-      })
-      .catch(() => {});
-
-    stopElementInspect();
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      stopElementInspect();
-      chrome.runtime.sendMessage({ type: 'ELEMENT_INSPECTED', elementInfo: null }).catch(() => {});
-    }
-  };
-
-  document.addEventListener('mousemove', handleMouseMove, true);
-  document.addEventListener('click', handleClick, true);
-  document.addEventListener('keydown', handleKeyDown, true);
-
-  inspectCleanup = () => {
-    document.removeEventListener('mousemove', handleMouseMove, true);
-    document.removeEventListener('click', handleClick, true);
-    document.removeEventListener('keydown', handleKeyDown, true);
-  };
-
-  console.log('[Like Cake] Element inspect mode started');
-}
-
-function stopElementInspect(): void {
-  inspectCleanup?.();
-  inspectCleanup = null;
-
-  if (inspectOverlay) {
-    inspectOverlay.remove();
-    inspectOverlay = null;
-  }
+function handleFallbackApiCall(event: CustomEvent): void {
+  const apiCall = event.detail;
+  if (!apiCall?.request) return;
+  sendApiCallToBackground(apiCall);
 }
 
 // ============================================
@@ -589,26 +119,40 @@ function handleMessage(
   sendResponse: (response: unknown) => void
 ): boolean {
   switch (message.type) {
+    case 'ENABLE_FALLBACK_LISTENERS': {
+      enableFallbackListeners();
+      sendResponse({ success: true });
+      break;
+    }
+
+    case 'DISABLE_FALLBACK_LISTENERS': {
+      disableFallbackListeners();
+      sendResponse({ success: true });
+      break;
+    }
+
     case 'START_RECORDING': {
       if (!isInitialized) {
-        initializeCollector(message.config);
+        const components = initializeCollector(message.config);
+        collector = components.collector;
+        idleDetector = components.idleDetector;
+        domTracker = components.domTracker;
+        isInitialized = true;
       }
       collector?.start();
       idleDetector?.start();
       domTracker?.start();
 
-      // Notify main world to start capturing and flush buffered API calls
       notifyMainWorldRecordingState(true);
 
-      // Send initial navigation event for current URL
       sendNavigationEvent({
         type: 'initial',
         url: window.location.href,
         timestamp: Date.now(),
       });
 
-      // Flush any buffered navigation events from before recording started
-      flushNavigationBuffer();
+      flushNavigationBuffer(navigationEventBuffer);
+      navigationEventBuffer = [];
 
       sendResponse({
         success: true,
@@ -625,8 +169,10 @@ function handleMessage(
       idleDetector?.stop();
       domTracker?.stop();
 
-      // Notify main world to stop capturing
       notifyMainWorldRecordingState(false);
+
+      // Disable fallback listeners if they were active
+      disableFallbackListeners();
 
       sendResponse({
         success: true,
@@ -675,8 +221,6 @@ function handleMessage(
     }
 
     case 'GET_API_CALLS': {
-      // API calls are now managed by background service worker
-      // Forward request to background
       sendResponse({ apiCalls: [] });
       break;
     }
@@ -686,7 +230,6 @@ function handleMessage(
       const includeScreenshot = snapshotMessage.includeScreenshot ?? true;
       const snapshotLabel = snapshotMessage.label;
 
-      // Capture snapshot asynchronously
       captureSnapshotInternal(includeScreenshot)
         .then((snapshot) => {
           sendSnapshotToBackground(snapshot, snapshotLabel);
@@ -699,7 +242,6 @@ function handleMessage(
           });
         });
 
-      // Return true to indicate we'll send response asynchronously
       return true;
     }
 
@@ -715,11 +257,13 @@ function handleMessage(
       break;
     }
 
-    // Playback messages
     case 'START_PLAYBACK': {
       const playbackMessage = message as StartPlaybackMessage;
       initializePlayback(playbackMessage.scenario)
-        .then(() => startPlayback())
+        .then((components) => {
+          player = components.player;
+          return startPlayback(player);
+        })
         .then(() => sendResponse({ success: true }))
         .catch((error) => {
           console.error('[Like Cake] Playback failed:', error);
@@ -728,11 +272,13 @@ function handleMessage(
             error: error instanceof Error ? error.message : String(error),
           });
         });
-      return true; // Keep channel open for async
+      return true;
     }
 
     case 'PAUSE_PLAYBACK': {
-      pausePlayback();
+      if (player) {
+        pausePlayback(player);
+      }
       sendResponse({ success: true });
       break;
     }
@@ -748,13 +294,22 @@ function handleMessage(
     }
 
     case 'STOP_PLAYBACK': {
-      stopPlayback();
+      if (player) {
+        stopPlayback(player);
+      }
       sendResponse({ success: true });
       break;
     }
 
     case 'STEP_PLAYBACK': {
-      stepPlayback()
+      if (!player) {
+        sendResponse({
+          success: false,
+          error: 'Player not initialized',
+        });
+        return true;
+      }
+      stepPlayback(player)
         .then((result) => sendResponse({ success: true, result }))
         .catch((error) => {
           sendResponse({
@@ -762,11 +317,11 @@ function handleMessage(
             error: error instanceof Error ? error.message : String(error),
           });
         });
-      return true; // Keep channel open for async
+      return true;
     }
 
     case 'GET_PLAYBACK_STATE': {
-      sendResponse(getPlaybackState());
+      sendResponse(getPlaybackState(player));
       break;
     }
 
@@ -786,7 +341,7 @@ function handleMessage(
       sendResponse({ error: 'Unknown message type' });
   }
 
-  return true; // Keep channel open for async response
+  return true;
 }
 
 // Listen for messages

@@ -1,5 +1,5 @@
 import type { TrackedMutation } from '@like-cake/event-collector';
-import type { Message } from '../shared/messages';
+import type { InterceptionMode, Message } from '../shared/messages';
 import {
   getCurrentSession,
   getPlaybackSession,
@@ -8,6 +8,8 @@ import {
   saveCurrentSession,
   savePlaybackSession,
 } from '../shared/storage';
+import { detachAll } from './handlers/cdp-network-handler';
+import { stopListening as stopNavigationListening } from './handlers/navigation-handler';
 
 /**
  * Shared state for the service worker.
@@ -23,6 +25,9 @@ export let playbackCache: PlaybackSession | null = null;
 
 // Auto-assertion: pending DOM mutations buffer
 export let pendingDomMutations: TrackedMutation[] = [];
+
+// Current interception mode for API capture
+export let interceptionMode: InterceptionMode = 'none';
 
 // --- State setters (needed because `let` exports are read-only to consumers) ---
 
@@ -40,6 +45,10 @@ export function setPlaybackCache(session: PlaybackSession | null): void {
 
 export function setPendingDomMutations(mutations: TrackedMutation[]): void {
   pendingDomMutations = mutations;
+}
+
+export function setInterceptionMode(mode: InterceptionMode): void {
+  interceptionMode = mode;
 }
 
 /**
@@ -66,6 +75,11 @@ export async function initializeCache(): Promise<void> {
   }
 
   activeTabId = null;
+  interceptionMode = 'none';
+
+  // Cleanup stale CDP connections from previous service worker lifetime
+  await detachAll();
+  stopNavigationListening();
 }
 
 /**
