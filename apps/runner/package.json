@@ -40,7 +40,7 @@
     "@biomejs/biome": "^2.2.5",
     "@like-cake/tsconfig": "*",
     "@types/node": "^25",
-    "tsup": "~8.5.0",
+    "tsup": "~8.5.1",
     "tsx": "^4.19.4",
     "typescript": "~5.9.2",
     "vitest": "^2.0.0"
