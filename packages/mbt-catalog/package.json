@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@like-cake/ast-types": "*",
-    "xstate": "^5.28.0"
+    "xstate": "^5.29.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",
