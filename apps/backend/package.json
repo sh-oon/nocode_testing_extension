@@ -33,7 +33,7 @@
     "@biomejs/biome": "^2.2.5",
     "@like-cake/tsconfig": "*",
     "@types/better-sqlite3": "^7.6.12",
-    "@types/node": "^24",
+    "@types/node": "^25",
     "@types/ws": "^8.5.13",
     "tsup": "~8.5.0",
     "tsx": "^4.19.4",
