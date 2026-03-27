@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # GitHub Actions
+  # GitHub Actions — patch/minor only
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
@@ -8,6 +8,9 @@ updates:
     labels:
       - 'dependencies'
       - 'github-actions'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   # Yarn workspace root
   - package-ecosystem: 'npm'
@@ -20,10 +23,12 @@ updates:
       dev-dependencies:
         patterns:
           - '@biomejs/*'
-          - 'typescript'
           - 'turbo'
+    ignore:
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
-  # Packages
+  # Packages — ui only (utils, create-bomb-boilerplate removed)
   - package-ecosystem: 'npm'
     directory: '/packages/ui'
     schedule:
@@ -31,20 +36,6 @@ updates:
     labels:
       - 'dependencies'
       - 'packages'
-
-  - package-ecosystem: 'npm'
-    directory: '/packages/utils'
-    schedule:
-      interval: 'weekly'
-    labels:
-      - 'dependencies'
-      - 'packages'
-
-  - package-ecosystem: 'npm'
-    directory: '/packages/create-bomb-boilerplate'
-    schedule:
-      interval: 'weekly'
-    labels:
-      - 'dependencies'
-      - 'packages'
-
+    ignore:
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']

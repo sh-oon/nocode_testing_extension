@@ -1970,6 +1970,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/chrome@npm:0.1.36":
+  version: 0.1.36
+  resolution: "@types/chrome@npm:0.1.36"
+  dependencies:
+    "@types/filesystem": "npm:*"
+    "@types/har-format": "npm:*"
+  checksum: 10c0/afeb5fe87d743b7db2bf0fa2df7e1bec5b700614512b1de5c0b25c0b71eba54cce41d36606801fa2d1c55c984c3b4ec13736ea132a8c269e16d445bda176bb29
+  languageName: node
+  linkType: hard
+
 "@types/chrome@npm:^0.0.287":
   version: 0.0.287
   resolution: "@types/chrome@npm:0.0.287"
@@ -4282,6 +4292,7 @@ __metadata:
   dependencies:
     "@biomejs/biome": "npm:^2.2.5"
     "@like-cake/tsconfig": "npm:*"
+    "@types/chrome": "npm:0.1.36"
     glob: "npm:^11.0.0"
     puppeteer: "npm:^24.34.0"
     tsx: "npm:^4.19.4"
