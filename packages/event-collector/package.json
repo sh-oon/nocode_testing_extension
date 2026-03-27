@@ -27,11 +27,11 @@
     "@like-cake/selector-engine": "*"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.4.9",
     "@like-cake/tsconfig": "*",
     "jsdom": "^26.1.0",
     "tsup": "~8.5.0",
-    "typescript": "~5.9.2",
+    "typescript": "~6.0.2",
     "vitest": "^2.0.0"
   }
 }

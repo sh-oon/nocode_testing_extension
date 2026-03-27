@@ -17,13 +17,13 @@
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.4.9",
     "@like-cake/tsconfig": "*",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.3",
     "react": "^19.2.0",
     "tsup": "~8.5.0",
-    "typescript": "~5.9.2"
+    "typescript": "~6.0.2"
   },
   "peerDependencies": {
     "react": "^19.2.0"
